@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
+<title>B4 Indicators Developer Kit | Free B4 Signal API for NinjaTrader 8</title>
+<meta name="description" content="Free B4 Signal API v1, three demo NinjaTrader 8 indicators and the B4 NinjaTrader 8 skill library for AI-assisted indicator development.">
+<link rel="canonical" href="https://www.b4indicators.com/">
+<meta property="og:title" content="B4 Indicators Developer Kit"><meta property="og:description" content="Free B4 Signal API, demo NinjaTrader 8 indicators and a skill library for building indicators.">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--navy:#071421;--navy2:#0b1f2e;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--max:1180px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--teal2)}.wrap{width:min(var(--max),calc(100% - 40px));margin:auto}
+code,pre{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+header{position:sticky;top:0;z-index:20;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{height:68px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#102738;font-weight:700;letter-spacing:.14em;font-size:14px}
+.brand small{display:block;font-size:9px;letter-spacing:.18em;color:#687c87;font-weight:600}
+.mark{width:40px;height:40px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
+.navlinks{display:flex;gap:22px;font-size:14px;font-weight:600}.navlinks a{color:#354a58;text-decoration:none}.navlinks a:hover{color:var(--teal2)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:12px 20px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal);transition:.18s}
+.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.ghost{background:transparent;color:#fff;border-color:#5c7786}.btn.dark{background:var(--navy);border-color:var(--navy);color:#fff}
+.kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+h1,h2,h3{font-weight:300;letter-spacing:-.01em;line-height:1.1}
+/* hero: pinned backdrop, content scrolls over it */
+.hero{position:relative;isolation:isolate;overflow:hidden;color:#fff;padding:96px 0 84px;background:var(--navy)}
+.hero-bg{position:absolute;inset:-10% 0;z-index:-1;background:radial-gradient(ellipse at 80% 10%,#1c736e70,transparent 42%),radial-gradient(ellipse at 10% 90%,#0a353d,transparent 50%),linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d);transform:translate3d(0,var(--py,0px),0)}
+.hero-grid{display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
+.hero .kicker{color:#61e5d1}.hero h1{font-size:clamp(38px,5vw,62px);font-weight:200;margin:14px 0 18px}.hero h1 em{font-style:normal;color:var(--glow);font-weight:300}
+.lead{font-size:20px;font-weight:300;color:#c2d3dc;max-width:620px;margin:0}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.code-card{background:#081722;border:1px solid #24475a;border-radius:16px;box-shadow:0 30px 70px #0007;overflow:hidden}
+.code-card .bar{display:flex;gap:7px;padding:12px 16px;border-bottom:1px solid #1d3442;align-items:center;font-size:12px;color:#7f97a2}
+.dot{width:10px;height:10px;border-radius:50%;background:#2a4757}.code-card pre{margin:0;padding:18px 20px;font-size:12.5px;line-height:1.7;color:#cfe3e8;overflow-x:auto}
+.k{color:#5ee4cf}.t{color:#e6c34a}.c{color:#6f8b97}.s{color:#9fd3ff}
+section{padding:84px 0}.sectionhead{max-width:760px;margin-bottom:30px}.sectionhead h2{font-size:clamp(30px,3.6vw,46px);margin:10px 0 14px;color:#102638}.sectionhead p{color:var(--muted);margin:0}
+.api-table{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.api-row{display:grid;grid-template-columns:1.2fr .9fr 2fr;gap:16px;padding:16px 22px;border-top:1px solid var(--line);align-items:center;font-size:15px}
+.api-row:first-child{border-top:0;background:#f4f9fa;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.api-row code{font-size:13.5px;color:#087d73;font-weight:500}
+.rules{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:20px}
+.rule{background:#fff;border:1px solid var(--line);border-radius:14px;padding:20px}.rule h3{font-size:18px;font-weight:500;margin:0 0 6px}.rule p{margin:0;font-size:14.5px;color:var(--muted)}
+.dark{background:linear-gradient(180deg,#071421,#0a1c2a);color:#e8f3f6}.dark .sectionhead h2{color:#fff}.dark .sectionhead p{color:#b4c8d1}.dark .kicker{color:#61e5d1}
+.demo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.demo{background:#0c2232;border:1px solid #24475a;border-radius:16px;padding:26px;display:flex;flex-direction:column}
+.demo .tag{font-family:"JetBrains Mono",monospace;font-size:12px;color:#7f97a2}.demo h3{font-size:24px;margin:10px 0 8px;color:#fff}
+.demo p{color:#bcd0d9;font-size:15px;margin:0 0 14px}.demo ul{margin:0 0 20px;padding-left:18px;color:#c9dbe2;font-size:14px}.demo li{margin:5px 0}
+.demo .btn{margin-top:auto;align-self:flex-start}
+.skill-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px}
+.skill{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px 26px 22px;box-shadow:0 14px 36px #0b23300d;transition:transform .2s,box-shadow .2s,border-color .2s;overflow:hidden}
+.skill:before{content:"";position:absolute;inset:0 0 auto;height:4px;background:linear-gradient(90deg,var(--teal),#9fd3ff)}
+.skill:hover{transform:translateY(-3px);box-shadow:0 20px 44px #0b233018;border-color:#9ee3d6}
+.skill .num{font-family:"JetBrains Mono",monospace;font-size:12px;color:var(--teal2)}.skill h3{font-size:22px;margin:8px 0 6px}
+.skill code{font-size:12.5px;background:var(--mint);color:#08735f;padding:2px 7px;border-radius:6px}
+.skill p{color:var(--muted);font-size:15px;margin:12px 0}.skill .use{font-size:13px;color:#2c4150;border-top:1px solid var(--line);padding-top:12px;margin:0}
+.skill .use b{color:var(--ink)}
+.install{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px}
+.panel{background:#fff;border:1px solid var(--line);border-radius:16px;padding:26px}.panel h3{font-size:22px;margin:0 0 10px}.panel ol{margin:0;padding-left:20px;color:#2c4150}.panel li{margin:8px 0}
+.panel code{font-size:13px;background:#f1f4f6;padding:2px 6px;border-radius:6px}
+.note{background:#fff8e8;border:1px solid #eadcb9;color:#6e5a30;border-radius:12px;padding:16px 18px;margin-top:22px;font-size:14px}
+footer{background:#06121d;color:#a6bbc5;padding:44px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:920px;line-height:1.7}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+@media(max-width:900px){.hero-grid,.install{grid-template-columns:1fr}.demo-grid,.rules{grid-template-columns:1fr}.api-row{grid-template-columns:1fr;gap:4px}.api-row:first-child{display:none}.navlinks{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-bg{transform:none!important}.skill,.btn{transition:none}}
+.announcement{background:#0e2c3c;color:#cce7e8;font-size:12px;text-align:center;padding:8px 16px}.announcement strong{color:#63e4ce}.announcement a{color:#cce7e8;text-decoration:underline;text-underline-offset:2px}.announcement a:hover{color:#63e4ce}
+</style>
+</head>
+<body>
+<div class="announcement"><strong>BLACK FRIDAY 2026</strong> · <a href="https://b4signals.com/#black-friday">B4 memberships and B4 Quantum, the AI Automated Trade Desk, arriving this Black Friday.</a></div>
+<header><div class="wrap nav"><a class="brand" href="#top"><span class="mark">B4</span><span>B4 INDICATORS<small>DEVELOPER KIT</small></span></a>
+<nav class="navlinks" aria-label="Main"><a href="#api">B4 Signal API</a><a href="#demos">Demo indicators</a><a href="#skills">Skill library</a><a href="#install">Install</a><a href="https://www.b4signals.com/">B4Signals.com</a></nav>
+<a class="btn" href="developer-kit/downloads/B4-Developer-Kit.zip" download>Download kit</a></div></header>
+<main id="top">
+<section class="hero" aria-labelledby="hero-title"><div class="hero-bg" aria-hidden="true"></div><div class="wrap hero-grid"><div>
+<div class="kicker">Free · B4 Signal API v1 · NinjaTrader 8</div>
+<h1 id="hero-title">Build indicators that <em>speak B4.</em></h1>
+<p class="lead">The free B4 Signal API, three ready-to-learn demo indicators and the B4 NinjaTrader 8 skill library for AI-assisted development. Everything you need to publish entry and confirmation signals the B4 way.</p>
+<div class="actions"><a class="btn" href="developer-kit/downloads/B4-Developer-Kit.zip" download>Download the free kit ↓</a><a class="btn ghost" href="#api">Read the API</a></div></div>
+<div class="code-card" aria-label="Example: publishing a B4 signal"><div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; OnBarUpdate()</div>
+<pre><span class="c">// reset, then publish for the current bar</span>
+b4BuySignal[<span class="t">0</span>]  = <span class="k">false</span>;
+b4SellSignal[<span class="t">0</span>] = <span class="k">false</span>;
+b4ConfirmationDirection[<span class="t">0</span>] = <span class="t">0</span>;
+
+<span class="k">if</span> (B4UseEntrySignals) {
+    b4BuySignal[<span class="t">0</span>]  = CrossAbove(fast, slow, <span class="t">1</span>);
+    b4SellSignal[<span class="t">0</span>] = CrossBelow(fast, slow, <span class="t">1</span>);
+}
+<span class="k">if</span> (B4UseConfirmations)
+    b4ConfirmationDirection[<span class="t">0</span>] =
+        fast[<span class="t">0</span>] &gt; slow[<span class="t">0</span>] ? <span class="t">1</span> : <span class="t">-1</span>;</pre></div></div></section>
+
+<section id="api" aria-labelledby="api-title"><div class="wrap"><div class="sectionhead"><div class="kicker">B4 Signal API v1</div><h2 id="api-title">Five members. One clear contract.</h2>
+<p>Add these members to any NinjaTrader 8 indicator and its signals can be read by B4 tools and by any other NinjaScript, exactly like built-in indicator series. The API publishes signals only; it never places orders.</p></div>
+<div class="api-table" role="table" aria-label="B4 Signal API v1 members">
+<div class="api-row" role="row"><span role="columnheader">Member</span><span role="columnheader">Type</span><span role="columnheader">Meaning</span></div>
+<div class="api-row" role="row"><span role="cell"><code>B4UseEntrySignals</code></span><span role="cell">bool setting</span><span role="cell">Turns entry signals on or off (default on)</span></div>
+<div class="api-row" role="row"><span role="cell"><code>B4UseConfirmations</code></span><span role="cell">bool setting</span><span role="cell">Turns the confirmation series on or off (default on)</span></div>
+<div class="api-row" role="row"><span role="cell"><code>B4BuySignals</code></span><span role="cell">Series&lt;bool&gt;</span><span role="cell"><b>true</b> only on the bar that produced a buy signal</span></div>
+<div class="api-row" role="row"><span role="cell"><code>B4SellSignals</code></span><span role="cell">Series&lt;bool&gt;</span><span role="cell"><b>true</b> only on the bar that produced a sell signal</span></div>
+<div class="api-row" role="row"><span role="cell"><code>B4ConfirmationDirections</code></span><span role="cell">Series&lt;int&gt;</span><span role="cell"><b>1</b> long bias, <b>-1</b> short bias, <b>0</b> none, for the current bar</span></div>
+</div>
+<div class="rules">
+<div class="rule"><h3>Pulse, then reset</h3><p>Reset every bar to false / false / 0, then publish. A signal is true only on the bar it happened.</p></div>
+<div class="rule"><h3>Exact names, exact attributes</h3><p>Tools match by name. Keep the types, the settings group "B4 CoPilot Pro Integration" and the empty setters.</p></div>
+<div class="rule"><h3>Signals, never orders</h3><p>API indicators publish information only. Execution stays with a strategy or tool the trader controls.</p></div>
+</div>
+<div class="actions"><a class="btn dark" href="developer-kit/skills/nt8-b4-signal-api/SKILL.md">Full API guide</a><a class="btn dark" href="developer-kit/skills/nt8-b4-signal-api/templates/B4SignalApiBlock.cs" download>Copy-paste API block (.cs)</a></div>
+</div></section>
+
+<section id="demos" class="dark" aria-labelledby="demos-title"><div class="wrap"><div class="sectionhead"><div class="kicker">Free demo projects</div><h2 id="demos-title">Three indicators to learn from.</h2>
+<p>Simple, readable NinjaScript written from scratch, each with the B4 Signal API built in. Every signal-affecting value is an adjustable setting.</p></div>
+<div class="demo-grid">
+<article class="demo"><span class="tag">B4ApiDemoEmaCross.cs</span><h3>EMA Cross</h3><p>A fast EMA crossing a slow EMA publishes buy and sell signals; the confirmation series reports the trend side.</p><ul><li>Settings: fast period, slow period</li><li>Confirmation: 1 while fast &gt; slow, -1 while below</li></ul><a class="btn" href="developer-kit/demos/B4ApiDemoEmaCross.cs" download>Download .cs</a></article>
+<article class="demo"><span class="tag">B4ApiDemoRsiReversal.cs</span><h3>RSI Reversal</h3><p>RSI climbing back out of oversold publishes a buy; falling back out of overbought publishes a sell.</p><ul><li>Settings: period, smoothing, oversold, overbought, midline</li><li>Confirmation: RSI above or below the midline</li></ul><a class="btn" href="developer-kit/demos/B4ApiDemoRsiReversal.cs" download>Download .cs</a></article>
+<article class="demo"><span class="tag">B4ApiDemoDonchianBreakout.cs</span><h3>Donchian Breakout</h3><p>A close beyond the previous N-bar channel publishes a breakout signal in that direction.</p><ul><li>Settings: channel period</li><li>Confirmation: direction of the most recent breakout</li></ul><a class="btn" href="developer-kit/demos/B4ApiDemoDonchianBreakout.cs" download>Download .cs</a></article>
+</div>
+<div class="actions"><a class="btn ghost" href="developer-kit/downloads/B4-API-Demos.zip" download>Download all three demos (.zip)</a></div>
+</div></section>
+
+<section id="skills" aria-labelledby="skills-title"><div class="wrap"><div class="sectionhead"><div class="kicker">B4 NinjaTrader 8 skill library</div><h2 id="skills-title">Teach your AI assistant to build NT8 the right way.</h2>
+<p>Seven skills for Claude Code and compatible AI coding tools. Each one turns hard-won NinjaTrader 8 engineering practice into a procedure, with templates and checklists.</p></div>
+<div class="skill-grid">
+<article class="skill"><span class="num">01</span><h3>Indicator Foundations</h3><code>nt8-indicator-foundations</code><p>Lifecycle states, plots, Series&lt;T&gt;, properties, bar guards, Calculate modes, anti-repaint and hot-path performance, plus a starter template.</p><p class="use"><b>Use when:</b> creating or editing any NT8 indicator.</p></article>
+<article class="skill"><span class="num">02</span><h3>B4 Signal API</h3><code>nt8-b4-signal-api</code><p>Add the five-member B4 Signal API v1 to any indicator, with a copy-paste block and a test checklist.</p><p class="use"><b>Use when:</b> an indicator should publish B4 entry and confirmation signals.</p></article>
+<article class="skill"><span class="num">03</span><h3>Adjustable Parameters</h3><code>nt8-adjustable-parameters</code><p>No hard-wired trading values. Turn every threshold, period and offset into a setting without changing behaviour.</p><p class="use"><b>Use when:</b> writing new code or removing magic numbers.</p></article>
+<article class="skill"><span class="num">04</span><h3>Build Verification</h3><code>nt8-build-verification</code><p>Eight verification gates, real compiles, an error database and an honest build report. No "should work".</p><p class="use"><b>Use when:</b> finishing any change, or a compile fails.</p></article>
+<article class="skill"><span class="num">05</span><h3>Drawing &amp; Rendering</h3><code>nt8-drawing-and-rendering</code><p>Draw.* overloads and tags, when to move to OnRender with SharpDX, resource lifetime and keeping visuals out of logic.</p><p class="use"><b>Use when:</b> adding arrows, zones, labels or custom visuals.</p></article>
+<article class="skill"><span class="num">06</span><h3>Order Flow &amp; Data</h3><code>nt8-order-flow-and-data</code><p>OnMarketData trade classification, Tick Replay, Level II depth, multiple series and keeping real versus estimated order flow honest.</p><p class="use"><b>Use when:</b> building footprint, delta, CVD, profile or DOM tools.</p></article>
+<article class="skill"><span class="num">07</span><h3>Safe Deployment</h3><code>nt8-safe-deployment</code><p>Back up, deploy only when flat, understand the automatic compile, reload charts and keep a rollback path.</p><p class="use"><b>Use when:</b> installing or updating NinjaScript on a live platform.</p></article>
+</div>
+<div class="actions"><a class="btn dark" href="developer-kit/downloads/B4-NT8-Skill-Library.zip" download>Download the skill library (.zip)</a></div>
+</div></section>
+
+<section id="install" aria-labelledby="install-title" style="padding-top:20px"><div class="wrap"><div class="sectionhead"><div class="kicker">Install</div><h2 id="install-title">Up and running in minutes.</h2></div>
+<div class="install">
+<div class="panel"><h3>Demo indicators (NinjaTrader 8)</h3><ol><li>Make sure you are flat, ideally with the market closed.</li><li>Copy the <code>.cs</code> file into <code>Documents\NinjaTrader 8\bin\Custom\Indicators\</code>.</li><li>Open the NinjaScript Editor and compile (F5); check for errors.</li><li>Add "B4 API Demo - ..." to a chart. The B4 settings sit under <b>B4 CoPilot Pro Integration</b>.</li></ol></div>
+<div class="panel"><h3>Skill library (Claude Code)</h3><ol><li>Unzip the library.</li><li>Copy a skill folder into <code>%USERPROFILE%\.claude\skills\</code> for personal use, or <code>.claude\skills\</code> inside a project.</li><li>Ask for NinjaTrader 8 work as usual; the matching skill loads automatically from its description.</li></ol></div>
+</div>
+<p class="note">The demos place no orders, read no account data and write no files. They are learning material, not trading systems. Community projects built with this kit are third-party work unless B4 reviews and supports them.</p>
+</div></section>
+</main>
+<footer><div class="wrap"><p><b style="color:#fff;letter-spacing:.14em">B4 INDICATORS</b> · part of the B4 Signals ecosystem · <a href="https://www.b4signals.com/">B4Signals.com</a></p>
+<p>For educational and research purposes only. Not trading advice. Trading involves substantial risk and is not suitable for every participant. Past performance does not guarantee future results. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+(()=>{const bg=document.querySelector('.hero-bg');const rm=matchMedia('(prefers-reduced-motion: reduce)');let t=false;
+function u(){t=false;if(rm.matches||innerWidth<650){bg.style.setProperty('--py','0px');return}bg.style.setProperty('--py',Math.min(80,scrollY*0.3).toFixed(1)+'px')}
+addEventListener('scroll',()=>{if(!t){t=true;requestAnimationFrame(u)}},{passive:true});u();})();
+</script>
+</body></html>
