@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
+<title>B4 AI Indicator Studio | Describe it. Build it.</title>
+<meta name="description" content="Describe a NinjaTrader 8 indicator and get a structured specification and a ready-to-compile NinjaScript skeleton with the B4 Signal API. Preview: template generator, no AI yet.">
+<link rel="canonical" href="https://www.b4indicators.com/studio/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--navy:#071421;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--max:1180px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--teal2)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+header{position:sticky;top:0;z-index:20;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#102738;font-weight:700;letter-spacing:.14em;font-size:14px}
+.brand small{display:block;font-size:9px;letter-spacing:.18em;color:#687c87;font-weight:600}
+.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
+.navlinks{display:flex;gap:20px;font-size:14px;font-weight:600}.navlinks a{color:#354a58;text-decoration:none}.navlinks a:hover,.navlinks a[aria-current]{color:var(--teal2)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:11px 19px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal);cursor:pointer;font-family:inherit}
+.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.line{background:#fff;color:#20394a;border-color:var(--line)}.btn.line:hover{border-color:var(--teal)}.btn.dark{background:var(--navy);border-color:var(--navy);color:#fff}
+.top{background:linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d);color:#fff;padding:46px 0 36px}
+.top .kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#61e5d1}
+.top h1{font-weight:200;font-size:clamp(32px,4.4vw,52px);margin:10px 0 8px;line-height:1.1}.top h1 em{font-style:normal;color:var(--glow);font-weight:300}
+.top p{color:#c2d3dc;max-width:780px;margin:0;font-weight:300;font-size:18px}
+.preview{display:inline-flex;margin-top:16px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;background:#fff6dd;color:#8a5a00;border:1px solid #ecd38f}
+main{padding:26px 0 60px}
+.grid{display:grid;grid-template-columns:420px minmax(0,1fr);gap:18px;align-items:start}.grid>*{min-width:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
+.card h2{font-size:18px;font-weight:600;margin:0 0 10px;letter-spacing:0}
+.step{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2);margin-bottom:4px}
+textarea,input,select{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #cfdce2;border-radius:10px;background:#fff;color:var(--ink)}
+textarea{min-height:110px;resize:vertical}
+label{display:block;font-size:13px;font-weight:600;color:#3b5060;margin:12px 0 4px}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.checks{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:14px}.checks label{display:flex;gap:6px;align-items:center;margin:0;font-weight:500}.checks input{width:auto}
+.hint{font-size:13px;color:var(--muted);margin:8px 0 0}
+.out{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}.out>*{min-width:0}
+.spec{width:100%;border-collapse:collapse;font-size:14.5px}.spec td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}.spec td:first-child{font-weight:600;width:130px;color:#3b5060}
+.status{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:#eef4f6;color:#36556a;border:1px solid #cdd9e0;margin-right:6px}
+.status.ok{background:var(--mint);color:#07604f;border-color:#9ee3d6}
+.codewrap{position:relative;border-radius:12px;overflow:hidden;background:#0b1b27}
+.codewrap pre{margin:0;padding:16px 18px;font-size:12.6px;line-height:1.6;color:#d6e6eb;overflow:auto;max-height:520px;tab-size:4}
+.codewrap.locked pre{max-height:360px;overflow:hidden}
+.codewrap.locked:after{content:"";position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(180deg,#0b1b2700,#0b1b27 85%)}
+.unlock{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:2}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
+.roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}.roadmap div{background:#f6fafb;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13.5px;color:#3b5060}.roadmap b{display:block;color:var(--ink);font-size:14px}
+footer{background:#06121d;color:#a6bbc5;padding:36px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:920px;line-height:1.7}
+dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px #0008}dialog.gate::backdrop{background:#04101acc}
+.gate-in{padding:26px 26px 22px}.gate-in h2{font-weight:300;font-size:28px;margin:6px 0 8px;line-height:1.15}.gate-in .k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#087d73}
+.gate-in p{margin:0 0 12px;color:#5f7180;font-size:15px}.gate-in small{display:block;color:#7a8c97;font-size:12px;margin-top:10px}
+.gate-x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:24px;line-height:1;color:#7a8c97;cursor:pointer}
+.gate .kajabi-form__title,.gate .kajabi-form__subtitle{display:none!important}.gate #kajabi-form{background:transparent!important;padding:0!important;max-width:none!important}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+@media(max-width:980px){.grid{grid-template-columns:1fr}.navlinks{display:none}.roadmap{grid-template-columns:1fr}}
+@media(max-width:560px){header .nav>.btn{display:none}.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>AI INDICATOR STUDIO</small></span></a>
+<nav class="navlinks" aria-label="Main"><a href="../">Developer kit</a><a href="../repository/">Repository</a><a href="../ai/">B4 Indicator AI</a><a href="./" aria-current="page">Studio</a></nav>
+<a class="btn" href="../repository/">Open the repository</a></div></header>
+
+<section class="top"><div class="wrap">
+<div class="kicker">B4 AI Indicator Studio</div>
+<h1>Describe it. <em>Build it.</em></h1>
+<p>Describe a NinjaTrader 8 indicator in plain words. The Studio turns it into a structured specification and a NinjaScript indicator with the B4 Signal API wired in, ready for you to compile and test.</p>
+<span class="preview">Preview · template generator, no AI yet</span>
+</div></section>
+
+<main><div class="wrap grid">
+<div class="card">
+<div class="step">1 · Describe</div><h2>What should your indicator do?</h2>
+<textarea id="desc" aria-label="Describe your indicator">Create an indicator called Trend Turn that shows when the 9 EMA crosses the 21 EMA, with arrows and alerts.</textarea>
+<button class="btn dark" id="read" type="button" style="margin-top:10px">Read my description</button>
+<p class="hint">Preview: this reads keywords such as EMA, RSI, CCI, Stochastics, Bollinger, Keltner, Donchian, breakout, reversal, alerts and numbers. It is not AI. Check and adjust the choices below.</p>
+
+<div class="step" style="margin-top:22px">2 · Adjust</div>
+<label for="name">Indicator name</label><input id="name">
+<label for="template">Type</label>
+<select id="template"><option value="ma_cross">Moving-average cross</option><option value="level_cross">Oscillator level cross</option><option value="band_break">Band breakout / reversal</option></select>
+<div id="f-ma"><div class="row"><div><label for="maType">Average</label><select id="maType"><option>EMA</option><option>SMA</option><option>WMA</option><option>HMA</option></select></div>
+<div><label for="fast">Fast period</label><input id="fast" type="number" min="1"></div></div>
+<label for="slow">Slow period</label><input id="slow" type="number" min="2"></div>
+<div id="f-osc"><div class="row"><div><label for="osc">Oscillator</label><select id="osc"><option>RSI</option><option>CCI</option><option>Stochastics</option></select></div>
+<div><label for="period">Period</label><input id="period" type="number" min="2"></div></div>
+<div class="row"><div><label for="upper">High zone</label><input id="upper" type="number"></div><div><label for="lower">Low zone</label><input id="lower" type="number"></div></div></div>
+<div id="f-band"><div class="row"><div><label for="band">Bands</label><select id="band"><option>Bollinger</option><option>Keltner</option><option>Donchian</option></select></div>
+<div><label for="bandMode">Signal</label><select id="bandMode"><option value="breakout">Breakout</option><option value="reversal">Reversal</option></select></div></div>
+<div class="row"><div><label for="bperiod">Period</label><input id="bperiod" type="number" min="2"></div><div><label for="width">Width</label><input id="width" type="number" step="0.1" min="0.1"></div></div></div>
+<div class="checks"><label><input type="checkbox" id="arrows"> Arrows</label><label><input type="checkbox" id="alerts"> Alerts</label><label><input type="checkbox" id="colorBars"> Colour signal bars</label></div>
+</div>
+
+<div class="out">
+<div class="card"><div class="step">3 · Specification</div><h2>What your indicator will do</h2><table class="spec" id="spec"></table></div>
+<div class="card"><div class="bar"><div><div class="step">4 · Code</div><span class="status ok">Templates compile-checked</span><span class="status">This file: generated, not yet compiled</span></div>
+<div style="display:flex;gap:8px"><button class="btn line" id="copy" type="button">Copy code</button><button class="btn" id="dl" type="button">Download .cs</button></div></div>
+<div class="codewrap locked" id="cw"><pre id="code"></pre><button class="btn unlock" id="unlock" type="button">Unlock the full code (free)</button></div>
+<p class="hint">Next: copy the file into <code>Documents\NinjaTrader 8\bin\Custom\Indicators\</code> while you are flat, compile (F5) and test in simulation. It publishes B4 Signal API signals, so it works with <a href="../#copilot-dev">B4 CoPilot Dev</a> as a signal, filter or exit tool.</p></div>
+<div class="card"><div class="step">Coming next</div><h2>The full Studio</h2>
+<div class="roadmap"><div><b>AI generation</b>Plain-language requests beyond templates, with clarifying questions.</div><div><b>Real validation</b>Compile and test runs in an isolated environment, with honest status labels.</div><div><b>Projects and versions</b>Saved projects, version history, compare and restore.</div></div>
+<p class="hint">The full Studio will be a separate subscription. Your existing B4 membership is unchanged. Join with the form to hear when it opens.</p></div>
+</div>
+</div></main>
+
+<footer><div class="wrap"><p><b style="color:#fff;letter-spacing:.14em">B4 INDICATORS</b> · part of the B4 Signals ecosystem · <a href="https://www.b4signals.com/">B4Signals.com</a> · <a href="mailto:info@b4signals.com">info@b4signals.com</a></p>
+<p>For educational and research purposes only. Not trading advice. Generated code is a starting point: you are responsible for reviewing, compiling and testing it before use. Trading involves substantial risk. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
+
+<dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in">
+<div class="k">Free</div><h2 id="gate-title">Unlock your indicator code</h2>
+<p>Enter your name and email to copy and download Studio code. We will also email you the free B4 Developer Kit.</p>
+<div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div>
+<small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small>
+</div></dialog>
+
+<script src="gen.js"></script>
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+(function(){
+  var $=function(id){return document.getElementById(id)}, S=window.B4Studio, KEY='b4studio-unlocked', pendingAction=null;
+  function unlocked(){ try{ return localStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
+  function setSpec(sp){ var s=S.normalize(sp);
+    $('name').value=s.name; $('template').value=s.template; $('maType').value=s.maType; $('fast').value=s.fast; $('slow').value=s.slow;
+    $('osc').value=s.osc; $('period').value=s.period; $('upper').value=s.upper; $('lower').value=s.lower;
+    $('band').value=s.band; $('bandMode').value=s.bandMode; $('bperiod').value=s.period; $('width').value=s.width;
+    $('arrows').checked=s.arrows; $('alerts').checked=s.alerts; $('colorBars').checked=s.colorBars; render(); }
+  function getSpec(){ var t=$('template').value;
+    return { name:$('name').value, template:t, maType:$('maType').value, fast:$('fast').value, slow:$('slow').value, osc:$('osc').value,
+      period: t==='band_break' ? $('bperiod').value : $('period').value, upper:$('upper').value, lower:$('lower').value, band:$('band').value,
+      bandMode:$('bandMode').value, width:$('width').value, arrows:$('arrows').checked, alerts:$('alerts').checked, colorBars:$('colorBars').checked }; }
+  function render(){ var t=$('template').value;
+    $('f-ma').hidden=t!=='ma_cross'; $('f-osc').hidden=t!=='level_cross'; $('f-band').hidden=t!=='band_break';
+    var sp=getSpec(), rows=S.specLines(sp);
+    $('spec').innerHTML=rows.map(function(r){ var d=document.createElement('td'); d.textContent=r[1]; return '<tr><td>'+r[0]+'</td>'+d.outerHTML+'</tr>'; }).join('');
+    $('code').textContent=S.generate(sp);
+    var u=unlocked(); $('cw').classList.toggle('locked',!u); $('unlock').hidden=u; }
+  function fileName(){ return S.normalize(getSpec()).className+'.cs'; }
+  function doCopy(){ navigator.clipboard.writeText($('code').textContent).then(function(){ $('copy').textContent='Copied ✓'; setTimeout(function(){ $('copy').textContent='Copy code'; },1800); }); }
+  function doDownload(){ var b=new Blob([$('code').textContent],{type:'text/plain'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=fileName(); document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }
+  function gated(fn){ if(unlocked()){ fn(); return; } pendingAction=fn; openGate(); }
+  function openGate(){ var d=$('gate'); var f=d.querySelector('form'); if(f) f.target='_blank'; d.showModal(); }
+  // the email form submits in a new tab so your work stays on this page; submitting it unlocks copy and download in this browser
+  $('gate').addEventListener('submit',function(){ try{ localStorage.setItem(KEY,'1'); }catch(e){} setTimeout(function(){ $('gate').close(); render(); if(pendingAction){ var f=pendingAction; pendingAction=null; f(); } },300); },true);
+  $('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) $('gate').close(); });
+  $('read').onclick=function(){ setSpec(S.suggest($('desc').value)); };
+  $('copy').onclick=function(){ gated(doCopy); }; $('dl').onclick=function(){ gated(doDownload); }; $('unlock').onclick=function(){ gated(function(){}); };
+  ['name','template','maType','fast','slow','osc','period','upper','lower','band','bandMode','bperiod','width','arrows','alerts','colorBars'].forEach(function(id){ $(id).addEventListener('input',render); $(id).addEventListener('change',render); });
+  setSpec(S.suggest($('desc').value));
+})();
+</script>
+</body></html>
