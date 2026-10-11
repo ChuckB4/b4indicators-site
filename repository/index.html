@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
-<title>B4 Indicator Repository | Browse, learn and build NinjaTrader 8 indicators</title>
-<meta name="description" content="Browse the public B4 Indicators repository: the free B4 Signal API, demo NinjaTrader 8 indicators and the NT8 skill library for AI-assisted development.">
+<title>NinjaTrader 8 Indicator Repository & Open-Source Library | B4</title>
+<meta name="description" content="Browse free NinjaTrader 8 indicators, the B4 Signal API, demo indicators, the AI skill library and an open-source library of 140+ credited indicator, strategy and tool projects.">
 <link rel="canonical" href="https://www.b4indicators.com/repository/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
@@ -60,6 +60,18 @@ footer{background:#06121d;color:#a6bbc5;padding:36px 0;font-size:13px}footer a{c
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.navlinks{display:none}.repo{grid-template-columns:1fr}.viewer pre{max-height:60vh}}
 
+.chip.library{background:#e8f1ff;color:#1d4fa3;border:1px solid #bcd3f7}
+.libbar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:14px 0}
+.libbar button{border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 12px;font:600 13px Raleway,sans-serif;color:#36556a;cursor:pointer}
+.libbar button[aria-pressed=true]{background:var(--navy);color:#fff;border-color:var(--navy)}
+.libbar select{border:1px solid var(--line);border-radius:10px;padding:6px 10px;font:14px Raleway,sans-serif;background:#fff}
+.libwarn{background:#fff8e8;border:1px solid #eadcb9;color:#6e5a30;border-radius:12px;padding:12px 14px;font-size:14px;margin:8px 0}
+.libcard{background:#fff;border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin:10px 0}
+.libcard h3{font-size:17px;margin:0 0 4px;font-weight:600}.libcard h3 a{text-decoration:none}.libcard p{margin:4px 0 8px;color:#3b5060;font-size:14.5px}
+.libslug{font:12.5px "JetBrains Mono",ui-monospace,Consolas,monospace;color:#7a8c97;margin:0 0 2px}
+.libmeta{display:flex;flex-wrap:wrap;gap:6px 12px;font-size:12.5px;color:#5f7180}.libmeta b{color:#102231;font-weight:600}
+.lic{display:inline-block;padding:1px 8px;border-radius:999px;background:#e0f8f2;color:#07604f;border:1px solid #9ee3d6;font-weight:700;font-size:11.5px}
+.caution{display:inline-block;padding:1px 8px;border-radius:999px;background:#fdecea;color:#b42318;border:1px solid #f3b8b2;font-weight:700;font-size:11.5px}
 /* DOWNLOAD-GATE:START */
 dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px #0008}
 dialog.gate::backdrop{background:#04101acc}
@@ -113,13 +125,15 @@ const REPOS=[
  {id:'community-indicators',name:'community-indicators',status:'preview',desc:'Indicators built by the community on the public B4 Signal API. Submissions are reviewed for security, compatibility and intellectual property before they are listed. Opening soon.',
   lang:'C#',updated:'',files:[],tags:['community'],
   empty:'<p><b>No community projects are listed yet.</b> The community library opens after the review process is in place. Every listing will show its author, compatibility and an honest test status: <i>untested</i>, <i>compiles</i>, <i>historically tested</i> or <i>out-of-sample validated</i>. Popularity is never shown as proof of profitability.</p><p>Built something with the B4 Signal API? Send it to <a href="mailto:info@b4signals.com?subject=B4%20community%20indicator%20submission">info@b4signals.com</a> with a short description. Send source code you wrote yourself only.</p>'},
+ {id:'open-source-library',name:'open-source-library',status:'library',desc:'A credited catalog of free, open-source NinjaTrader 8 indicators, strategies and tools, plus indicator libraries for other platforms (Pine Script, thinkScript, C#, Rust, Python). Every project links to its source with its license and author. Third-party work, not reviewed by B4.',
+  lang:'Catalog',updated:'2026-10-11',files:[],tags:['open source','library','github','community','pine','thinkscript','nt8','indicators','strategies','tools']},
  {id:'ai-indicator-lab',name:'ai-indicator-lab',status:'preview',desc:'Your AI-assisted indicator projects: describe an idea, generate a specification and code with the skill library, then compile and validate it. Hosted project space is in development.',
   lang:'C#',updated:'',files:[],tags:['ai','lab'],
   empty:'<p><b>Hosted projects are in development.</b> You can already do this on your own computer: load the <a href="#/b4-nt8-skill-library">skill library</a> into your AI coding assistant, start from a <a href="#/b4-api-demos">demo indicator</a>, and follow the build-verification skill before anything goes on a live chart. See <a href="../ai/#build">Build with B4</a>.</p>'}
 ];
 const app=document.getElementById('app'), q=document.getElementById('q');
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-const chip=s=>s==='official'?'<span class="chip official">Official · B4 reviewed</span>':'<span class="chip preview">Preview</span>';
+const chip=s=>s==='official'?'<span class="chip official">Official · B4 reviewed</span>':s==='library'?'<span class="chip library">Open source · third party</span>':'<span class="chip preview">Preview</span>';
 const cache={};
 async function get(path){ if(cache[path]!==undefined) return cache[path]; const r=await fetch(KIT+path,{cache:'no-cache'}); if(!r.ok) throw new Error(r.status); return cache[path]=await r.text(); }
 
@@ -175,14 +189,47 @@ async function repo(r, file){
   try{ const t=await get(sel); body.innerHTML=sel.endsWith('.md')?'<div class="md">'+md(t)+'</div>':'<pre>'+(sel.endsWith('.cs')?hlCs(t):esc(t))+'</pre>'; }
   catch(e){ body.innerHTML='<p style="padding:20px">This file could not be loaded. <a href="'+KIT+sel+'">Open it directly</a>.</p>'; }
 }
+// ---- Open-Source Library: credited links to third-party projects (no code copied or hosted)
+let LIB=null, libCat='all', libLic='', libPlat='', libSort='stars';
+const CATS=[['all','All'],['nt8-indicator','NT8 indicators'],['nt8-strategy','NT8 strategies'],['nt8-tool','NT8 tools & add-ons'],['library','Other platforms'],['classic','Classic formulas']];
+async function loadLib(){ if(LIB) return LIB; const r=await fetch('library.json',{cache:'no-cache'}); if(!r.ok) throw new Error(r.status); return LIB=await r.json(); }
+async function library(){
+  app.innerHTML='<div class="crumbs"><a href="#/">repositories</a> / <b>open-source-library</b> '+chip('library')+'</div><p style="padding:10px 0">Loading the library…</p>';
+  let d; try{ d=await loadLib(); }catch(e){ app.innerHTML='<div class="empty">The library could not be loaded. Please refresh.</div>'; return; }
+  const f=(q.value||'').toLowerCase().trim();
+  const lics=[...new Set(d.items.map(i=>i.license))].sort(), plats=[...new Set(d.items.map(i=>i.platform))].sort();
+  const hit=i=>(!libLic||i.license===libLic)&&(!libPlat||i.platform===libPlat)&&(!f||[i.title,i.name,i.description,i.platform,i.license].join(' ').toLowerCase().includes(f));
+  let rows=d.items.filter(i=>(libCat==='all'||i.category===libCat)&&hit(i));
+  rows.sort((a,b)=>libSort==='updated'?String(b.updated).localeCompare(String(a.updated)):libSort==='name'?a.name.localeCompare(b.name):b.stars-a.stars);
+  const classics=d.classics.filter(c=>!f||(c.name+' '+c.source).toLowerCase().includes(f));
+  const showClassics=libCat==='all'||libCat==='classic', showItems=libCat!=='classic';
+  const count=c=>c==='all'?d.items.filter(hit).length+classics.length:c==='classic'?classics.length:d.items.filter(i=>i.category===c&&hit(i)).length;   // counts follow the search and filters
+  app.innerHTML='<div class="crumbs"><a href="#/">repositories</a> / <b>open-source-library</b> '+chip('library')+' <span>('+(showItems?rows.length:0)+(showClassics?' + '+classics.length+' classics':'')+')</span></div>'+
+   '<div class="libwarn"><b>Third-party projects, not B4 releases.</b> B4 has not reviewed this code for correctness, safety or profitability. Each project keeps its own license and belongs to its author; B4 only links to it. Read the code, compile and test on a simulation account before relying on anything. Projects marked <span class="caution">Places orders / handles logins</span> can trade or touch account access: check your broker\'s and prop firm\'s rules first.</div>'+
+   '<div class="libbar" role="group" aria-label="Category">'+CATS.map(c=>'<button type="button" data-cat="'+c[0]+'" aria-pressed="'+(libCat===c[0])+'">'+c[1]+' ('+count(c[0])+')</button>').join('')+'</div>'+
+   '<div class="libbar"><label>License <select id="libLic"><option value="">Any</option>'+lics.map(l=>'<option'+(l===libLic?' selected':'')+'>'+esc(l)+'</option>').join('')+'</select></label>'+
+   '<label>Platform <select id="libPlat"><option value="">Any</option>'+plats.map(l=>'<option'+(l===libPlat?' selected':'')+'>'+esc(l)+'</option>').join('')+'</select></label>'+
+   '<label>Sort <select id="libSort"><option value="stars"'+(libSort==='stars'?' selected':'')+'>Most stars</option><option value="updated"'+(libSort==='updated'?' selected':'')+'>Recently updated</option><option value="name"'+(libSort==='name'?' selected':'')+'>Name</option></select></label></div>'+
+   (showItems?(rows.length?rows.map(i=>'<article class="libcard"><h3><a href="'+esc(i.url)+'" target="_blank" rel="noopener nofollow">'+esc(i.title||i.name)+'</a></h3><div class="libslug">'+esc(i.author)+' / '+esc(i.repo)+'</div><p>'+esc(i.description)+'</p><div class="libmeta"><span class="lic">'+esc(i.license)+(i.copyleft?' · file-level copyleft':'')+'</span>'+
+     (i.caution?'<span class="caution">Places orders / handles logins</span>':'')+'<span><b>Author</b> '+esc(i.author)+'</span><span><b>Platform</b> '+esc(i.platform)+'</span><span><b>Stars</b> '+i.stars+'</span><span><b>Updated</b> '+esc(i.updated)+'</span>'+
+     '<span>'+({'nt8-indicator':'NT8 indicator','nt8-strategy':'NT8 strategy','nt8-tool':'NT8 tool / add-on','library':'Library'}[i.category])+'</span></div></article>').join(''):'<div class="empty">No project matches these filters.</div>'):'')+
+   (showClassics&&classics.length?'<h2 style="font-size:22px;margin:24px 0 6px">Classic formulas, coming to B4 Studio</h2><p style="color:#5f7180;margin:0 0 8px">Well-known public methods that B4 rebuilds from the published math, so no one else\'s code is involved.</p>'+
+     classics.map(c=>'<article class="libcard"><h3>'+esc(c.name)+'</h3><p>'+esc(c.source)+'</p></article>').join(''):'')+
+   '<p style="color:#7a8c97;font-size:13px">Catalog updated '+esc(d.generated)+'. Is your project listed and you would like it changed or removed? Email <a href="mailto:info@b4signals.com?subject=Open-source%20library%20listing">info@b4signals.com</a>.</p>';
+  app.querySelectorAll('[data-cat]').forEach(b=>b.onclick=()=>{ libCat=b.dataset.cat; library(); });
+  document.getElementById('libLic').onchange=e=>{ libLic=e.target.value; library(); };
+  document.getElementById('libPlat').onchange=e=>{ libPlat=e.target.value; library(); };
+  document.getElementById('libSort').onchange=e=>{ libSort=e.target.value; library(); };
+}
 function route(){
   const h=decodeURIComponent(location.hash.replace(/^#\/?/,''));
   if(!h){ list(q.value); return; }
+  if(h.split('/')[0]==='open-source-library'){ library(); scrollTo(0,0); return; }
   const [id,...rest]=h.split('/'); const r=REPOS.find(x=>x.id===id);
   if(!r){ list(); return; }
   const file=rest.join('/'); repo(r, r.files.includes(file)?file:null); scrollTo(0,0);
 }
-q.addEventListener('input',()=>{ if(location.hash&&location.hash!=='#/') location.hash='#/'; list(q.value); });
+q.addEventListener('input',()=>{ if(/^#\/?open-source-library/.test(location.hash)){ library(); return; } if(location.hash&&location.hash!=='#/') location.hash='#/'; list(q.value); });
 addEventListener('hashchange',route); route();
 </script>
 <dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in"><div class="k">Free download</div><h2 id="gate-title">Get the B4 Developer Kit</h2><p>Enter your name and email and we will send the download links straight to your inbox: the full kit, the three demo indicators and the AI skill library.</p><div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div><small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small></div></dialog>
