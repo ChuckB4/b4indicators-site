@@ -159,6 +159,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
     <div class="sec"><h3>Risk and quality review</h3><div id="review"></div></div>
     <div class="sec"><h3>Outputs</h3><ul class="list" id="outputs"></ul></div>
     <div class="sec"><h3>Tests that decide whether it works</h3><ul class="list" id="tests"></ul></div>
+    <div class="sec" id="refsWrap" hidden><h3>Open-source references (credited)</h3><ul class="list" id="refs"></ul><p class="hint">Free NinjaTrader 8 projects on GitHub to learn from. Their code is not copied into your build; each keeps its own license.</p></div>
     <div class="sec confirm"><h3>Confirm your choices</h3><div id="confirms"></div></div>
     <div class="genbar"><button class="btn" id="generate" type="button">Confirm and generate</button><span class="msg" id="genmsg" role="status" aria-live="polite"></span></div>
   </section>
@@ -216,7 +217,8 @@ var COMMUNITY_URL='https://github.com/ChuckB4/b4-community/discussions';   // th
 var ESSENTIAL={visibility:1,author:1,license:1,name:1,sig:1,maType:1,fast:1,slow:1,maLen:1,osc:1,oscLen:1,oscMode:1,upper:1,lower:1,macdMode:1,band:1,bandLen:1,width:1,bandMode:1,nbarLen:1,dmiLen:1,candle:1,
   side:1,fTrend:1,fTrendLen:1,fSess:1,sessStart:1,sessEnd:1,alerts:1,alertSound:1,marker:1,buyColor:1,sellColor:1,entryType:1,qtyMode:1,qty:1,riskUsd:1,maxQty:1,exitOpp:1,reverse:1,
   stopMode:1,stopTicks:1,stopAtr:1,stopPct:1,swingLen:1,tgtMode:1,tgtR:1,tgtTicks:1,tgtAtr:1,beOn:1,trailMode:1,trailTicks:1,trailAtr:1,dailyLoss:1,maxTrades:1,flatOn:1,flatTime:1,accounts:1,
-  labels:1,palette:1,fontSize:1,labelText:1,table:1,tablePos:1,alertMode:1,alertSoundSell:1,plotColor1:1,plotColor2:1};
+  labels:1,palette:1,fontSize:1,labelText:1,table:1,tablePos:1,alertMode:1,alertSoundSell:1,plotColor1:1,plotColor2:1,
+  ofDeltaMode:1,ofDelta:1,ofCvdLen:1,ofRatio:1,ofStack:1,ofVaPct:1,ofVaMode:1,ofBig:1,l2Levels:1,l2Ratio:1,l2Wall:1,l2Range:1,fpShow:1,fpMode:1};
 var st=load(), cur=null, tab='review', diffOpen=null;
 
 // ---------------------------------------------------------------- storage
@@ -286,6 +288,7 @@ function renderReview(){
   $('outputs').innerHTML=['<li><code>'+esc(s.className)+'.cs</code> - NinjaScript '+(s.kind==='s'?'strategy':'indicator')+' for NinjaTrader 8 desktop</li>','<li>Specification, assumptions, confirmations, checks and test plan (.json)</li>',
     s.kind==='i'?'<li>B4 Signal API v1 outputs: buy, sell and confirmation series for B4 CoPilot Dev</li>':'<li>Managed orders with a protective stop'+(s.tgtMode!=='none'?', profit target':'')+' and daily risk limits</li>'].join('');
   $('tests').innerHTML=S.testPlan(s).map(function(t){return '<li><b>'+esc(t.name)+':</b> '+esc(t.how)+'</li>';}).join('');
+  var refs=S.references(s); $('refsWrap').hidden=!refs.length; $('refs').innerHTML=refs.map(function(r){ return '<li><a href="'+esc(r.url)+'" target="_blank" rel="noopener">'+esc(r.name)+'</a> ('+esc(r.license)+') - '+esc(r.what)+'</li>'; }).join('');
   var C=S.confirmations(s); $('confirms').innerHTML=C.map(function(c){ return '<label><input type="checkbox" data-c="'+c.id+'"'+(cur.confirmed[c.id]?' checked':'')+'> <span>'+esc(c.text)+'</span></label>'; }).join('');
   $('confirms').querySelectorAll('input').forEach(function(i){ i.onchange=function(){ cur.confirmed[i.dataset.c]=i.checked; persist(); }; });
   var last=lastRev(), stale=last&&last.hash!==specHash(s);

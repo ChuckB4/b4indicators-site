@@ -4,7 +4,20 @@
 (function (root) {
   'use strict';
 
-  var VERSION = 'B4 Studio template generator 2.0 (2026-10-10)';
+  var VERSION = 'B4 Studio template generator 2.1 (2026-10-11)';
+  // open-source NinjaTrader 8 projects (verified MIT on GitHub, 2026-10-11) shown as credited references; their code is NOT copied into Studio output
+  var OPEN_SOURCE = [
+    { fam: /^of_(imb|delta)$/, name: 'edwincummins/FootprintOrderFlow', url: 'https://github.com/edwincummins/FootprintOrderFlow', lic: 'MIT', what: 'Footprint indicator: bid, ask, delta and volume per price' },
+    { fam: /^of_/, name: 'marksantiago290/OrderFlowBot-NinjaTrading', url: 'https://github.com/marksantiago290/OrderFlowBot-NinjaTrading', lic: 'MIT', what: 'Order-flow trading bot with ATM strategies' },
+    { fam: /^of_(cvd|delta)$/, name: 'J01rbriones/Ninjatrader8-Cumulative-Cluster', url: 'https://github.com/J01rbriones/Ninjatrader8-Cumulative-Cluster', lic: 'MIT', what: 'Clusters of aggressive orders and cumulative flow' },
+    { fam: /^of_(poc|va)$/, name: 'tarrellallen-dev/ninjatrader-volume-profile', url: 'https://github.com/tarrellallen-dev/ninjatrader-volume-profile', lic: 'MIT', what: 'Session volume profile without Order Flow+' },
+    { fam: /^of_va$/, name: 'jalv92/AreaTrap', url: 'https://github.com/jalv92/AreaTrap', lic: 'MIT', what: 'Strategy for failed breaks of the value area' },
+    { fam: /^of_(vwap|imb)$/, name: 'TraderLeocom/beer-money', url: 'https://github.com/TraderLeocom/beer-money', lic: 'MIT', what: 'Order-flow analysis with rolling VWAP' },
+    { fam: /^of_(imb|big)$/, name: 'jalv92/TrapFlow', url: 'https://github.com/jalv92/TrapFlow', lic: 'MIT', what: 'Order-flow trap indicator (absorption, value structure)' },
+    { fam: /^l2_/, name: 'wokecorndog/LiquidityCompass', url: 'https://github.com/wokecorndog/LiquidityCompass', lic: 'MIT', what: 'Real-time order-book depth gauge from the DOM' },
+    { fam: /^l2_/, name: 'j-stach/baton-pass', url: 'https://github.com/j-stach/baton-pass', lic: 'MIT', what: 'Collects market data and depth events for analysis' }
+  ];
+  function references(sp) { var s = normalize(sp); return OPEN_SOURCE.filter(function (r) { return r.fam.test(s.sig); }).map(function (r) { return { name: r.name, url: r.url, license: r.lic, what: r.what }; }); }
 
   // ---------------------------------------------------------------- catalogs
   var MA = [['EMA', 'EMA - exponential'], ['SMA', 'SMA - simple'], ['WMA', 'WMA - weighted'], ['HMA', 'HMA - Hull'],
@@ -54,7 +67,10 @@
     { id: 'license', t: 'sel', g: 'proj', l: 'License', d: 'MIT', o: [['MIT', 'MIT - permissive'], ['Apache-2.0', 'Apache 2.0 - permissive, patent grant'], ['MPL-2.0', 'MPL 2.0 - changes to this file stay open']], show: function (s) { return s.visibility === 'public'; }, tip: 'Public builds are open source. MIT is the simplest; MPL 2.0 requires that improvements to this file are shared back.' },
     { id: 'description', t: 'text', g: 'proj', l: 'Short description', d: '', tip: 'One sentence shown in NinjaTrader and on the community post.' },
     { id: 'name', t: 'text', g: 'sig', l: 'Name', d: '', tip: 'Shown in NinjaTrader\'s indicator or strategy list. The C# class name is made from it (letters and numbers only).' },
-    { id: 'sig', t: 'sel', g: 'sig', l: 'Signal type', d: 'ma_cross', o: [['ma_cross', 'Moving-average cross'], ['price_ma', 'Price crosses a moving average'], ['ma_slope', 'Moving-average turn (slope change)'], ['osc', 'Oscillator levels'], ['macd', 'MACD'], ['band', 'Bands: breakout or reversal'], ['nbar', 'N-bar high / low breakout'], ['dmi', 'DMI: DI+ / DI- cross'], ['psar', 'Parabolic SAR flip'], ['candle', 'Candlestick pattern']],
+    { id: 'sig', t: 'sel', g: 'sig', l: 'Signal type', d: 'ma_cross', o: [['ma_cross', 'Moving-average cross'], ['price_ma', 'Price crosses a moving average'], ['ma_slope', 'Moving-average turn (slope change)'], ['osc', 'Oscillator levels'], ['macd', 'MACD'], ['band', 'Bands: breakout or reversal'], ['nbar', 'N-bar high / low breakout'], ['dmi', 'DMI: DI+ / DI- cross'], ['psar', 'Parabolic SAR flip'], ['candle', 'Candlestick pattern'],
+      ['of_delta', 'Order flow: bar delta'], ['of_cvd', 'Order flow: cumulative delta (CVD)'], ['of_imb', 'Order flow: stacked imbalances (footprint)'], ['of_poc', 'Order flow: session POC cross'],
+      ['of_va', 'Order flow: value area (VAH / VAL)'], ['of_vwap', 'Order flow: session VWAP cross'], ['of_big', 'Order flow: big trade'],
+      ['l2_book', 'Level 2: order book imbalance'], ['l2_wall', 'Level 2: liquidity wall break']],
       tip: 'The core event that creates a buy or sell signal. Filters below can then block signals that do not meet your conditions.' },
     { id: 'maType', t: 'sel', g: 'sig', l: 'Average type', d: 'EMA', o: MA, show: isMa, tip: 'EMA reacts faster than SMA. HMA, ZLEMA and TEMA cut lag further but turn more often. KAMA adapts to volatility. VWMA weights each bar by its volume.' },
     { id: 'fast', t: 'num', g: 'sig', l: 'Fast period', d: 9, min: 1, max: 400, show: function (s) { return s.sig === 'ma_cross'; }, tip: 'Bars in the fast average. Smaller = earlier signals and more false ones.' },
@@ -81,8 +97,22 @@
     { id: 'sarStep', t: 'num', g: 'sig', l: 'SAR step', d: 0.02, min: 0.001, max: 1, step: 0.001, show: function (s) { return s.sig === 'psar'; }, tip: 'How much the acceleration grows on each new extreme.' },
     { id: 'candle', t: 'sel', g: 'sig', l: 'Pattern', d: 'engulfing', o: Object.keys(CANDLES).map(function (k) { return [k, CANDLES[k][0]]; }), show: function (s) { return s.sig === 'candle'; }, tip: 'Uses NinjaTrader\'s built-in pattern recognition. The bullish form gives a buy, the bearish form a sell.' },
     { id: 'trendStrength', t: 'num', g: 'sig', l: 'Prior trend bars', d: 4, min: 0, max: 50, show: function (s) { return s.sig === 'candle'; }, tip: 'Bars of prior trend the pattern needs (0 = ignore the trend before the pattern).' },
+    { id: 'ofDeltaMode', t: 'sel', g: 'sig', l: 'Trigger', d: 'threshold', o: [['threshold', 'Bar delta beyond a threshold'], ['flip', 'Bar delta changes sign']], show: function (s) { return s.sig === 'of_delta'; }, tip: 'Threshold: strong one-sided aggression in one bar. Flip: buyers and sellers swap control.' },
+    { id: 'ofDelta', t: 'num', g: 'sig', l: 'Delta threshold (contracts)', d: 300, min: 1, max: 1000000, show: function (s) { return s.sig === 'of_delta' && s.ofDeltaMode === 'threshold'; }, tip: 'Buy volume minus sell volume in one bar. Start around 300-1000 for ES on 5-minute bars; much less for NQ, MES or MNQ.' },
+    { id: 'ofCvdLen', t: 'num', g: 'sig', l: 'CVD average period', d: 20, min: 2, max: 500, show: function (s) { return s.sig === 'of_cvd'; }, tip: 'EMA of cumulative delta; a cross of CVD over its average marks a shift in aggression.' },
+    { id: 'ofCvdReset', t: 'chk', g: 'sig', l: 'Reset cumulative delta each session', d: true, show: function (s) { return /^of_/.test(s.sig); }, tip: 'Start cumulative delta from zero at each session open (common for intraday). Off: one running total.' },
+    { id: 'ofRatio', t: 'num', g: 'sig', l: 'Imbalance ratio', d: 3, min: 1, max: 50, step: 0.5, show: function (s) { return s.sig === 'of_imb'; }, tip: 'Diagonal imbalance: ask volume at a price at least this many times the bid volume one tick lower (buy), or bid volume at least this many times the ask one tick higher (sell).' },
+    { id: 'ofMinVol', t: 'num', g: 'sig', l: 'Imbalance minimum volume', d: 10, min: 0, max: 1000000, show: function (s) { return s.sig === 'of_imb'; }, tip: 'Ignore imbalances on thin prices with less volume than this.' },
+    { id: 'ofStack', t: 'num', g: 'sig', l: 'Stacked levels', d: 3, min: 1, max: 20, show: function (s) { return s.sig === 'of_imb'; }, tip: 'Consecutive prices with an imbalance in the same direction. 3 is the common "stacked imbalance".' },
+    { id: 'ofVaPct', t: 'num', g: 'sig', l: 'Value area (%)', d: 70, min: 50, max: 95, show: function (s) { return s.sig === 'of_poc' || s.sig === 'of_va'; }, tip: 'Share of the session volume inside the value area. 70% is the standard.' },
+    { id: 'ofVaMode', t: 'sel', g: 'sig', l: 'Trigger', d: 'breakout', o: [['breakout', 'Close breaks out of the value area'], ['reversal', 'Close comes back inside the value area']], show: function (s) { return s.sig === 'of_va'; }, tip: 'Breakout: acceptance outside value. Reversal: a failed break back into value.' },
+    { id: 'ofBig', t: 'num', g: 'sig', l: 'Big trade size (contracts)', d: 50, min: 1, max: 1000000, show: function (s) { return s.sig === 'of_big'; }, tip: 'A single trade (one print) of at least this size in the bar. Its side (buy or sell) decides the signal.' },
+    { id: 'l2Levels', t: 'num', g: 'sig', l: 'Book levels counted', d: 10, min: 1, max: 50, show: function (s) { return /^l2_/.test(s.sig); }, tip: 'How many price levels on each side of the order book are added up.' },
+    { id: 'l2Ratio', t: 'num', g: 'sig', l: 'Book imbalance ratio', d: 2, min: 1, max: 20, step: 0.1, show: function (s) { return s.sig === 'l2_book'; }, tip: 'Signal when resting bids are at least this many times the resting asks (or the reverse).' },
+    { id: 'l2Wall', t: 'num', g: 'sig', l: 'Wall size (contracts)', d: 300, min: 1, max: 10000000, show: function (s) { return s.sig === 'l2_wall'; }, tip: 'A resting order at one price of at least this size counts as a liquidity wall.' },
+    { id: 'l2Range', t: 'num', g: 'sig', l: 'Wall search range (ticks)', d: 8, min: 1, max: 200, show: function (s) { return s.sig === 'l2_wall'; }, tip: 'Only walls within this many ticks of the close are tracked.' },
     { id: 'side', t: 'sel', g: 'sig', l: 'Direction', d: 'both', o: [['both', 'Long and short'], ['long', 'Long only'], ['short', 'Short only']], tip: 'Which side may signal or trade. Opposite-signal exits still work in one-sided strategies.' },
-    { id: 'calc', t: 'sel', g: 'sig', l: 'Calculate', d: 'bar', k: 'i', o: [['bar', 'On bar close (recommended)'], ['tick', 'On each tick']], tip: 'Bar close: a signal is final once shown. Each tick: signals appear earlier but can disappear before the bar closes (markers are removed if they do).' },
+    { id: 'calc', t: 'sel', g: 'sig', l: 'Calculate', d: 'bar', k: 'i', o: [['bar', 'On bar close (recommended)'], ['tick', 'On each tick']], show: function (s) { return !/^(of|l2)_/.test(s.sig); }, tip: 'Bar close: a signal is final once shown. Each tick: signals appear earlier but can disappear before the bar closes (markers are removed if they do).' },
 
     { id: 'fTrend', t: 'chk', g: 'flt', l: 'Trend filter', d: false, tip: 'Longs only above the trend average, shorts only below it.' },
     { id: 'fTrendMa', t: 'sel', g: 'flt', l: 'Trend average', d: 'EMA', o: MA, show: function (s) { return s.fTrend; }, tip: 'Average used for the trend filter.' },
@@ -122,6 +152,10 @@
     { id: 'plotColor2', t: 'sel', g: 'disp', l: 'Second line color', d: 'Goldenrod', k: 'i', o: COLORS, show: twoLines, tip: 'Color of the second line (slow average, signal line, lower band, DI-...).' },
     { id: 'levelColor', t: 'sel', g: 'disp', l: 'Level line color', d: 'DimGray', k: 'i', o: COLORS, show: hasLevels, tip: 'Color of the horizontal level lines (high / low levels, MACD zero line).' },
     { id: 'levelDash', t: 'sel', g: 'disp', l: 'Level line dash', d: 'Dash', k: 'i', o: [['Solid', 'Solid'], ['Dash', 'Dashed'], ['Dot', 'Dotted']], show: hasLevels, tip: 'Style of the horizontal level lines.' },
+    { id: 'fpShow', t: 'chk', g: 'disp', l: 'Footprint numbers next to bars', d: true, k: 'i', show: function (s) { return /^of_/.test(s.sig) && s.overlay; }, tip: 'Draws the volume traded at each price beside every bar (zoom in to read them). Prices where one side dominates are colored.' },
+    { id: 'fpMode', t: 'sel', g: 'disp', l: 'Footprint shows', d: 'bidask', k: 'i', o: [['bidask', 'Bid x Ask'], ['delta', 'Delta per price'], ['volume', 'Volume per price']], show: function (s) { return /^of_/.test(s.sig) && s.overlay && s.fpShow; }, tip: 'Bid x Ask: sell volume x buy volume at each price.' },
+    { id: 'fpBars', t: 'num', g: 'disp', l: 'Footprint bars kept', d: 300, min: 10, max: 5000, k: 'i', show: function (s) { return /^of_/.test(s.sig) && s.overlay && s.fpShow; }, tip: 'Only the most recent bars keep their footprint, to save memory.' },
+    { id: 'fpRatio', t: 'num', g: 'disp', l: 'Footprint highlight ratio', d: 3, min: 1, max: 50, step: 0.5, k: 'i', show: function (s) { return /^of_/.test(s.sig) && s.overlay && s.fpShow; }, tip: 'Prices where one side traded at least this many times the other are colored buy or sell.' },
     { id: 'showOnChart', t: 'chk', g: 'disp', l: 'Show the signal indicators on the chart', d: true, k: 's', tip: 'Adds the averages, bands or oscillator the strategy uses to the chart so you can see why it traded.' },
 
     { id: 'palette', t: 'sel', g: 'read', l: 'Color preset', d: 'standard', k: 'i', o: [['standard', 'Standard - green / red'], ['colorblind', 'Color-blind safe - blue / orange'], ['highcontrast', 'High contrast - lime / magenta'], ['mono', 'Monochrome - white / gray'], ['custom', 'Custom - my own colors']],
@@ -246,7 +280,7 @@
     ['fast', 'slow', 'maLen', 'oscLen', 'macdFast', 'macdSlow', 'macdSmooth', 'bandLen', 'nbarLen', 'dmiLen', 'trendStrength', 'fTrendLen', 'fHtfLen', 'fAdxLen',
       'fVolLen', 'fAtrLen', 'cooldown', 'markerOffset', 'shadeOpacity', 'plotWidth', 'alertRearm', 'entryOffset', 'qty', 'maxQty', 'stopTicks', 'swingLen',
       'swingPad', 'tgtTicks', 'exitAtrLen', 'beTrigger', 'beOffset', 'trailTicks', 'timeStop', 'maxTrades', 'maxConsec', 'barsReq', 'fAtrMin', 'fAtrMax',
-      'fontSize', 'labelBoxOpacity', 'tableOpacity', 'alertMax']
+      'fontSize', 'labelBoxOpacity', 'tableOpacity', 'alertMax', 'ofCvdLen', 'ofStack', 'ofVaPct', 'l2Levels', 'l2Range', 'fpBars']
       .forEach(function (k) { o[k] = Math.round(o[k]); });
     if (o.slow <= o.fast) o.slow = o.fast + 1;
     if (o.macdSlow <= o.macdFast) o.macdSlow = o.macdFast + 1;
@@ -258,7 +292,8 @@
     // exits that need a stop distance
     if (o.stopMode === 'none') { o.beOn = false; o.trailMode = 'none'; if (o.tgtMode === 'r') o.tgtMode = 'ticks'; if (o.qtyMode === 'risk') o.qtyMode = 'fixed'; }
     o.className = cls(o.name, kind);
-    o.overlay = !(o.sig === 'osc' || o.sig === 'macd' || o.sig === 'dmi');
+    o.overlay = !(o.sig === 'osc' || o.sig === 'macd' || o.sig === 'dmi' || o.sig === 'of_delta' || o.sig === 'of_cvd' || o.sig === 'l2_book');
+    if (/^(of|l2)_/.test(o.sig)) o.calc = 'bar';   // order flow and depth are evaluated at bar close
     return o;
   }
 
@@ -269,7 +304,17 @@
     var t = String(text || '').toLowerCase(), sp = defaults(kind);
     if (/\bstrateg|\bauto.?trad|\benter (a |the )?(long|short|trade)|\bstop.?loss|\bprofit target|\bcontracts?\b|\btake profit/.test(t)) sp.kind = 's';
     sp.name = sp.kind === 's' ? 'My B4 Strategy' : 'My B4 Indicator';
-    if (/macd/.test(t)) sp.sig = 'macd';
+    var depthWords = /\bdom\b|depth of market|market depth|order book|level ?2|\bl2\b/.test(t);
+    // a named order-flow signal wins; "footprint" alone means the footprint display with a stacked-imbalance signal
+    var flowSig = depthWords && /liquidity wall|\bwalls?\b|iceberg/.test(t) ? 'l2_wall' : depthWords ? 'l2_book'
+      : /value area|\bvah\b|\bval\b/.test(t) ? 'of_va' : /\bpoc\b|point of control/.test(t) ? 'of_poc' : /cumulative delta|\bcvd\b/.test(t) ? 'of_cvd'
+      : /\bvwap\b/.test(t) ? 'of_vwap' : /big (trade|print)|large (trade|print)|block trade/.test(t) ? 'of_big' : /imbalance/.test(t) ? 'of_imb' : /\bdelta\b/.test(t) ? 'of_delta'
+      : /footprint/.test(t) ? 'of_imb' : /volume profile/.test(t) ? 'of_poc' : '';
+    if (/footprint/.test(t)) sp.fpShow = true;
+    if (/reversal|fade|back inside|failed break/.test(t) && flowSig === 'of_va') sp.ofVaMode = 'reversal';
+    if (/\bflip|turns? (positive|negative)|changes sign/.test(t) && flowSig === 'of_delta') sp.ofDeltaMode = 'flip';
+    if (flowSig) sp.sig = flowSig;
+    else if (/macd/.test(t)) sp.sig = 'macd';
     else if (/parabolic|\bsar\b/.test(t)) sp.sig = 'psar';
     else if (/\bdmi\b|\bdi\+|directional/.test(t)) sp.sig = 'dmi';
     else if (/engulf|harami|hammer|shooting star|morning star|evening star|doji|soldiers|crows|piercing|dark cloud|belt hold|three methods|candle(stick)? pattern/.test(t)) sp.sig = 'candle';
@@ -363,6 +408,17 @@
       case 'nbar': return ['Close breaks above the highest high of the previous ' + s.nbarLen + ' bars', 'Close breaks below the lowest low of the previous ' + s.nbarLen + ' bars', '1 above the middle of that range, -1 below'];
       case 'dmi': return ['DI+ crosses above DI- (' + s.dmiLen + ')', 'DI- crosses above DI+ (' + s.dmiLen + ')', '1 while DI+ leads, -1 while DI- leads'];
       case 'psar': return ['Close crosses above Parabolic SAR(' + s.sarAcc + ', ' + s.sarMax + ', ' + s.sarStep + ')', 'Close crosses below the SAR', '1 while the close is above the SAR, -1 below'];
+      case 'of_delta': return s.ofDeltaMode === 'threshold' ? ['Bar delta (buy - sell volume) of +' + s.ofDelta + ' or more on an up bar', 'Bar delta of -' + s.ofDelta + ' or less on a down bar', '1 while bar delta is positive, -1 while negative']
+        : ['Bar delta turns positive', 'Bar delta turns negative', '1 while bar delta is positive, -1 while negative'];
+      case 'of_cvd': return ['Cumulative delta crosses above its ' + s.ofCvdLen + '-bar EMA', 'Cumulative delta crosses below its ' + s.ofCvdLen + '-bar EMA', '1 while CVD is above its average, -1 below'];
+      case 'of_imb': return [s.ofStack + '+ stacked buy imbalances (ask at least ' + s.ofRatio + 'x the bid one tick lower, min ' + s.ofMinVol + ')', s.ofStack + '+ stacked sell imbalances (bid at least ' + s.ofRatio + 'x the ask one tick higher)', '1 when bar delta is positive, -1 when negative'];
+      case 'of_poc': return ['Close crosses above the developing session POC', 'Close crosses below the developing session POC', '1 above the POC, -1 below'];
+      case 'of_va': return s.ofVaMode === 'breakout' ? ['Close breaks above the developing value-area high (' + s.ofVaPct + '%)', 'Close breaks below the developing value-area low', '1 above the POC, -1 below']
+        : ['Close comes back above the value-area low (' + s.ofVaPct + '%)', 'Close comes back below the value-area high', '1 above the POC, -1 below'];
+      case 'of_vwap': return ['Close crosses above the session VWAP (from every trade)', 'Close crosses below the session VWAP', '1 above VWAP, -1 below'];
+      case 'of_big': return ['A single buy trade of ' + s.ofBig + '+ contracts in the bar', 'A single sell trade of ' + s.ofBig + '+ contracts in the bar', '1 when bar delta is positive, -1 when negative'];
+      case 'l2_book': return ['Resting bids in the top ' + s.l2Levels + ' levels reach ' + s.l2Ratio + 'x the asks (real time only)', 'Resting asks reach ' + s.l2Ratio + 'x the bids (real time only)', '1 bid-heavy book, -1 ask-heavy'];
+      case 'l2_wall': return ['Close breaks above an ask wall of ' + s.l2Wall + '+ contracts within ' + s.l2Range + ' ticks (real time only)', 'Close breaks below a bid wall of ' + s.l2Wall + '+ contracts', '1 when the bid wall is larger, -1 when the ask wall is'];
       default: var c = CANDLES[s.candle]; return [c[1].replace(/([a-z])([A-Z])/g, '$1 $2') + ' (prior trend ' + s.trendStrength + ' bars)', c[2].replace(/([a-z])([A-Z])/g, '$1 $2'), '1 on a bullish pattern bar, -1 on a bearish one'];
     }
   }
@@ -390,7 +446,8 @@
   function specLines(sp) {
     var s = normalize(sp), x = sigText(s), L = [];
     L.push(['Name', s.name + ' (class ' + s.className + ')']);
-    L.push(['Kind', s.kind === 's' ? 'Strategy (managed orders, calculated on bar close)' : 'Indicator, ' + (s.overlay ? 'drawn on the price panel' : 'drawn in its own panel') + (s.calc === 'tick' ? ', calculated on each tick' : ', calculated on bar close')]);
+    L.push(['Kind', (s.kind === 's' ? 'Strategy (managed orders, calculated on bar close)' : 'Indicator, ' + (s.overlay ? 'drawn on the price panel' : 'drawn in its own panel') + (s.calc === 'tick' ? ', calculated on each tick' : ', calculated on bar close'))
+      + (/^of_/.test(s.sig) ? '; order flow from a 1-tick data series' : /^l2_/.test(s.sig) ? '; real-time market depth (Level 2)' : '')]);
     L.push([s.kind === 's' ? 'Long setup' : 'Buy signal', x[0]]);
     L.push([s.kind === 's' ? 'Short setup' : 'Sell signal', x[1]]);
     L.push(['Filters', filterText(s)]);
@@ -437,6 +494,12 @@
       if (s.calc === 'tick') add('warn', 'On each tick, signals can appear and vanish before the bar closes' + (s.alerts ? ' and alerts can fire for signals that later disappear.' : '.'));
       if (s.marker === 'none' && !s.colorBars && !s.shade && !s.labels) add('info', 'Nothing is drawn for signals; they are still published through the B4 Signal API.');
     }
+    if (/^of_/.test(s.sig)) {
+      add('info', 'Order flow reads a 1-tick data series: NinjaTrader needs tick history for every date on the chart (Tools > Historical Data, or your data feed). Long ranges load slowly.');
+      add('info', 'Each trade is counted as buying or selling from the bid and ask recorded with it; when the feed has no quote, the up-tick / down-tick rule is used. Numbers can differ slightly from other footprint tools.');
+      if (s.kind === 's') add('info', 'Order-flow strategies can be backtested in the Strategy Analyzer for periods that have tick data.');
+    }
+    if (/^l2_/.test(s.sig)) add(s.kind === 's' ? 'high' : 'warn', 'Level 2 has no history: signals appear only in real time or in Playback of Market Replay data that includes depth. The Strategy Analyzer and historical bars show no signals.');
     if (s.fHtf) add('info', 'The higher-timeframe filter needs enough history: load at least a few days for minute timeframes, a year for daily.');
     if (s.sig === 'candle') add('info', 'Candlestick patterns are frequent on small timeframes; combine them with a trend or volume filter.');
     if (s.sig === 'ma_cross' && s.slow / s.fast < 1.5) add('warn', 'The fast and slow periods are close together: expect many whipsaws.');
@@ -471,6 +534,183 @@
     }
     function level(value, name) { lines.push('AddLine(new Stroke(Brushes.' + s.levelColor + ', DashStyleHelper.' + s.levelDash + ', 1), ' + value + ', "' + name + '");'); }
     var drawPlots = !S && (!s.overlay || s.showPlots);
+
+    // ---- order flow (1-tick series) and depth (Level 2) engines
+    var OF = /^of_/.test(s.sig), L2 = /^l2_/.test(s.sig), htfIdx = OF ? 2 : 1;
+    var tickLines = [], preBody = [], members = [], colorLines = [], renderWanted = !S && OF && s.overlay && s.fpShow;
+    function flowSignal() {
+      configure.push('AddDataSeries(BarsPeriodType.Tick, 1);   // order flow: every trade with the bid and ask at that moment');
+      fields.push('private sealed class FlowLevel { public double Bid; public double Ask; }',
+        'private SortedDictionary<double, FlowLevel> barLevels = new SortedDictionary<double, FlowLevel>();',
+        'private readonly Dictionary<double, double> sessionVolume = new Dictionary<double, double>();',
+        'private double barBuyVolume, barSellVolume, barMaxBuyPrint, barMaxSellPrint, lastTickPrice, sessionDelta, sessionPv, sessionVolumeTotal;',
+        'private int lastTickDirection;', 'private bool tickDataSeen;', 'private Series<double> barDelta;', 'private Series<double> cumDelta;');
+      init.push('barDelta = new Series<double>(this, MaximumBarsLookBack.Infinite);', 'cumDelta = new Series<double>(this, MaximumBarsLookBack.Infinite);');
+      boolP('ResetCvdEachSession', 'Reset cumulative delta each session', 'sig', s.ofCvdReset, BY.ofCvdReset.tip);
+      tickLines.push('if (BarsInProgress == 1)   // each trade on the 1-tick series: classify it as buying or selling and add it to the bar being built', '{',
+        '    tickDataSeen = true;',
+        '    if (BarsArray[1].IsFirstBarOfSession) { sessionVolume.Clear(); sessionPv = 0; sessionVolumeTotal = 0; if (ResetCvdEachSession) sessionDelta = 0; }',
+        '    double price = Instrument.MasterInstrument.RoundToTickSize(Closes[1][0]);',
+        '    double volume = Volumes[1][0];',
+        '    double ask = BarsArray[1].GetAsk(CurrentBars[1]), bid = BarsArray[1].GetBid(CurrentBars[1]);',
+        '    int side = 0;',
+        '    if (ask > 0 && bid > 0 && ask >= bid) side = price >= ask ? 1 : price <= bid ? -1 : 0;',
+        '    if (side == 0) side = price > lastTickPrice ? 1 : price < lastTickPrice ? -1 : lastTickDirection;   // no quote, or a print inside the spread: tick rule',
+        '    lastTickPrice = price;', '    lastTickDirection = side;',
+        '    FlowLevel level;',
+        '    if (!barLevels.TryGetValue(price, out level)) { level = new FlowLevel(); barLevels[price] = level; }',
+        '    if (side > 0) { level.Ask += volume; barBuyVolume += volume; if (volume > barMaxBuyPrint) barMaxBuyPrint = volume; }',
+        '    else if (side < 0) { level.Bid += volume; barSellVolume += volume; if (volume > barMaxSellPrint) barMaxSellPrint = volume; }',
+        '    double atPrice;', '    sessionVolume.TryGetValue(price, out atPrice);', '    sessionVolume[price] = atPrice + volume;',
+        '    sessionDelta += side > 0 ? volume : side < 0 ? -volume : 0;',
+        '    sessionPv += price * volume;', '    sessionVolumeTotal += volume;',
+        '    return;', '}');
+      preBody.push('// order flow of the bar that just closed (its trades arrived on the tick series before this bar closed)',
+        'double flowDelta = barBuyVolume - barSellVolume, flowBigBuy = barMaxBuyPrint, flowBigSell = barMaxSellPrint;',
+        'double flowVwap = sessionVolumeTotal > 0 ? sessionPv / sessionVolumeTotal : Close[0];',
+        'SortedDictionary<double, FlowLevel> flowLevels = barLevels;',
+        'barDelta[0] = flowDelta;', 'cumDelta[0] = sessionDelta;');
+      warm.push('3');
+      switch (s.sig) {
+        case 'of_delta':
+          if (s.ofDeltaMode === 'threshold') dblP('DeltaThreshold', 'Delta threshold (contracts)', 'sig', s.ofDelta, 1, BY.ofDelta.tip);
+          plot(1, 'Delta', 'Bar'); plotVals.push('barDelta[0]'); level('0', 'Zero');
+          colorLines.push('PlotBrushes[0][0] = barDelta[0] >= 0 ? BuyBrush : SellBrush;');
+          body.push(s.ofDeltaMode === 'threshold' ? 'bool sigBuy = flowDelta >= DeltaThreshold && Close[0] > Open[0];' : 'bool sigBuy = barDelta[0] > 0 && barDelta[1] <= 0;',
+            s.ofDeltaMode === 'threshold' ? 'bool sigSell = flowDelta <= -DeltaThreshold && Close[0] < Open[0];' : 'bool sigSell = barDelta[0] < 0 && barDelta[1] >= 0;',
+            'int direction = flowDelta > 0 ? 1 : flowDelta < 0 ? -1 : 0;');
+          break;
+        case 'of_cvd':
+          intP('CvdPeriod', 'CVD average period', 'sig', s.ofCvdLen, 2, BY.ofCvdLen.tip);
+          fields.push('private ISeries<double> cvdAverage;'); init.push('cvdAverage = EMA(cumDelta, CvdPeriod);');
+          plot(1, 'CVD'); plot(2, 'CVD average'); plotVals.push('cumDelta[0]', 'cvdAverage[0]'); warm.push('CvdPeriod + 2');
+          body.push('bool sigBuy = CrossAbove(cumDelta, cvdAverage, 1);', 'bool sigSell = CrossBelow(cumDelta, cvdAverage, 1);',
+            'int direction = cumDelta[0] > cvdAverage[0] ? 1 : cumDelta[0] < cvdAverage[0] ? -1 : 0;');
+          break;
+        case 'of_imb':
+          dblP('ImbalanceRatio', 'Imbalance ratio', 'sig', s.ofRatio, 1, BY.ofRatio.tip); dblP('ImbalanceMinVolume', 'Imbalance minimum volume', 'sig', s.ofMinVol, 0, BY.ofMinVol.tip);
+          intP('StackedLevels', 'Stacked levels', 'sig', s.ofStack, 1, BY.ofStack.tip);
+          preBody.push('int stackBuy, stackSell;', 'CountStacks(flowLevels, out stackBuy, out stackSell);');
+          members.push('// longest run of consecutive diagonal imbalances in one bar, for each side',
+            'private void CountStacks(SortedDictionary<double, FlowLevel> levels, out int buyStack, out int sellStack)', '{',
+            '    buyStack = 0; sellStack = 0;', '    int runBuy = 0, runSell = 0;',
+            '    foreach (KeyValuePair<double, FlowLevel> kv in levels)', '    {',
+            '        FlowLevel below, above;',
+            '        double bidBelow = levels.TryGetValue(Instrument.MasterInstrument.RoundToTickSize(kv.Key - TickSize), out below) ? below.Bid : 0;',
+            '        double askAbove = levels.TryGetValue(Instrument.MasterInstrument.RoundToTickSize(kv.Key + TickSize), out above) ? above.Ask : 0;',
+            '        bool buyImbalance = kv.Value.Ask >= ImbalanceMinVolume && kv.Value.Ask >= ImbalanceRatio * Math.Max(bidBelow, 1);',
+            '        bool sellImbalance = kv.Value.Bid >= ImbalanceMinVolume && kv.Value.Bid >= ImbalanceRatio * Math.Max(askAbove, 1);',
+            '        runBuy = buyImbalance ? runBuy + 1 : 0;', '        runSell = sellImbalance ? runSell + 1 : 0;',
+            '        if (runBuy > buyStack) buyStack = runBuy;', '        if (runSell > sellStack) sellStack = runSell;', '    }', '}', '');
+          body.push('bool sigBuy = stackBuy >= StackedLevels;', 'bool sigSell = stackSell >= StackedLevels;', 'int direction = flowDelta > 0 ? 1 : flowDelta < 0 ? -1 : 0;');
+          break;
+        case 'of_poc': case 'of_va':
+          dblP('ValueAreaPercent', 'Value area (%)', 'sig', s.ofVaPct, 1, BY.ofVaPct.tip);
+          fields.push('private Series<double> pocSeries;', 'private Series<double> vahSeries;', 'private Series<double> valSeries;');
+          init.push('pocSeries = new Series<double>(this, MaximumBarsLookBack.Infinite);', 'vahSeries = new Series<double>(this, MaximumBarsLookBack.Infinite);', 'valSeries = new Series<double>(this, MaximumBarsLookBack.Infinite);');
+          preBody.push('double poc, vah, val;', 'ComputeProfile(out poc, out vah, out val);',
+            'pocSeries[0] = double.IsNaN(poc) ? Close[0] : poc;', 'vahSeries[0] = double.IsNaN(vah) ? Close[0] : vah;', 'valSeries[0] = double.IsNaN(val) ? Close[0] : val;');
+          members.push('// developing session volume profile: point of control and value area from every trade so far this session',
+            'private void ComputeProfile(out double poc, out double vah, out double val)', '{',
+            '    poc = double.NaN; vah = double.NaN; val = double.NaN;', '    if (sessionVolume.Count == 0) return;',
+            '    List<double> prices = new List<double>(sessionVolume.Keys);', '    prices.Sort();',
+            '    double total = 0, best = -1;', '    int pocIndex = 0;',
+            '    for (int i = 0; i < prices.Count; i++) { double v = sessionVolume[prices[i]]; total += v; if (v > best) { best = v; pocIndex = i; } }',
+            '    poc = prices[pocIndex];', '    double target = total * ValueAreaPercent / 100.0, area = best;', '    int lo = pocIndex, hi = pocIndex;',
+            '    while (area < target && (lo > 0 || hi < prices.Count - 1))', '    {',
+            '        double down = lo > 0 ? sessionVolume[prices[lo - 1]] : -1, up = hi < prices.Count - 1 ? sessionVolume[prices[hi + 1]] : -1;',
+            '        if (up >= down) { hi++; area += up; } else { lo--; area += down; }', '    }',
+            '    vah = prices[hi];', '    val = prices[lo];', '}', '');
+          if (s.sig === 'of_poc') {
+            plot(1, 'POC'); plotVals.push('pocSeries[0]');
+            body.push('bool sigBuy = Close[0] > pocSeries[1] && Close[1] <= pocSeries[1];', 'bool sigSell = Close[0] < pocSeries[1] && Close[1] >= pocSeries[1];');
+          } else {
+            plot(1, 'VAH'); plot(2, 'VAL'); plot('SlateGray', 'POC', 'Dash'); plotVals.push('vahSeries[0]', 'valSeries[0]', 'pocSeries[0]');
+            if (s.ofVaMode === 'breakout') body.push('bool sigBuy = Close[0] > vahSeries[1] && Close[1] <= vahSeries[1];', 'bool sigSell = Close[0] < valSeries[1] && Close[1] >= valSeries[1];');
+            else body.push('bool sigBuy = Close[0] > valSeries[1] && Close[1] <= valSeries[1];', 'bool sigSell = Close[0] < vahSeries[1] && Close[1] >= vahSeries[1];');
+          }
+          body.push('int direction = Close[0] > pocSeries[0] ? 1 : Close[0] < pocSeries[0] ? -1 : 0;');
+          break;
+        case 'of_vwap':
+          fields.push('private Series<double> vwapSeries;'); init.push('vwapSeries = new Series<double>(this, MaximumBarsLookBack.Infinite);');
+          preBody.push('vwapSeries[0] = flowVwap;');
+          plot(1, 'VWAP'); plotVals.push('vwapSeries[0]');
+          body.push('bool sigBuy = CrossAbove(Close, vwapSeries, 1);', 'bool sigSell = CrossBelow(Close, vwapSeries, 1);', 'int direction = Close[0] > vwapSeries[0] ? 1 : Close[0] < vwapSeries[0] ? -1 : 0;');
+          break;
+        default:   // of_big
+          dblP('BigTradeSize', 'Big trade size (contracts)', 'sig', s.ofBig, 1, BY.ofBig.tip);
+          body.push('bool sigBuy = flowBigBuy >= BigTradeSize && flowBigBuy >= flowBigSell;', 'bool sigSell = flowBigSell >= BigTradeSize && flowBigSell > flowBigBuy;',
+            'int direction = flowDelta > 0 ? 1 : flowDelta < 0 ? -1 : 0;');
+      }
+      if (renderWanted) {
+        boolP('ShowFootprint', 'Footprint numbers next to bars', 'disp', true, BY.fpShow.tip);
+        intP('FootprintBars', 'Footprint bars kept', 'disp', s.fpBars, 10, BY.fpBars.tip);
+        dblP('FootprintRatio', 'Footprint highlight ratio', 'disp', s.fpRatio, 1, BY.fpRatio.tip);
+        fields.push('private readonly Dictionary<int, SortedDictionary<double, FlowLevel>> footprint = new Dictionary<int, SortedDictionary<double, FlowLevel>>();');
+        preBody.push('if (ShowFootprint) { footprint[CurrentBar] = flowLevels; footprint.Remove(CurrentBar - FootprintBars); }');
+        var txt = { bidask: 'kv.Value.Bid.ToString("0") + " x " + kv.Value.Ask.ToString("0")', delta: '(kv.Value.Ask - kv.Value.Bid).ToString("+0;-0;0")', volume: '(kv.Value.Ask + kv.Value.Bid).ToString("0")' }[s.fpMode];
+        members.push('// footprint: the volume traded at each price, drawn beside each bar that is on screen',
+          'protected override void OnRender(ChartControl chartControl, ChartScale chartScale)', '{',
+          '    base.OnRender(chartControl, chartScale);',
+          '    if (!ShowFootprint || ChartBars == null || footprint.Count == 0 || RenderTarget == null) return;',
+          '    float rowHeight = Math.Abs(chartScale.GetYByValue(chartScale.MaxValue) - chartScale.GetYByValue(chartScale.MaxValue - TickSize));',
+          '    if (rowHeight < 7) return;   // zoomed out too far to read the numbers',
+          '    using (SharpDX.DirectWrite.TextFormat format = new SharpDX.DirectWrite.TextFormat(NinjaTrader.Core.Globals.DirectWriteFactory, FontFamilyName, (float)Math.Min(TextSize, rowHeight - 1)))',
+          '    using (SharpDX.Direct2D1.Brush buyDx = BuyBrush.ToDxBrush(RenderTarget))',
+          '    using (SharpDX.Direct2D1.Brush sellDx = SellBrush.ToDxBrush(RenderTarget))',
+          '    using (SharpDX.Direct2D1.Brush plainDx = Brushes.Gainsboro.ToDxBrush(RenderTarget))', '    {',
+          '        float offset = (float)chartControl.BarWidth + 3f;',
+          '        for (int idx = Math.Max(ChartBars.FromIndex, 0); idx <= ChartBars.ToIndex; idx++)', '        {',
+          '            SortedDictionary<double, FlowLevel> levels;',
+          '            if (!footprint.TryGetValue(idx, out levels)) continue;',
+          '            float x = chartControl.GetXByBarIndex(ChartBars, idx) + offset;',
+          '            foreach (KeyValuePair<double, FlowLevel> kv in levels)', '            {',
+          '                float y = chartScale.GetYByValue(kv.Key) - rowHeight / 2f;',
+          '                string text = ' + txt + ';',
+          '                SharpDX.Direct2D1.Brush brush = kv.Value.Ask >= FootprintRatio * Math.Max(kv.Value.Bid, 1) ? buyDx : kv.Value.Bid >= FootprintRatio * Math.Max(kv.Value.Ask, 1) ? sellDx : plainDx;',
+          '                RenderTarget.DrawText(text, format, new SharpDX.RectangleF(x, y, 160f, rowHeight), brush);', '            }', '        }', '    }', '}', '');
+      }
+      preBody.push('barLevels = new SortedDictionary<double, FlowLevel>();', 'barBuyVolume = 0; barSellVolume = 0; barMaxBuyPrint = 0; barMaxSellPrint = 0;',
+        'if (!tickDataSeen && (State == State.Realtime || CurrentBar >= Bars.Count - 2))',
+        '    Draw.TextFixed(this, "B4StudioNoTicks", Name + ": no tick data. Download 1-tick history for these dates (Tools > Historical Data), then reload the chart.", TextPosition.BottomLeft, Brushes.OrangeRed, new SimpleFont("Arial", 12), Brushes.Transparent, Brushes.Black, 70);');
+    }
+    function depthSignal() {
+      fields.push('private sealed class DepthRow { public double Price; public long Volume; }', 'private readonly List<DepthRow> askBook = new List<DepthRow>();',
+        'private readonly List<DepthRow> bidBook = new List<DepthRow>();', 'private readonly object bookLock = new object();');
+      intP('DepthLevels', 'Book levels counted', 'sig', s.l2Levels, 1, BY.l2Levels.tip);
+      members.push('// Level 2: keep a live copy of the order book (real time and Market Replay playback only; there is no depth history)',
+        'protected override void OnMarketDepth(MarketDepthEventArgs e)', '{',
+        '    if (e.MarketDataType != MarketDataType.Ask && e.MarketDataType != MarketDataType.Bid) return;',
+        '    lock (bookLock)', '    {',
+        '        List<DepthRow> book = e.MarketDataType == MarketDataType.Ask ? askBook : bidBook;',
+        '        if (e.Operation == NinjaTrader.Cbi.Operation.Add) { if (e.Position <= book.Count) book.Insert(e.Position, new DepthRow { Price = e.Price, Volume = e.Volume }); }',
+        '        else if (e.Operation == NinjaTrader.Cbi.Operation.Remove) { if (e.Position < book.Count) book.RemoveAt(e.Position); }',
+        '        else if (e.Position < book.Count) { book[e.Position].Price = e.Price; book[e.Position].Volume = e.Volume; }', '    }', '}', '');
+      preBody.push('// snapshot of the order book at this bar close', 'double bookBid = 0, bookAsk = 0;');
+      var wall = s.sig === 'l2_wall';
+      if (wall) {
+        dblP('WallSize', 'Wall size (contracts)', 'sig', s.l2Wall, 1, BY.l2Wall.tip); intP('WallRangeTicks', 'Wall search range (ticks)', 'sig', s.l2Range, 1, BY.l2Range.tip);
+        fields.push('private double prevAskWall = double.NaN;', 'private double prevBidWall = double.NaN;');
+        preBody.push('double askWall = double.NaN, bidWall = double.NaN, askWallSize = 0, bidWallSize = 0;');
+      }
+      preBody.push('lock (bookLock)', '{', '    for (int i = 0; i < bidBook.Count && i < DepthLevels; i++) bookBid += bidBook[i].Volume;', '    for (int i = 0; i < askBook.Count && i < DepthLevels; i++) bookAsk += askBook[i].Volume;');
+      if (wall) preBody.push('    foreach (DepthRow r in askBook) if (r.Price - Close[0] <= WallRangeTicks * TickSize && r.Volume >= WallSize && r.Volume > askWallSize) { askWallSize = r.Volume; askWall = r.Price; }',
+        '    foreach (DepthRow r in bidBook) if (Close[0] - r.Price <= WallRangeTicks * TickSize && r.Volume >= WallSize && r.Volume > bidWallSize) { bidWallSize = r.Volume; bidWall = r.Price; }');
+      preBody.push('}');
+      warm.push('3');
+      if (!wall) {
+        dblP('DepthRatio', 'Book imbalance ratio', 'sig', s.l2Ratio, 1, BY.l2Ratio.tip);
+        fields.push('private int lastBookState;');
+        plot(1, 'Bid share %'); level('50', 'Balanced');
+        body.push('double bidShare = bookBid + bookAsk > 0 ? 100.0 * bookBid / (bookBid + bookAsk) : 50.0;',
+          'int bookState = bookBid + bookAsk <= 0 ? 0 : bookBid >= DepthRatio * Math.Max(bookAsk, 1) ? 1 : bookAsk >= DepthRatio * Math.Max(bookBid, 1) ? -1 : 0;',
+          'bool sigBuy = bookState == 1 && lastBookState != 1;', 'bool sigSell = bookState == -1 && lastBookState != -1;', 'lastBookState = bookState;', 'int direction = bookState;');
+        plotVals.push('bidShare');
+      } else {
+        body.push('bool sigBuy = !double.IsNaN(prevAskWall) && Close[0] > prevAskWall;', 'bool sigSell = !double.IsNaN(prevBidWall) && Close[0] < prevBidWall;',
+          'prevAskWall = askWall;', 'prevBidWall = bidWall;', 'int direction = bidWallSize > askWallSize ? 1 : askWallSize > bidWallSize ? -1 : 0;');
+      }
+    }
 
     // ---- signal
     var yPanel = 'Values[0][0]';
@@ -553,6 +793,12 @@
         plot('Orange', 'SAR', 'Dot'); plotVals.push('sar[0]'); warm.push('5');
         body.push('bool sigBuy = Close[0] > sar[0] && Close[1] <= sar[1];', 'bool sigSell = Close[0] < sar[0] && Close[1] >= sar[1];', 'int direction = Close[0] > sar[0] ? 1 : Close[0] < sar[0] ? -1 : 0;');
         break;
+      case 'of_delta': case 'of_cvd': case 'of_imb': case 'of_poc': case 'of_va': case 'of_vwap': case 'of_big':
+        flowSignal();
+        break;
+      case 'l2_book': case 'l2_wall':
+        depthSignal();
+        break;
       default:
         var cp = CANDLES[s.candle];
         fields.push('private ISeries<double> bullPattern;', 'private ISeries<double> bearPattern;');
@@ -573,9 +819,9 @@
     if (s.fHtf) {
       fields.push('private ISeries<double> htfMa;'); intP('HtfPeriod', 'Higher-timeframe ' + s.fHtfMa + ' period', 'flt', s.fHtfLen, 2, BY.fHtfLen.tip);
       configure.push(s.fHtfTf === 'D' ? 'AddDataSeries(BarsPeriodType.Day, 1);' : 'AddDataSeries(BarsPeriodType.Minute, ' + s.fHtfTf + ');');
-      init.push('htfMa = ' + maX(s.fHtfMa, 'BarsArray[1]', 'HtfPeriod') + ';');
-      flt.push('if (CurrentBars[1] < HtfPeriod) { longOk = false; shortOk = false; }   // higher timeframe still warming up',
-        'else { if (Closes[1][0] <= htfMa[0]) longOk = false; if (Closes[1][0] >= htfMa[0]) shortOk = false; }');
+      init.push('htfMa = ' + maX(s.fHtfMa, 'BarsArray[' + htfIdx + ']', 'HtfPeriod') + ';');
+      flt.push('if (CurrentBars[' + htfIdx + '] < HtfPeriod) { longOk = false; shortOk = false; }   // higher timeframe still warming up',
+        'else { if (Closes[' + htfIdx + '][0] <= htfMa[0]) longOk = false; if (Closes[' + htfIdx + '][0] >= htfMa[0]) shortOk = false; }');
     }
     if (s.fAdx) {
       fields.push('private ISeries<double> adx;'); intP('AdxPeriod', 'ADX period', 'flt', s.fAdxLen, 2, BY.fAdxLen.tip); dblP('AdxMinimum', 'ADX minimum', 'flt', s.fAdxMin, 0, BY.fAdxMin.tip);
@@ -638,7 +884,13 @@
       ma_cross: '"Fast " + ' + FP('fastMa[0]') + ' + "   Slow " + ' + FP('slowMa[0]'), price_ma: '"' + s.maType + ' " + ' + FP('ma[0]'), ma_slope: '"' + s.maType + ' " + ' + FP('ma[0]'),
       osc: '"' + s.osc + ' " + osc[0].ToString("0.00")', macd: '"MACD " + macdLine[0].ToString("0.000") + "   Signal " + macdSignal[0].ToString("0.000")',
       band: '"Upper " + ' + FP('upperBand[0]') + ' + "   Lower " + ' + FP('lowerBand[0]'), nbar: '"Range " + ' + FP('rangeLow[1]') + ' + " to " + ' + FP('rangeHigh[1]'),
-      dmi: '"DI+ " + diPlus[0].ToString("0.0") + "   DI- " + diMinus[0].ToString("0.0")', psar: '"SAR " + ' + FP('sar[0]'), candle: '"Pattern: " + (sigBuy ? "bullish" : sigSell ? "bearish" : "none")' }[s.sig];
+      dmi: '"DI+ " + diPlus[0].ToString("0.0") + "   DI- " + diMinus[0].ToString("0.0")',
+      of_delta: '"Delta " + barDelta[0].ToString("N0") + "   CVD " + cumDelta[0].ToString("N0")', of_cvd: '"CVD " + cumDelta[0].ToString("N0") + "   avg " + cvdAverage[0].ToString("N0")',
+      of_imb: '"Stacks: buy " + stackBuy + "   sell " + stackSell + "   delta " + barDelta[0].ToString("N0")', of_poc: '"POC " + ' + FP('pocSeries[0]') + ' + "   delta " + barDelta[0].ToString("N0")',
+      of_va: '"VAH " + ' + FP('vahSeries[0]') + ' + "   VAL " + ' + FP('valSeries[0]') + ' + "   POC " + ' + FP('pocSeries[0]'), of_vwap: '"VWAP " + ' + FP('vwapSeries[0]') + ' + "   delta " + barDelta[0].ToString("N0")',
+      of_big: '"Largest print: buy " + flowBigBuy.ToString("N0") + "   sell " + flowBigSell.ToString("N0")',
+      l2_book: '"Book: bids " + bookBid.ToString("N0") + "   asks " + bookAsk.ToString("N0")',
+      l2_wall: '"Walls: ask " + (double.IsNaN(askWall) ? "none" : ' + FP('askWall') + ') + "   bid " + (double.IsNaN(bidWall) ? "none" : ' + FP('bidWall') + ')', psar: '"SAR " + ' + FP('sar[0]'), candle: '"Pattern: " + (sigBuy ? "bullish" : sigSell ? "bearish" : "none")' }[s.sig];
     // the info table: drawn only on the latest bar (or live), so it costs nothing while history loads
     function tableLines(stats) {
       if (!s.table) return [];
@@ -665,9 +917,11 @@
     out.push('// Visibility: ' + (s.visibility === 'public' ? 'public, open source under the ' + s.license + ' license' : 'private') + '. Generator: ' + VERSION + '.');
     out.push('//');
     specLines(s).forEach(function (l) { out.push('// ' + l[0] + ': ' + l[1]); });
-    out.push('#region Using declarations', 'using System;', 'using System.ComponentModel;', 'using System.ComponentModel.DataAnnotations;', 'using System.Windows.Media;',
+    out.push('#region Using declarations', 'using System;', 'using System.Collections.Generic;', 'using System.ComponentModel;', 'using System.ComponentModel.DataAnnotations;', 'using System.Windows.Media;',
       'using System.Xml.Serialization;', 'using NinjaTrader.Cbi;', 'using NinjaTrader.Data;', 'using NinjaTrader.Gui;', 'using NinjaTrader.Gui.Tools;', 'using NinjaTrader.NinjaScript;',
-      'using NinjaTrader.NinjaScript.DrawingTools;', 'using NinjaTrader.NinjaScript.Indicators;', '#endregion', '');
+      'using NinjaTrader.NinjaScript.DrawingTools;', 'using NinjaTrader.NinjaScript.Indicators;');
+    if (renderWanted) out.push('using NinjaTrader.Gui.Chart;');
+    out.push('#endregion', '');
 
     if (!S) genIndicator(); else genStrategy();
     return out.join('\r\n');
@@ -708,14 +962,16 @@
         III + 'b4BuySignal = new Series<bool>(this, MaximumBarsLookBack.Infinite);', III + 'b4SellSignal = new Series<bool>(this, MaximumBarsLookBack.Infinite);',
         III + 'b4ConfirmationDirection = new Series<int>(this, MaximumBarsLookBack.Infinite);', II + '}', I + '}', '');
       out.push(I + 'protected override void OnBarUpdate()', I + '{');
+      tickLines.forEach(function (x) { out.push(II + x); });
       if (configure.length) out.push(II + 'if (BarsInProgress != 0) return;');
       if (s.alerts) out.push(II + 'if (Bars.IsFirstBarOfSession && IsFirstTickOfBar) alertsThisSession = 0;');
+      preBody.forEach(function (x) { out.push(II + x); });
       out.push(II + 'b4BuySignal[0] = false;      // B4 Signal API: pulse, then reset every bar', II + 'b4SellSignal[0] = false;', II + 'b4ConfirmationDirection[0] = 0;');
       if (s.calc === 'tick') out.push(II + 'ClearMarks();   // each tick: a signal that is no longer true on this bar is removed');
       out.push(II + 'if (CurrentBar < ' + warmExpr + ') return;', '');
       body.forEach(function (b) { out.push(II + b); });
       flt.forEach(function (b) { out.push(II + b); });
-      if (plots.length) plotVals.forEach(function (v, i) { out.push(II + 'Values[' + i + '][0] = ' + v + ';'); });
+      if (plots.length) { plotVals.forEach(function (v, i) { out.push(II + 'Values[' + i + '][0] = ' + v + ';'); }); colorLines.forEach(function (x) { out.push(II + x); }); }
       out.push('', II + lastSig,
         II + 'if (B4UseEntrySignals) { b4BuySignal[0] = goLong; b4SellSignal[0] = goShort; }', II + 'if (B4UseConfirmations) b4ConfirmationDirection[0] = direction;');
       var yb = s.overlay ? 'Low[0] - ' + (mk ? 'MarkerOffsetTicks' : '2') + ' * TickSize' : yPanel, ys = s.overlay ? 'High[0] + ' + (mk ? 'MarkerOffsetTicks' : '2') + ' * TickSize' : yPanel;
@@ -736,6 +992,7 @@
       out.push(II + 'if (LogToOutput) Print(string.Format("{0} {1} {2} {3} @ {4}", Time[0], Name, Instrument.FullName, isBuy ? "BUY" : "SELL", Instrument.MasterInstrument.FormatPrice(Close[0])));', I + '}', '');
       if (s.calc === 'tick') out.push(I + 'private void ClearMarks()', I + '{', II + 'RemoveDrawObject("B4StudioBuy" + CurrentBar); RemoveDrawObject("B4StudioBuy" + CurrentBar + "T");',
         II + 'RemoveDrawObject("B4StudioSell" + CurrentBar); RemoveDrawObject("B4StudioSell" + CurrentBar + "T");', II + 'BarBrush = null; BackBrush = null;', I + '}', '');
+      members.forEach(function (x) { out.push(x === '' ? '' : I + x); });
       out.push(I + 'private Brush MakeShade(Brush source)', I + '{', II + 'if (source == null) return null;', II + 'Brush shade = source.Clone();', II + 'shade.Opacity = Math.Max(1, Math.Min(100, ShadeOpacity)) / 100.0;', II + 'shade.Freeze();', II + 'return shade;', I + '}', '');
       helpers();
       out.push(I + '#region Settings (normal properties, so B4 CoPilot Dev can load this indicator)');
@@ -808,7 +1065,11 @@
         III + '}', II + '}');
       out.push(I + '}', '');
 
-      out.push(I + 'protected override void OnBarUpdate()', I + '{', II + 'if (BarsInProgress != 0) return;', II + 'if (CurrentBar < Math.Max(BarsRequiredToTrade, ' + wx + ')) return;',
+      out.push(I + 'protected override void OnBarUpdate()', I + '{');
+      tickLines.forEach(function (x) { out.push(II + x); });
+      out.push(II + 'if (BarsInProgress != 0) return;');
+      preBody.forEach(function (x) { out.push(II + x); });
+      out.push(II + 'if (CurrentBar < Math.Max(BarsRequiredToTrade, ' + wx + ')) return;',
         II + 'if (Bars.IsFirstBarOfSession) ResetDay();', II + 'CountClosedTrades();', '');
       body.forEach(function (b) { out.push(II + b); });
       flt.forEach(function (b) { out.push(II + b); });
@@ -890,6 +1151,7 @@
         III + 'if (SoundOnly) { string sound = SoundPath(isLong); if (sound.Length > 0) PlaySound(sound); }',
         III + 'else Alert("B4Studio" + (riskEvent ? "Risk" : isLong ? "Long" : "Short"), riskEvent ? Priority.High : AlertPriority, Prefix() + Name + ": " + text, SoundPath(isLong), AlertRearmSeconds, Brushes.Black, riskEvent ? Brushes.OrangeRed : isLong ? Brushes.LimeGreen : Brushes.Red);', II + '}');
       out.push(I + '}', '');
+      members.forEach(function (x) { out.push(x === '' ? '' : I + x); });
       if (s.accounts === 'sim') out.push(I + 'public static bool IsSimulationAccount(Account a)', I + '{', II + 'if (a == null || string.IsNullOrEmpty(a.Name)) return false;',
         II + 'string n = a.Name;', II + 'return n == "Playback101" || n == "Backtest" || n.StartsWith("Sim", StringComparison.OrdinalIgnoreCase);', I + '}', '');
       helpers();
@@ -921,11 +1183,8 @@
 
   // ---------------------------------------------------------------- supported-feature check (never silently invent behavior)
   var UNSUPPORTED = [
-    [/\bvwap\b/, 'VWAP', 'NinjaTrader 8 has no built-in VWAP without the Order Flow+ add-on. Use a moving average or bands instead.'],
-    [/order.?flow|footprint|\bdelta\b|bid.?ask|imbalance|absorption/, 'Order flow / footprint / delta', 'Needs tick-level order-flow data and Tick Replay. Not generated by this prototype.'],
-    [/volume profile|\bpoc\b|value area|market profile|\btpo\b/, 'Volume / market profile', 'Not generated by this prototype.'],
-    [/\bdom\b|depth of market|level ?2|order book/, 'Market depth (DOM)', 'Not generated by this prototype.'],
-    [/tick replay/, 'Tick Replay', 'Platform setting with its own prerequisites; not generated by this prototype.'],
+    [/market profile|\btpo\b/, 'TPO / market profile letters', 'Volume profile (POC, value area) is supported; TPO letter profiles are not generated.'],
+    [/absorption|iceberg detect|spoof/, 'Absorption, iceberg or spoofing detection', 'Not generated yet. Use stacked imbalances, big trades, delta or liquidity walls as building blocks.'],
     [/machine learning|\bml\b|neural|\bai\b model|predict/, 'Machine learning / prediction', 'Not part of the template generator.'],
     [/\bnews\b|economic calendar|sentiment/, 'News or sentiment data', 'No news data source is available to NinjaScript here.'],
     [/pine|tradingview|thinkscript|\bmql\b|metatrader|python/, 'Other platforms or languages', 'This Studio generates NinjaTrader 8 NinjaScript only.'],
@@ -957,6 +1216,8 @@
   function testPlan(sp) {
     var s = normalize(sp), T = [];
     T.push(['Compile', 'Copy the file to Documents\\NinjaTrader 8\\bin\\Custom\\' + (s.kind === 's' ? 'Strategies' : 'Indicators') + '\\ while flat, press F5 in the NinjaScript Editor: zero errors.']);
+    if (/^of_/.test(s.sig)) T.push(['Tick data', 'Download 1-tick history for the chart dates (Tools > Historical Data). The chart must not show the "no tick data" note. If you have another footprint tool, compare bar delta on a few bars.']);
+    if (/^l2_/.test(s.sig)) T.push(['Market depth', 'Run it live on Sim101 or in Playback of a Market Replay day with depth: the table (turn it on) shows the book filling; signals must not appear on historical bars.']);
     T.push(['Parameter boundaries', 'Set each period to its minimum and to a large value; the ' + (s.kind === 's' ? 'strategy' : 'indicator') + ' must load without errors in the Log tab.']);
     if (s.kind === 'i') {
       T.push(['Signals on history', 'Apply to a chart with 10+ days: markers appear only where the specification says.']);
@@ -1033,14 +1294,22 @@
       ['Bollinger breakout', { sig: 'band', band: 'Bollinger', bandMode: 'breakout', bandLen: 20, width: 2, name: 'Bollinger Breakout' }],
       ['20-bar breakout', { sig: 'nbar', nbarLen: 20, name: 'Range Breakout' }],
       ['MACD momentum', { sig: 'macd', macdMode: 'signal', name: 'MACD Momentum' }],
-      ['Trend-filtered pullback', { sig: 'osc', osc: 'Stochastics', oscMode: 'exit', upper: 80, lower: 20, fTrend: true, fTrendLen: 200, name: 'Trend Pullback' }]],
+      ['Trend-filtered pullback', { sig: 'osc', osc: 'Stochastics', oscMode: 'exit', upper: 80, lower: 20, fTrend: true, fTrendLen: 200, name: 'Trend Pullback' }],
+      ['Order flow: stacked imbalance footprint', { sig: 'of_imb', ofRatio: 3, ofStack: 3, ofMinVol: 10, fpShow: true, fpMode: 'bidask', table: true, name: 'Stacked Imbalance Footprint' }],
+      ['Order flow: CVD trend', { sig: 'of_cvd', ofCvdLen: 20, ofCvdReset: true, table: true, name: 'CVD Trend' }],
+      ['Order flow: value area breakout', { sig: 'of_va', ofVaPct: 70, ofVaMode: 'breakout', fpShow: true, fpMode: 'delta', name: 'Value Area Breakout' }],
+      ['Order flow: big trade alerts', { sig: 'of_big', ofBig: 50, alerts: true, fpShow: true, fpMode: 'volume', name: 'Big Trade Alerts' }],
+      ['Level 2: order book imbalance', { sig: 'l2_book', l2Levels: 10, l2Ratio: 2, table: true, name: 'Book Imbalance' }]],
     s: [['Trend follower', { sig: 'ma_cross', fast: 9, slow: 21, fTrend: true, fTrendLen: 200, stopMode: 'atr', stopAtr: 1.5, tgtMode: 'r', tgtR: 2, trailMode: 'atr', name: 'Trend Follower' }],
       ['Mean reversion', { sig: 'band', band: 'Bollinger', bandMode: 'reversal', fAdx: false, stopMode: 'swing', tgtMode: 'r', tgtR: 1.5, name: 'Band Reversion' }],
       ['Morning range breakout', { sig: 'nbar', nbarLen: 12, fSess: true, sessStart: '09:45', sessEnd: '11:30', stopMode: 'swing', tgtMode: 'r', tgtR: 2, beOn: true, name: 'Morning Breakout' }],
-      ['MACD with trailing stop', { sig: 'macd', macdMode: 'signal', fAdx: true, fAdxMin: 20, stopMode: 'ticks', stopTicks: 16, tgtMode: 'none', trailMode: 'ticks', trailTicks: 14, name: 'MACD Trail' }]]
+      ['MACD with trailing stop', { sig: 'macd', macdMode: 'signal', fAdx: true, fAdxMin: 20, stopMode: 'ticks', stopTicks: 16, tgtMode: 'none', trailMode: 'ticks', trailTicks: 14, name: 'MACD Trail' }],
+      ['Order flow: imbalance with trend', { sig: 'of_imb', ofStack: 3, fTrend: true, fTrendLen: 50, stopMode: 'swing', tgtMode: 'r', tgtR: 2, table: true, name: 'Imbalance Trend' }],
+      ['Order flow: value area fade', { sig: 'of_va', ofVaMode: 'reversal', stopMode: 'ticks', stopTicks: 12, tgtMode: 'r', tgtR: 1.5, fSess: true, sessStart: '09:45', sessEnd: '15:00', name: 'Value Area Fade' }],
+      ['Order flow: delta flip with ADX', { sig: 'of_delta', ofDeltaMode: 'flip', fAdx: true, fAdxMin: 20, stopMode: 'atr', tgtMode: 'r', tgtR: 2, name: 'Delta Flip' }]]
   };
 
   var api = { VERSION: VERSION, FIELDS: FIELDS, GROUPS: GROUPS, OSC: OSC, PRESETS: PRESETS, defaults: defaults, normalize: normalize, visible: visible, suggest: suggest,
-    specLines: specLines, review: review, generate: generate, unsupported: unsupported, confirmations: confirmations, testPlan: testPlan, staticChecks: staticChecks, publicRequirements: publicRequirements };
+    specLines: specLines, review: review, generate: generate, references: references, unsupported: unsupported, confirmations: confirmations, testPlan: testPlan, staticChecks: staticChecks, publicRequirements: publicRequirements };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.B4Studio = api;
 })(this);
