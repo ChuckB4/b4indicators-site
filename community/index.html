@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
+<title>B4 Community | Share and improve NinjaTrader 8 indicators and strategies</title>
+<meta name="description" content="The B4 Indicators community: share NinjaTrader 8 indicators and strategies built with B4 Studio, get feedback, and improve each other's builds. Free, open source, hosted on GitHub Discussions.">
+<link rel="canonical" href="https://www.b4indicators.com/community/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--navy:#071421;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--max:1180px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--teal2)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+header{position:sticky;top:0;z-index:20;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#102738;font-weight:700;letter-spacing:.14em;font-size:14px}
+.brand small{display:block;font-size:9px;letter-spacing:.18em;color:#687c87;font-weight:600}
+.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
+.navlinks{display:flex;gap:20px;font-size:14px;font-weight:600}.navlinks a{color:#354a58;text-decoration:none}.navlinks a:hover,.navlinks a[aria-current]{color:var(--teal2)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:12px 20px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal)}
+.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.ghost{background:transparent;color:#fff;border-color:#5c7786}.btn.line{background:#fff;color:#20394a;border-color:var(--line)}.btn.line:hover{border-color:var(--teal)}
+.kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+h1,h2,h3{font-weight:300;letter-spacing:-.01em;line-height:1.12}
+.hero{color:#fff;padding:84px 0 70px;background:radial-gradient(ellipse at 80% 10%,#1c736e70,transparent 42%),radial-gradient(ellipse at 10% 90%,#0a353d,transparent 50%),linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d)}
+.hero .kicker{color:#61e5d1}.hero h1{font-size:clamp(36px,5vw,58px);font-weight:200;margin:14px 0 18px}.hero h1 em{font-style:normal;color:var(--glow);font-weight:300}
+.lead{font-size:20px;font-weight:300;color:#c2d3dc;max-width:740px;margin:0}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+section{padding:72px 0}.sectionhead{max-width:780px;margin-bottom:28px}.sectionhead h2{font-size:clamp(28px,3.4vw,42px);margin:10px 0 12px;color:#102638}.sectionhead p{color:var(--muted);margin:0}
+.cats{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{background:#fff;border:1px solid var(--line);border-radius:18px;padding:24px;box-shadow:0 14px 36px #0b23300d;display:flex;flex-direction:column}
+.card .ico{font-size:26px}.card h3{font-size:24px;margin:8px 0 6px}.card p{color:var(--muted);font-size:15.5px;margin:0 0 16px}.card .btn{margin-top:auto;align-self:flex-start}
+.dark{background:linear-gradient(180deg,#071421,#0a1c2a);color:#e8f3f6}.dark .sectionhead h2{color:#fff}.dark .sectionhead p{color:#b4c8d1}.dark .kicker{color:#61e5d1}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.step{background:#0c2232;border:1px solid #24475a;border-radius:16px;padding:22px 22px 20px 64px;position:relative;color:#cfe1e7;font-size:15.5px}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:20px;top:20px;width:30px;height:30px;border-radius:50%;background:#123a46;color:#61e5d1;display:grid;place-items:center;font-weight:700;font-size:14px}
+.step b{color:#fff;display:block;font-size:17px;margin-bottom:4px;font-weight:600}
+.rules{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px}.box h3{font-size:22px;margin:0 0 10px}.box ul{margin:0;padding-left:20px;color:#2c4150;font-size:15.5px}.box li{margin:7px 0}
+.box.yes{border-top:4px solid var(--teal)}.box.no{border-top:4px solid #d9534f}
+.note{background:#fff8e8;border:1px solid #eadcb9;color:#6e5a30;border-radius:12px;padding:16px 18px;margin-top:22px;font-size:14.5px}
+footer{background:#06121d;color:#a6bbc5;padding:40px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:920px;line-height:1.7}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+@media(max-width:900px){.cats,.steps,.rules{grid-template-columns:1fr}.navlinks{display:none}}
+@media(max-width:560px){header .nav>.btn{display:none}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>COMMUNITY</small></span></a>
+<nav class="navlinks" aria-label="Main"><a href="../">Developer kit</a><a href="../repository/">Repository</a><a href="../ai/">B4 Indicator AI</a><a href="../studio/">Studio</a><a href="./" aria-current="page">Community</a></nav>
+<a class="btn" href="https://github.com/ChuckB4/b4-community/discussions" target="_blank" rel="noopener">Open the forum</a></div></header>
+
+<section class="hero"><div class="wrap">
+<div class="kicker">B4 Community</div>
+<h1>Build together. <em>Get better, faster.</em></h1>
+<p class="lead">Share the NinjaTrader 8 indicators and strategies you build in B4 Studio, get feedback from other traders and developers, and improve each other's work. Free and open source.</p>
+<div class="actions"><a class="btn" href="https://github.com/ChuckB4/b4-community/discussions" target="_blank" rel="noopener">Browse the forum</a><a class="btn ghost" href="../studio/">Build something in B4 Studio</a></div>
+</div></section>
+
+<section><div class="wrap">
+<div class="sectionhead"><div class="kicker">Forum</div><h2>Pick a category</h2><p>Reading is open to everyone. Posting and replying needs a free GitHub account.</p></div>
+<div class="cats">
+<article class="card"><span class="ico" aria-hidden="true">📈</span><h3>Indicators</h3><p>Post an indicator you built: what it does, its settings, the source and what you tested. Get feedback and improvements.</p><a class="btn" href="https://github.com/ChuckB4/b4-community/discussions/new?category=indicators" target="_blank" rel="noopener">Share an indicator</a></article>
+<article class="card"><span class="ico" aria-hidden="true">🧪</span><h3>Strategies</h3><p>Post a strategy for review: entry logic, exits, risk limits and how you tested it. Simulation only, no profit claims.</p><a class="btn" href="https://github.com/ChuckB4/b4-community/discussions/new?category=strategies" target="_blank" rel="noopener">Share a strategy</a></article>
+<article class="card"><span class="ico" aria-hidden="true">🙏</span><h3>Q&amp;A</h3><p>Stuck compiling, testing or wiring the B4 Signal API? Ask, and mark the answer that solved it.</p><a class="btn" href="https://github.com/ChuckB4/b4-community/discussions/new?category=q-a" target="_blank" rel="noopener">Ask a question</a></article>
+<article class="card"><span class="ico" aria-hidden="true">🙌</span><h3>Show and tell</h3><p>Charts, setups, and your improved version of someone else's build, with credit to the original author.</p><a class="btn line" href="https://github.com/ChuckB4/b4-community/discussions/categories/show-and-tell" target="_blank" rel="noopener">Browse</a></article>
+<article class="card"><span class="ico" aria-hidden="true">💡</span><h3>Ideas</h3><p>What should B4 Studio and the developer kit do next? Suggest it and vote on others' ideas.</p><a class="btn line" href="https://github.com/ChuckB4/b4-community/discussions/categories/ideas" target="_blank" rel="noopener">Suggest an idea</a></article>
+<article class="card"><span class="ico" aria-hidden="true">📣</span><h3>Announcements</h3><p>News about B4 Studio, the developer kit and community events.</p><a class="btn line" href="https://github.com/ChuckB4/b4-community/discussions/categories/announcements" target="_blank" rel="noopener">Read updates</a></article>
+</div>
+</div></section>
+
+<section class="dark"><div class="wrap">
+<div class="sectionhead"><div class="kicker">How to share a build</div><h2>From Studio to forum in four steps</h2><p>Every public build comes with its specification, test plan and source, so others can understand it, reproduce it and make it better.</p></div>
+<div class="steps">
+<div class="step"><b>Build it in B4 Studio</b>Describe your indicator or strategy, review what will be built, then generate the code.</div>
+<div class="step"><b>Make it public</b>Switch Visibility to Public, add your name and choose a license. Public strategies must use simulation accounts, a stop and daily limits.</div>
+<div class="step"><b>Copy the post</b>On the Share tab, press "Copy community post": the specification, checks, test plan and source in one block.</div>
+<div class="step"><b>Post it</b>Open the Indicators or Strategies forum, paste the post into the form, choose the license and tick what you tested.</div>
+</div>
+</div></section>
+
+<section><div class="wrap">
+<div class="sectionhead"><div class="kicker">Community rules</div><h2>Useful, legal and safe</h2></div>
+<div class="rules">
+<div class="box yes"><h3>Welcome</h3><ul><li>Builds you wrote, under MIT, Apache-2.0 or MPL-2.0</li><li>Honest testing notes: instrument, bars, dates, simulation or Playback</li><li>Improvements to others' builds, with credit and the same license terms</li><li>Questions at any level, and patient answers</li><li>Building on the free, public B4 Signal API</li></ul></div>
+<div class="box no"><h3>Not allowed</h3><ul><li>Profit claims, account screenshots, "guaranteed" anything</li><li>Telling anyone to run a community strategy on a live account</li><li>Decompiled, leaked or paid third-party code, or license keys</li><li>Proprietary B4 code or logic (B4 Algo, confirmations, CoPilot Pro, Indicator Pro)</li><li>Code that reaches the internet, starts programs or touches files or credentials</li></ul></div>
+</div>
+<p class="note"><b>Community projects are not B4 releases.</b> They are not reviewed for correctness, profitability or live-trading safety. Compile and test everything yourself in simulation. Trading futures involves substantial risk of loss. Educational and research use only; not trading advice. Full rules: <a href="https://github.com/ChuckB4/b4-community/blob/main/COMMUNITY_RULES.md" target="_blank" rel="noopener">community rules</a> · <a href="https://github.com/ChuckB4/b4-community/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener">code of conduct</a>.</p>
+</div></section>
+
+<footer><div class="wrap"><p><b style="color:#fff;letter-spacing:.14em">B4 INDICATORS</b> · part of the B4 Signals ecosystem · <a href="https://www.b4signals.com/">B4Signals.com</a> · <a href="mailto:info@b4signals.com">info@b4signals.com</a></p>
+<p>The forum is hosted on GitHub Discussions; GitHub's terms and privacy policy apply when you post there. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<div data-b4-share data-dark data-label="Share" data-title="B4 Community - share and improve NinjaTrader 8 indicators and strategies" style="margin:14px 0"></div>
+<p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+<script src="../share.js"></script>
+</body></html>

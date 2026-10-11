@@ -107,7 +107,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
 </head>
 <body data-gate-custom>
 <header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>STUDIO</small></span></a>
-<nav class="navlinks" aria-label="Main"><a href="../">Developer kit</a><a href="../repository/">Repository</a><a href="../ai/">B4 Indicator AI</a><a href="./" aria-current="page">Studio</a></nav>
+<nav class="navlinks" aria-label="Main"><a href="../">Developer kit</a><a href="../repository/">Repository</a><a href="../ai/">B4 Indicator AI</a><a href="./" aria-current="page">Studio</a><a href="../community/">Community</a></nav>
 <a class="btn" href="../repository/">Open the repository</a></div></header>
 
 <section class="top"><div class="wrap">
@@ -212,7 +212,7 @@ document.getElementById('y').textContent=new Date().getFullYear();
 (function(){
 'use strict';
 var $=function(id){return document.getElementById(id)}, S=window.B4Studio, STORE='b4studio2', UNLOCK='b4studio-unlocked', DAY=864e5;
-var COMMUNITY_URL=null;   // set to the community discussions URL once the community repository is live
+var COMMUNITY_URL='https://github.com/ChuckB4/b4-community/discussions';   // the community forum (GitHub Discussions)
 var ESSENTIAL={visibility:1,author:1,license:1,name:1,sig:1,maType:1,fast:1,slow:1,maLen:1,osc:1,oscLen:1,oscMode:1,upper:1,lower:1,macdMode:1,band:1,bandLen:1,width:1,bandMode:1,nbarLen:1,dmiLen:1,candle:1,
   side:1,fTrend:1,fTrendLen:1,fSess:1,sessStart:1,sessEnd:1,alerts:1,alertSound:1,marker:1,buyColor:1,sellColor:1,entryType:1,qtyMode:1,qty:1,riskUsd:1,maxQty:1,exitOpp:1,reverse:1,
   stopMode:1,stopTicks:1,stopAtr:1,stopPct:1,swingLen:1,tgtMode:1,tgtR:1,tgtTicks:1,tgtAtr:1,beOn:1,trailMode:1,trailTicks:1,trailAtr:1,dailyLoss:1,maxTrades:1,flatOn:1,flatTime:1,accounts:1,
@@ -360,8 +360,9 @@ function renderShare(){
   var h='<p>Public builds are open source, discussed and improved by the community. They are never B4 releases and are not reviewed for profitability or live-trading safety.</p>';
   h+='<div class="sec"><h3>Public '+(s.kind==='s'?'strategy':'indicator')+' requirements</h3><ul class="req">'+Q.map(function(q){return '<li class="'+(q.ok?'y':'x')+'">'+esc(q.text)+'</li>';}).join('')+'<li class="'+(fresh?'y':'x')+'">Latest settings generated as a revision</li></ul></div>';
   if(ok){
-    h+='<div class="genbar"><button class="btn" id="copyPost" type="button">Copy community post</button>'+(COMMUNITY_URL?'<a class="btn line" href="'+COMMUNITY_URL+'" target="_blank" rel="noopener">Open the community forum</a>':'')+'<span class="msg ok" id="postmsg" role="status"></span></div>';
-    h+='<p class="hint">'+(COMMUNITY_URL?'Paste the post into a new discussion in the right category (Indicators or Strategies). Others can comment, suggest changes and share improved revisions.':'The community forum is being set up. Your post is ready to copy now and to publish when the forum opens.')+'</p>';
+    var postUrl=COMMUNITY_URL+'/new?category='+(s.kind==='s'?'strategies':'indicators');
+    h+='<div class="genbar"><button class="btn" id="copyPost" type="button">1 · Copy community post</button><a class="btn line" href="'+postUrl+'" target="_blank" rel="noopener">2 · Open the '+(s.kind==='s'?'Strategies':'Indicators')+' forum</a><span class="msg ok" id="postmsg" role="status"></span></div>';
+    h+='<p class="hint">Copy the post, open the forum, paste it into the post form and choose your license. Posting needs a free GitHub account. Others can comment, suggest changes and share improved versions. <a href="../community/">How the community works</a></p>';
   } else h+='<p class="msg">Complete the items above to publish this build to the community forum.</p>';
   $('shareBody').innerHTML=h+shareLinkBlock(s); wireShare();
   var cp=$('copyPost'); if(cp) cp.onclick=function(){ if(unlocked()){ navigator.clipboard.writeText(postText(r)).then(function(){ $('postmsg').textContent='Post copied.'; }); } else gated('post'); };
