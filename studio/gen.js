@@ -1,204 +1,929 @@
-/* B4 AI Indicator Studio - Phase 1 generator (no AI): spec -> NinjaScript skeleton with the B4 Signal API v1.
+/* B4 AI Indicator Studio - generator v2 (no AI): spec -> NinjaScript 8 indicator or strategy.
+   Indicators publish the B4 Signal API v1. Strategies are bar-close, managed-order strategies with risk limits.
    Pure functions, used by the page and by the compile test (node). Built-in NinjaTrader 8 indicators only. */
 (function (root) {
   'use strict';
-  var MA = { SMA: 'SMA', EMA: 'EMA', WMA: 'WMA', HMA: 'HMA' };
-  var TEMPLATES = {
-    ma_cross: { label: 'Moving-average cross', overlay: true },
-    level_cross: { label: 'Oscillator level cross', overlay: false },
-    band_break: { label: 'Band breakout / reversal', overlay: true }
-  };
 
-  function cls(name) {
+  var VERSION = 'B4 Studio template generator 2.0 (2026-10-10)';
+
+  // ---------------------------------------------------------------- catalogues
+  var MA = [['EMA', 'EMA - exponential'], ['SMA', 'SMA - simple'], ['WMA', 'WMA - weighted'], ['HMA', 'HMA - Hull'],
+    ['DEMA', 'DEMA - double exponential'], ['TEMA', 'TEMA - triple exponential'], ['TMA', 'TMA - triangular'],
+    ['ZLEMA', 'ZLEMA - zero lag'], ['VWMA', 'VWMA - volume weighted'], ['KAMA', 'KAMA - Kaufman adaptive'],
+    ['T3', 'T3 - Tillson'], ['LinReg', 'Linear regression']];
+  var OSC = {
+    RSI: { l: 'RSI', ind: 'RSI(Close, OscPeriod, 3)', up: 70, lo: 30 },
+    CCI: { l: 'CCI', ind: 'CCI(Close, OscPeriod)', up: 100, lo: -100 },
+    Stochastics: { l: 'Stochastics %K', ind: 'Stochastics(Close, 3, OscPeriod, 3)', ser: '.K', up: 80, lo: 20 },
+    StochRSI: { l: 'Stochastic RSI', ind: 'StochRSI(Close, OscPeriod)', up: 0.8, lo: 0.2 },
+    WilliamsR: { l: 'Williams %R', ind: 'WilliamsR(Close, OscPeriod)', up: -20, lo: -80 },
+    MFI: { l: 'Money Flow Index', ind: 'MFI(OscPeriod)', up: 80, lo: 20 },
+    CMO: { l: 'Chande Momentum (CMO)', ind: 'CMO(Close, OscPeriod)', up: 50, lo: -50 },
+    UltimateOscillator: { l: 'Ultimate Oscillator', ind: 'UltimateOscillator(Close, Math.Max(1, OscPeriod / 2), OscPeriod, OscPeriod * 2)', up: 70, lo: 30 },
+    ROC: { l: 'Rate of Change (%)', ind: 'ROC(Close, OscPeriod)', up: 1, lo: -1 },
+    Momentum: { l: 'Momentum (points)', ind: 'Momentum(Close, OscPeriod)', up: 5, lo: -5 }
+  };
+  var CANDLES = {
+    engulfing: ['Engulfing', 'BullishEngulfing', 'BearishEngulfing'], harami: ['Harami', 'BullishHarami', 'BearishHarami'],
+    haramiCross: ['Harami cross', 'BullishHaramiCross', 'BearishHaramiCross'], beltHold: ['Belt hold', 'BullishBeltHold', 'BearishBeltHold'],
+    star: ['Morning star / Evening star', 'MorningStar', 'EveningStar'], soldiers: ['Three white soldiers / Three black crows', 'ThreeWhiteSoldiers', 'ThreeBlackCrows'],
+    hammer: ['Hammer / Shooting star', 'Hammer', 'ShootingStar'], piercing: ['Piercing line / Dark cloud cover', 'PiercingLine', 'DarkCloudCover'],
+    methods: ['Rising / Falling three methods', 'RisingThreeMethods', 'FallingThreeMethods']
+  };
+  var COLORS = ['LimeGreen', 'Lime', 'SpringGreen', 'MediumSeaGreen', 'DodgerBlue', 'DeepSkyBlue', 'Cyan', 'Gold', 'Orange', 'OrangeRed', 'Red', 'Crimson', 'Magenta', 'Violet', 'White', 'Silver', 'Gray'];
+  var SOUNDS = [['Alert1.wav', 'Alert 1'], ['Alert2.wav', 'Alert 2'], ['Alert3.wav', 'Alert 3'], ['Alert4.wav', 'Alert 4'], ['Announcement.wav', 'Announcement'], ['', 'No sound']];
+  var RESERVED = /^(Indicator|Strategy|Close|Open|High|Low|Volume|Time|Input|Values|Alert|Draw|Print|SMA|EMA|WMA|HMA|DEMA|TEMA|TMA|ZLEMA|VWMA|KAMA|T3|LinReg|RSI|CCI|Stochastics|StochRSI|WilliamsR|MFI|CMO|ROC|Momentum|UltimateOscillator|MACD|DM|ADX|ATR|MAX|MIN|Bollinger|KeltnerChannel|DonchianChannel|ParabolicSAR|CandlestickPattern|Swing|VMA|B4SignalApi)$/;
+  var GROUPS = [['proj', 'Project'], ['sig', 'Signal'], ['flt', 'Filters'], ['disp', 'Display'], ['alr', 'Alerts'], ['ord', 'Entries and sizing'], ['exit', 'Exits'], ['risk', 'Risk limits and safety']];
+  var GN = { sig: '1. Signal', flt: '2. Filters', disp: '3. Display', alr: '4. Alerts', ord: '5. Entries and sizing', exit: '6. Exits', risk: '7. Risk limits' };
+
+  function opts(list) { return list.map(function (x) { return Array.isArray(x) ? x : [x, x]; }); }
+  function isMa(s) { return s.sig === 'ma_cross' || s.sig === 'price_ma' || s.sig === 'ma_slope'; }
+  function anyAtr(s) { return s.stopMode === 'atr' || s.tgtMode === 'atr' || s.trailMode === 'atr'; }
+
+  // ---------------------------------------------------------------- field schema (drives the page, normalisation and tooltips)
+  var FIELDS = [
+    { id: 'visibility', t: 'sel', g: 'proj', l: 'Visibility', d: 'private', o: [['private', 'Private - only in this browser'], ['public', 'Public - share with the community']], tip: 'Private builds stay in your browser. Public builds are shared as open source for the community to discuss and improve, and must pass stricter requirements.' },
+    { id: 'author', t: 'text', g: 'proj', l: 'Author (attribution)', d: '', tip: 'Your name or handle, written into the file header. Required for public builds.' },
+    { id: 'license', t: 'sel', g: 'proj', l: 'License', d: 'MIT', o: [['MIT', 'MIT - permissive'], ['Apache-2.0', 'Apache 2.0 - permissive, patent grant'], ['MPL-2.0', 'MPL 2.0 - changes to this file stay open']], show: function (s) { return s.visibility === 'public'; }, tip: 'Public builds are open source. MIT is the simplest; MPL 2.0 requires that improvements to this file are shared back.' },
+    { id: 'description', t: 'text', g: 'proj', l: 'Short description', d: '', tip: 'One sentence shown in NinjaTrader and on the community post.' },
+    { id: 'name', t: 'text', g: 'sig', l: 'Name', d: '', tip: 'Shown in NinjaTrader\'s indicator or strategy list. The C# class name is made from it (letters and numbers only).' },
+    { id: 'sig', t: 'sel', g: 'sig', l: 'Signal type', d: 'ma_cross', o: [['ma_cross', 'Moving-average cross'], ['price_ma', 'Price crosses a moving average'], ['ma_slope', 'Moving-average turn (slope change)'], ['osc', 'Oscillator levels'], ['macd', 'MACD'], ['band', 'Bands: breakout or reversal'], ['nbar', 'N-bar high / low breakout'], ['dmi', 'DMI: DI+ / DI- cross'], ['psar', 'Parabolic SAR flip'], ['candle', 'Candlestick pattern']],
+      tip: 'The core event that creates a buy or sell signal. Filters below can then block signals that do not meet your conditions.' },
+    { id: 'maType', t: 'sel', g: 'sig', l: 'Average type', d: 'EMA', o: MA, show: isMa, tip: 'EMA reacts faster than SMA. HMA, ZLEMA and TEMA cut lag further but turn more often. KAMA adapts to volatility. VWMA weights each bar by its volume.' },
+    { id: 'fast', t: 'num', g: 'sig', l: 'Fast period', d: 9, min: 1, max: 400, show: function (s) { return s.sig === 'ma_cross'; }, tip: 'Bars in the fast average. Smaller = earlier signals and more false ones.' },
+    { id: 'slow', t: 'num', g: 'sig', l: 'Slow period', d: 21, min: 2, max: 500, show: function (s) { return s.sig === 'ma_cross'; }, tip: 'Bars in the slow average. Must be larger than the fast period.' },
+    { id: 'maLen', t: 'num', g: 'sig', l: 'Average period', d: 20, min: 2, max: 500, show: function (s) { return s.sig === 'price_ma' || s.sig === 'ma_slope'; }, tip: 'Bars in the moving average.' },
+    { id: 'osc', t: 'sel', g: 'sig', l: 'Oscillator', d: 'RSI', o: Object.keys(OSC).map(function (k) { return [k, OSC[k].l]; }), show: function (s) { return s.sig === 'osc'; }, tip: 'Changing the oscillator resets the levels to its usual values (RSI 70/30, CCI +100/-100, Williams %R -20/-80 ...).' },
+    { id: 'oscLen', t: 'num', g: 'sig', l: 'Oscillator period', d: 14, min: 2, max: 500, show: function (s) { return s.sig === 'osc'; }, tip: 'Look-back of the oscillator. 14 is the common default.' },
+    { id: 'oscMode', t: 'sel', g: 'sig', l: 'Trigger', d: 'exit', o: [['exit', 'Leaves the zone (reversal)'], ['enter', 'Enters the zone (momentum)'], ['mid', 'Crosses the midline']], show: function (s) { return s.sig === 'osc'; },
+      tip: 'Reversal: buy when it climbs back out of the low zone. Momentum: buy when it pushes into the high zone. Midline: buy when it crosses above the middle of the two levels.' },
+    { id: 'upper', t: 'num', g: 'sig', l: 'High level', d: 70, min: -1000, max: 1000, step: 'any', show: function (s) { return s.sig === 'osc'; }, tip: 'The overbought / high zone boundary.' },
+    { id: 'lower', t: 'num', g: 'sig', l: 'Low level', d: 30, min: -1000, max: 1000, step: 'any', show: function (s) { return s.sig === 'osc'; }, tip: 'The oversold / low zone boundary. Must be below the high level.' },
+    { id: 'macdFast', t: 'num', g: 'sig', l: 'MACD fast', d: 12, min: 1, max: 200, show: function (s) { return s.sig === 'macd'; }, tip: 'Fast EMA of the MACD line.' },
+    { id: 'macdSlow', t: 'num', g: 'sig', l: 'MACD slow', d: 26, min: 2, max: 400, show: function (s) { return s.sig === 'macd'; }, tip: 'Slow EMA of the MACD line. Must be larger than the fast one.' },
+    { id: 'macdSmooth', t: 'num', g: 'sig', l: 'Signal line', d: 9, min: 1, max: 200, show: function (s) { return s.sig === 'macd'; }, tip: 'EMA of the MACD line used as the signal line.' },
+    { id: 'macdMode', t: 'sel', g: 'sig', l: 'Trigger', d: 'signal', o: [['signal', 'MACD crosses its signal line'], ['zero', 'MACD crosses zero']], show: function (s) { return s.sig === 'macd'; }, tip: 'Signal-line crosses come earlier; zero-line crosses are slower but mark a change of trend.' },
+    { id: 'band', t: 'sel', g: 'sig', l: 'Bands', d: 'Bollinger', o: [['Bollinger', 'Bollinger Bands'], ['Keltner', 'Keltner Channel'], ['Donchian', 'Donchian Channel']], show: function (s) { return s.sig === 'band'; }, tip: 'Bollinger uses standard deviation, Keltner uses average range, Donchian uses the highest high and lowest low.' },
+    { id: 'bandLen', t: 'num', g: 'sig', l: 'Band period', d: 20, min: 2, max: 500, show: function (s) { return s.sig === 'band'; }, tip: 'Look-back of the bands.' },
+    { id: 'width', t: 'num', g: 'sig', l: 'Band width', d: 2, min: 0.1, max: 10, step: 0.1, show: function (s) { return s.sig === 'band' && s.band !== 'Donchian'; }, tip: 'Bollinger: standard deviations. Keltner: multiplier of the average range.' },
+    { id: 'bandMode', t: 'sel', g: 'sig', l: 'Trigger', d: 'breakout', o: [['breakout', 'Close breaks out of the bands'], ['reversal', 'Close comes back inside (reversal)']], show: function (s) { return s.sig === 'band'; }, tip: 'Breakout follows the move. Reversal fades it when price returns inside the band.' },
+    { id: 'nbarLen', t: 'num', g: 'sig', l: 'Look-back bars', d: 20, min: 2, max: 500, show: function (s) { return s.sig === 'nbar'; }, tip: 'Buy when the close breaks above the highest high of the previous N bars; sell below the lowest low.' },
+    { id: 'dmiLen', t: 'num', g: 'sig', l: 'DMI period', d: 14, min: 2, max: 200, show: function (s) { return s.sig === 'dmi'; }, tip: 'Buy when DI+ crosses above DI-, sell when DI- crosses above DI+.' },
+    { id: 'sarAcc', t: 'num', g: 'sig', l: 'SAR acceleration', d: 0.02, min: 0.001, max: 1, step: 0.001, show: function (s) { return s.sig === 'psar'; }, tip: 'Starting acceleration factor (0.02 is standard).' },
+    { id: 'sarMax', t: 'num', g: 'sig', l: 'SAR maximum', d: 0.2, min: 0.01, max: 1, step: 0.01, show: function (s) { return s.sig === 'psar'; }, tip: 'Maximum acceleration factor (0.2 is standard).' },
+    { id: 'sarStep', t: 'num', g: 'sig', l: 'SAR step', d: 0.02, min: 0.001, max: 1, step: 0.001, show: function (s) { return s.sig === 'psar'; }, tip: 'How much the acceleration grows on each new extreme.' },
+    { id: 'candle', t: 'sel', g: 'sig', l: 'Pattern', d: 'engulfing', o: Object.keys(CANDLES).map(function (k) { return [k, CANDLES[k][0]]; }), show: function (s) { return s.sig === 'candle'; }, tip: 'Uses NinjaTrader\'s built-in pattern recognition. The bullish form gives a buy, the bearish form a sell.' },
+    { id: 'trendStrength', t: 'num', g: 'sig', l: 'Prior trend bars', d: 4, min: 0, max: 50, show: function (s) { return s.sig === 'candle'; }, tip: 'Bars of prior trend the pattern needs (0 = ignore the trend before the pattern).' },
+    { id: 'side', t: 'sel', g: 'sig', l: 'Direction', d: 'both', o: [['both', 'Long and short'], ['long', 'Long only'], ['short', 'Short only']], tip: 'Which side may signal or trade. Opposite-signal exits still work in one-sided strategies.' },
+    { id: 'calc', t: 'sel', g: 'sig', l: 'Calculate', d: 'bar', k: 'i', o: [['bar', 'On bar close (recommended)'], ['tick', 'On each tick']], tip: 'Bar close: a signal is final once shown. Each tick: signals appear earlier but can disappear before the bar closes (markers are removed if they do).' },
+
+    { id: 'fTrend', t: 'chk', g: 'flt', l: 'Trend filter', d: false, tip: 'Longs only above the trend average, shorts only below it.' },
+    { id: 'fTrendMa', t: 'sel', g: 'flt', l: 'Trend average', d: 'EMA', o: MA, show: function (s) { return s.fTrend; }, tip: 'Average used for the trend filter.' },
+    { id: 'fTrendLen', t: 'num', g: 'flt', l: 'Trend period', d: 200, min: 2, max: 1000, show: function (s) { return s.fTrend; }, tip: '200 is a common long-term trend line; 50 is shorter-term.' },
+    { id: 'fHtf', t: 'chk', g: 'flt', l: 'Higher-timeframe trend', d: false, tip: 'Only trade with the trend of a higher timeframe (for example the 60-minute chart while you trade the 5-minute).' },
+    { id: 'fHtfTf', t: 'sel', g: 'flt', l: 'Higher timeframe', d: '60', o: [['5', '5 minutes'], ['15', '15 minutes'], ['30', '30 minutes'], ['60', '60 minutes'], ['240', '240 minutes'], ['D', 'Daily']], show: function (s) { return s.fHtf; }, tip: 'Must be higher than your chart\'s timeframe. Load enough days of history for it.' },
+    { id: 'fHtfMa', t: 'sel', g: 'flt', l: 'Higher-timeframe average', d: 'EMA', o: MA, show: function (s) { return s.fHtf; }, tip: 'Longs only while the higher-timeframe close is above this average; shorts only below.' },
+    { id: 'fHtfLen', t: 'num', g: 'flt', l: 'Higher-timeframe period', d: 50, min: 2, max: 500, show: function (s) { return s.fHtf; }, tip: 'Bars of the higher timeframe in the average.' },
+    { id: 'fAdx', t: 'chk', g: 'flt', l: 'Trend strength (ADX)', d: false, tip: 'Skip signals while ADX is below the minimum: avoids choppy, trendless markets.' },
+    { id: 'fAdxLen', t: 'num', g: 'flt', l: 'ADX period', d: 14, min: 2, max: 200, show: function (s) { return s.fAdx; }, tip: 'Look-back of ADX.' },
+    { id: 'fAdxMin', t: 'num', g: 'flt', l: 'ADX minimum', d: 20, min: 1, max: 100, show: function (s) { return s.fAdx; }, tip: '20-25 is a common threshold for a trending market.' },
+    { id: 'fVol', t: 'chk', g: 'flt', l: 'Volume filter', d: false, tip: 'Only signal when the bar\'s volume is above its average times the multiplier.' },
+    { id: 'fVolLen', t: 'num', g: 'flt', l: 'Volume average period', d: 20, min: 2, max: 500, show: function (s) { return s.fVol; }, tip: 'Bars in the volume average.' },
+    { id: 'fVolMult', t: 'num', g: 'flt', l: 'Volume multiplier', d: 1.2, min: 0.1, max: 20, step: 0.1, show: function (s) { return s.fVol; }, tip: '1.0 = above average; 1.5 = 50% above average.' },
+    { id: 'fAtr', t: 'chk', g: 'flt', l: 'Volatility (ATR) filter', d: false, tip: 'Only signal when the average true range is inside a band, in ticks: skips dead and wild markets.' },
+    { id: 'fAtrLen', t: 'num', g: 'flt', l: 'ATR period', d: 14, min: 2, max: 200, show: function (s) { return s.fAtr; }, tip: 'Look-back of ATR.' },
+    { id: 'fAtrMin', t: 'num', g: 'flt', l: 'ATR minimum (ticks)', d: 4, min: 0, max: 100000, show: function (s) { return s.fAtr; }, tip: 'Skip signals when ATR is below this many ticks.' },
+    { id: 'fAtrMax', t: 'num', g: 'flt', l: 'ATR maximum (ticks, 0 = none)', d: 0, min: 0, max: 100000, show: function (s) { return s.fAtr; }, tip: 'Skip signals when ATR is above this many ticks. 0 switches the ceiling off.' },
+    { id: 'fSess', t: 'chk', g: 'flt', l: 'Time window', d: false, tip: 'Only signal or enter between the start and end time (chart time zone). Windows across midnight work.' },
+    { id: 'sessStart', t: 'time', g: 'flt', l: 'Start time', d: '09:30', show: function (s) { return s.fSess; }, tip: 'First bar time that may signal (HH:MM, chart time zone).' },
+    { id: 'sessEnd', t: 'time', g: 'flt', l: 'End time', d: '11:30', show: function (s) { return s.fSess; }, tip: 'Last bar time that may signal (HH:MM, chart time zone).' },
+    { id: 'cooldown', t: 'num', g: 'flt', l: 'Cool-down bars', d: 0, min: 0, max: 1000, tip: 'Minimum bars between two signals. 0 = no cool-down.' },
+
+    { id: 'marker', t: 'sel', g: 'disp', l: 'Marker', d: 'arrow', k: 'i', o: [['arrow', 'Arrows'], ['triangle', 'Triangles'], ['dot', 'Dots'], ['diamond', 'Diamonds'], ['square', 'Squares'], ['none', 'No markers']], tip: 'Shape drawn on each signal bar.' },
+    { id: 'buyColor', t: 'sel', g: 'disp', l: 'Buy colour', d: 'LimeGreen', k: 'i', o: COLORS, tip: 'Colour of buy markers, labels, bars and shading. Can be changed later in NinjaTrader.' },
+    { id: 'sellColor', t: 'sel', g: 'disp', l: 'Sell colour', d: 'Red', k: 'i', o: COLORS, tip: 'Colour of sell markers, labels, bars and shading.' },
+    { id: 'markerOffset', t: 'num', g: 'disp', l: 'Marker offset (ticks)', d: 2, min: 0, max: 200, k: 'i', tip: 'Distance between the bar and the marker.' },
+    { id: 'labels', t: 'chk', g: 'disp', l: 'BUY / SELL text', d: false, k: 'i', tip: 'Writes BUY or SELL next to each marker.' },
+    { id: 'colorBars', t: 'chk', g: 'disp', l: 'Colour signal bars', d: false, k: 'i', tip: 'Paints the signal bar in the buy or sell colour.' },
+    { id: 'shade', t: 'chk', g: 'disp', l: 'Shade background', d: false, k: 'i', tip: 'Tints the chart background behind signal bars.' },
+    { id: 'shadeOpacity', t: 'num', g: 'disp', l: 'Shade opacity (%)', d: 20, min: 1, max: 100, k: 'i', show: function (s) { return s.shade; }, tip: 'Strength of the background tint.' },
+    { id: 'showPlots', t: 'chk', g: 'disp', l: 'Draw indicator lines', d: true, k: 'i', tip: 'Draws the averages, bands or SAR on the price panel. Oscillators, MACD and DMI always draw in their own panel.' },
+    { id: 'plotWidth', t: 'num', g: 'disp', l: 'Line width', d: 2, min: 1, max: 6, k: 'i', tip: 'Thickness of the plotted lines.' },
+    { id: 'showOnChart', t: 'chk', g: 'disp', l: 'Show the signal indicators on the chart', d: true, k: 's', tip: 'Adds the averages, bands or oscillator the strategy uses to the chart so you can see why it traded.' },
+
+    { id: 'alerts', t: 'chk', g: 'alr', l: 'Alerts', d: false, tip: 'Real-time alerts in NinjaTrader\'s Alerts Log, with sound. Never fire on historical bars.' },
+    { id: 'alertSide', t: 'sel', g: 'alr', l: 'Alert on', d: 'both', o: [['both', 'Buy and sell'], ['buy', 'Buy only'], ['sell', 'Sell only']], show: function (s) { return s.alerts; }, tip: 'Indicators: which signals alert. Strategies: which entries alert (risk-limit stops always alert).' },
+    { id: 'alertSound', t: 'sel', g: 'alr', l: 'Sound', d: 'Alert2.wav', o: SOUNDS, show: function (s) { return s.alerts; }, tip: 'A sound from NinjaTrader\'s own sounds folder. You can type any .wav file name there later in the properties.' },
+    { id: 'alertPriority', t: 'sel', g: 'alr', l: 'Priority', d: 'Medium', o: ['Low', 'Medium', 'High'], show: function (s) { return s.alerts; }, tip: 'Priority shown in the Alerts Log.' },
+    { id: 'alertRearm', t: 'num', g: 'alr', l: 'Re-arm (seconds)', d: 60, min: 0, max: 86400, show: function (s) { return s.alerts; }, tip: 'Minimum seconds before the same alert can fire again.' },
+    { id: 'alertMsg', t: 'text', g: 'alr', l: 'Message prefix', d: '', show: function (s) { return s.alerts; }, tip: 'Optional text added in front of every alert message, for example your setup name.' },
+    { id: 'logSignals', t: 'chk', g: 'alr', l: 'Log to the Output window', d: false, tip: 'Prints every signal (or order and risk event) with time, instrument and price to NinjaScript Output.' },
+
+    { id: 'entryType', t: 'sel', g: 'ord', l: 'Entry order', d: 'market', k: 's', o: [['market', 'Market on the next bar'], ['limit', 'Limit, better than the close'], ['stop', 'Stop-market beyond the signal bar']], tip: 'Market fills for sure. Limit waits for a better price and may miss. Stop enters only if price continues past the signal bar. Limit and stop orders expire after one bar.' },
+    { id: 'entryOffset', t: 'num', g: 'ord', l: 'Entry offset (ticks)', d: 1, min: 0, max: 1000, k: 's', show: function (s) { return s.entryType !== 'market'; }, tip: 'Limit: ticks better than the close. Stop: ticks beyond the signal bar\'s high (long) or low (short).' },
+    { id: 'qtyMode', t: 'sel', g: 'ord', l: 'Position size', d: 'fixed', k: 's', o: [['fixed', 'Fixed contracts'], ['risk', 'Risk-based (fixed $ risk per trade)']], tip: 'Risk-based sizing buys fewer contracts when the stop is wide, so every trade risks about the same dollars.' },
+    { id: 'qty', t: 'num', g: 'ord', l: 'Contracts', d: 1, min: 1, max: 1000, k: 's', show: function (s) { return s.qtyMode === 'fixed'; }, tip: 'Contracts per entry.' },
+    { id: 'riskUsd', t: 'num', g: 'ord', l: 'Risk per trade ($)', d: 200, min: 1, max: 1000000, k: 's', show: function (s) { return s.qtyMode === 'risk'; }, tip: 'Contracts = risk / (stop distance x tick value), rounded down. If even one contract risks more, the trade is skipped.' },
+    { id: 'maxQty', t: 'num', g: 'ord', l: 'Maximum contracts', d: 5, min: 1, max: 1000, k: 's', show: function (s) { return s.qtyMode === 'risk'; }, tip: 'Upper limit for risk-based sizing.' },
+    { id: 'exitOpp', t: 'chk', g: 'ord', l: 'Exit on an opposite signal', d: true, k: 's', tip: 'A sell signal closes a long, a buy signal closes a short (filters do not block exits).' },
+    { id: 'reverse', t: 'chk', g: 'ord', l: 'Reverse on an opposite signal', d: false, k: 's', tip: 'Instead of only exiting, enter the other way when the opposite signal also passes the filters.' },
+
+    { id: 'stopMode', t: 'sel', g: 'exit', l: 'Stop loss', d: 'ticks', k: 's', o: [['ticks', 'Fixed ticks'], ['atr', 'ATR multiple'], ['percent', 'Percent of price'], ['swing', 'Beyond the recent swing'], ['none', 'No stop (not recommended)']], tip: 'Protective stop placed with every entry. ATR stops widen in fast markets; swing stops sit beyond the recent low (long) or high (short).' },
+    { id: 'stopTicks', t: 'num', g: 'exit', l: 'Stop (ticks)', d: 16, min: 1, max: 100000, k: 's', show: function (s) { return s.stopMode === 'ticks'; }, tip: 'Distance from the entry price in ticks.' },
+    { id: 'stopAtr', t: 'num', g: 'exit', l: 'Stop (x ATR)', d: 1.5, min: 0.1, max: 50, step: 0.1, k: 's', show: function (s) { return s.stopMode === 'atr'; }, tip: 'Stop distance as a multiple of ATR at the signal bar.' },
+    { id: 'stopPct', t: 'num', g: 'exit', l: 'Stop (% of price)', d: 0.5, min: 0.01, max: 50, step: 0.01, k: 's', show: function (s) { return s.stopMode === 'percent'; }, tip: 'Stop distance as a percentage of the signal bar\'s close.' },
+    { id: 'swingLen', t: 'num', g: 'exit', l: 'Swing look-back (bars)', d: 10, min: 2, max: 500, k: 's', show: function (s) { return s.stopMode === 'swing'; }, tip: 'The stop goes beyond the lowest low (long) or highest high (short) of these bars.' },
+    { id: 'swingPad', t: 'num', g: 'exit', l: 'Swing padding (ticks)', d: 2, min: 0, max: 1000, k: 's', show: function (s) { return s.stopMode === 'swing'; }, tip: 'Extra ticks beyond the swing point.' },
+    { id: 'tgtMode', t: 'sel', g: 'exit', l: 'Profit target', d: 'r', k: 's', o: [['r', 'R multiple of the stop'], ['ticks', 'Fixed ticks'], ['atr', 'ATR multiple'], ['none', 'No target']], tip: 'R multiple: a 2R target is twice the stop distance, which keeps reward-to-risk constant.' },
+    { id: 'tgtR', t: 'num', g: 'exit', l: 'Target (R)', d: 2, min: 0.1, max: 50, step: 0.1, k: 's', show: function (s) { return s.tgtMode === 'r'; }, tip: 'Target distance = stop distance x R.' },
+    { id: 'tgtTicks', t: 'num', g: 'exit', l: 'Target (ticks)', d: 32, min: 1, max: 100000, k: 's', show: function (s) { return s.tgtMode === 'ticks'; }, tip: 'Distance from the entry price in ticks.' },
+    { id: 'tgtAtr', t: 'num', g: 'exit', l: 'Target (x ATR)', d: 3, min: 0.1, max: 100, step: 0.1, k: 's', show: function (s) { return s.tgtMode === 'atr'; }, tip: 'Target distance as a multiple of ATR at the signal bar.' },
+    { id: 'exitAtrLen', t: 'num', g: 'exit', l: 'ATR period (exits)', d: 14, min: 2, max: 200, k: 's', show: anyAtr, tip: 'Look-back of the ATR used by ATR stops, targets and trailing.' },
+    { id: 'beOn', t: 'chk', g: 'exit', l: 'Move stop to break-even', d: false, k: 's', show: function (s) { return s.stopMode !== 'none'; }, tip: 'Once the trade is this many ticks in profit, the stop moves to entry plus the offset.' },
+    { id: 'beTrigger', t: 'num', g: 'exit', l: 'Break-even trigger (ticks)', d: 12, min: 1, max: 100000, k: 's', show: function (s) { return s.beOn && s.stopMode !== 'none'; }, tip: 'Profit in ticks that triggers the move.' },
+    { id: 'beOffset', t: 'num', g: 'exit', l: 'Break-even offset (ticks)', d: 1, min: 0, max: 1000, k: 's', show: function (s) { return s.beOn && s.stopMode !== 'none'; }, tip: 'Ticks beyond entry to lock in (covers commissions).' },
+    { id: 'trailMode', t: 'sel', g: 'exit', l: 'Trailing stop', d: 'none', k: 's', o: [['none', 'Off'], ['ticks', 'Trail by ticks'], ['atr', 'Trail by ATR multiple']], show: function (s) { return s.stopMode !== 'none'; }, tip: 'Follows the best price since entry, checked at each bar close. It only ever tightens the stop.' },
+    { id: 'trailTicks', t: 'num', g: 'exit', l: 'Trail distance (ticks)', d: 12, min: 1, max: 100000, k: 's', show: function (s) { return s.trailMode === 'ticks' && s.stopMode !== 'none'; }, tip: 'Distance behind the best price.' },
+    { id: 'trailAtr', t: 'num', g: 'exit', l: 'Trail distance (x ATR)', d: 2, min: 0.1, max: 50, step: 0.1, k: 's', show: function (s) { return s.trailMode === 'atr' && s.stopMode !== 'none'; }, tip: 'Distance behind the best price as a multiple of the current ATR.' },
+    { id: 'timeStop', t: 'num', g: 'exit', l: 'Time stop (bars, 0 = off)', d: 0, min: 0, max: 100000, k: 's', tip: 'Exit if the trade is still open after this many bars.' },
+
+    { id: 'maxTrades', t: 'num', g: 'risk', l: 'Max entries per day (0 = no limit)', d: 5, min: 0, max: 1000, k: 's', tip: 'Stops new entries for the session once this many have been sent.' },
+    { id: 'dailyLoss', t: 'num', g: 'risk', l: 'Daily loss limit ($, 0 = off)', d: 500, min: 0, max: 10000000, k: 's', tip: 'Closed + open P&L for the session. When reached: flatten and no new entries until the next session. Checked at bar close.' },
+    { id: 'dailyProfit', t: 'num', g: 'risk', l: 'Daily profit target ($, 0 = off)', d: 0, min: 0, max: 10000000, k: 's', tip: 'When reached: flatten and stop for the session.' },
+    { id: 'maxConsec', t: 'num', g: 'risk', l: 'Max losing trades in a row (0 = off)', d: 3, min: 0, max: 1000, k: 's', tip: 'Stops for the session after this many consecutive losing trades.' },
+    { id: 'flatOn', t: 'chk', g: 'risk', l: 'Flatten at a set time', d: true, k: 's', tip: 'Closes any position and blocks new entries from this time until the next session.' },
+    { id: 'flatTime', t: 'time', g: 'risk', l: 'Flatten time', d: '15:50', k: 's', show: function (s) { return s.flatOn; }, tip: 'HH:MM in the chart time zone.' },
+    { id: 'exitOnClose', t: 'chk', g: 'risk', l: 'Exit at session close', d: true, k: 's', tip: 'NinjaTrader closes the position 30 seconds before the session ends.' },
+    { id: 'accounts', t: 'sel', g: 'risk', l: 'Accounts', d: 'sim', k: 's', o: [['sim', 'Simulation and Playback only (recommended)'], ['any', 'Any account, including live']], tip: 'With "Simulation and Playback only" the strategy refuses to place orders on any other account. Test thoroughly before allowing live accounts.' },
+    { id: 'barsReq', t: 'num', g: 'risk', l: 'Bars required to trade', d: 20, min: 0, max: 100000, k: 's', tip: 'No orders before this many bars have loaded (indicator warm-up is added automatically).' },
+    { id: 'trace', t: 'chk', g: 'risk', l: 'Trace orders', d: false, k: 's', tip: 'NinjaTrader prints detailed order handling to the Output window. Useful while testing.' }
+  ];
+  var BY = {}; FIELDS.forEach(function (f) { BY[f.id] = f; });
+
+  // ---------------------------------------------------------------- helpers
+  function cls(name, kind) {
     var s = String(name || '').replace(/[^A-Za-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean)
       .map(function (w) { return w.charAt(0).toUpperCase() + w.slice(1); }).join('');
-    if (!s) s = 'MyIndicator';
-    if (/^[0-9]/.test(s)) s = 'I' + s;
-    return s.slice(0, 48);
+    if (!s) s = kind === 's' ? 'MyStrategy' : 'MyIndicator';
+    if (/^[0-9]/.test(s)) s = 'B4' + s;
+    s = s.slice(0, 48);
+    if (RESERVED.test(s)) s += 'Studio';
+    return s;
   }
   function titleCase(s) { return String(s).replace(/\b[a-z]/g, function (c) { return c.toUpperCase(); }); }
-  function num(v, d, min, max) { v = Number(v); if (!isFinite(v)) v = d; return Math.min(max, Math.max(min, v)); }
-  function dbl(v) { var s = String(v); return /[.eE]/.test(s) ? s : s + '.0'; }
-
-  // keyword matching from a plain-language description (NOT AI): returns a suggested spec
-  function suggest(text) {
-    var t = String(text || '').toLowerCase(), sp = defaults();
-    if (/rsi|cci|stoch|oversold|overbought|oscillator/.test(t)) sp.template = 'level_cross';
-    else if (/bollinger|keltner|donchian|channel|band|breakout|break out/.test(t)) sp.template = 'band_break';
-    else sp.template = 'ma_cross';
-    if (/\bcci\b/.test(t)) sp.osc = 'CCI'; else if (/stoch/.test(t)) sp.osc = 'Stochastics'; else sp.osc = 'RSI';
-    if (/keltner/.test(t)) sp.band = 'Keltner'; else if (/donchian/.test(t)) sp.band = 'Donchian'; else sp.band = 'Bollinger';
-    if (/revers|fade|mean.?revert|bounce/.test(t)) sp.bandMode = 'reversal';
-    if (/\bhma\b|hull/.test(t)) sp.maType = 'HMA'; else if (/\bwma\b|weighted/.test(t)) sp.maType = 'WMA'; else if (/\bsma\b|simple/.test(t)) sp.maType = 'SMA'; else sp.maType = 'EMA';
-    var nums = (t.match(/\b\d{1,3}\b/g) || []).map(Number).filter(function (n) { return n > 1 && n < 500; });
-    if (sp.template === 'ma_cross' && nums.length >= 2) { sp.fast = Math.min(nums[0], nums[1]); sp.slow = Math.max(nums[0], nums[1]); }
-    if (sp.template !== 'ma_cross' && nums.length >= 1) sp.period = nums[0];
-    var os = t.match(/oversold\D{0,8}?(-?\d{1,3})\b/), ob = t.match(/overbought\D{0,8}?(-?\d{1,3})\b/);
-    if (os) sp.lower = Number(os[1]);
-    if (ob) sp.upper = Number(ob[1]);
-    if (os || ob) nums = nums.filter(function (n) { return !(os && n === Number(os[1])) && !(ob && n === Number(ob[1])); });
-    if (sp.template !== 'ma_cross' && nums.length >= 1) sp.period = nums[0];
-    sp.alerts = /alert|sound|notify/.test(t);
-    sp.colorBars = /colou?r (the )?(bars|candles)|paint/.test(t);
-    var m = t.match(/(?:called|named)\s+["']?([a-z0-9]+(?:\s+[a-z0-9]+){0,3})/);
-    if (m) sp.name = titleCase(m[1].split(/\s+(?:when|with|that|which|and|to|for|on|using)\b/)[0]);
-    return sp;
+  function clamp(v, d, min, max) { v = Number(v); if (!isFinite(v)) v = d; return Math.min(max, Math.max(min, v)); }
+  function dbl(v) { var s = String(Number(v)); return /[.eE]/.test(s) ? s : s + '.0'; }
+  function esc(s) { return String(s).replace(/\\/g, '').replace(/"/g, '\'').replace(/[\r\n]+/g, ' '); }
+  function hhmm(v, d) { var m = String(v || '').match(/^(\d{1,2}):(\d{2})$/); if (!m || +m[1] > 23 || +m[2] > 59) return d; return (m[1].length < 2 ? '0' : '') + m[1] + ':' + m[2]; }
+  function maX(type, src, len) {
+    if (type === 'KAMA') return 'KAMA(' + src + ', 2, ' + len + ', 30)';
+    if (type === 'T3') return 'T3(' + src + ', ' + len + ', 3, 0.7)';
+    return type + '(' + src + ', ' + len + ')';
   }
+  function maxExpr(a) { return a.reduce(function (acc, x) { return acc ? 'Math.Max(' + acc + ', ' + x + ')' : x; }, ''); }
 
-  function defaults() {
-    return { name: 'My B4 Indicator', template: 'ma_cross', maType: 'EMA', fast: 9, slow: 21, osc: 'RSI', period: 14,
-      upper: 70, lower: 30, band: 'Bollinger', bandMode: 'breakout', width: 2, arrows: true, alerts: false, colorBars: false };
-  }
-
-  function normalize(sp) {
-    var d = defaults(), o = {};
-    for (var k in d) o[k] = sp && sp[k] !== undefined ? sp[k] : d[k];
-    o.template = TEMPLATES[o.template] ? o.template : 'ma_cross';
-    o.maType = MA[o.maType] ? o.maType : 'EMA';
-    o.osc = { RSI: 1, CCI: 1, Stochastics: 1 }[o.osc] ? o.osc : 'RSI';
-    o.band = { Bollinger: 1, Keltner: 1, Donchian: 1 }[o.band] ? o.band : 'Bollinger';
-    o.bandMode = o.bandMode === 'reversal' ? 'reversal' : 'breakout';
-    o.fast = num(o.fast, 9, 1, 400); o.slow = num(o.slow, 21, 2, 500); if (o.slow <= o.fast) o.slow = o.fast + 1;
-    o.period = num(o.period, 14, 2, 500);
-    var lv = o.osc === 'CCI' ? [100, -100] : [70, 30];
-    o.upper = num(o.upper, lv[0], -1000, 1000); o.lower = num(o.lower, lv[1], -1000, 1000);
-    if (o.lower >= o.upper) { o.upper = lv[0]; o.lower = lv[1]; }
-    o.width = num(o.width, 2, 0.1, 10);
-    o.className = cls(o.name);
-    o.arrows = !!o.arrows; o.alerts = !!o.alerts; o.colorBars = !!o.colorBars;
+  function defaults(kind) {
+    var o = { kind: kind === 's' ? 's' : 'i' };
+    FIELDS.forEach(function (f) { o[f.id] = f.d; });
+    o.name = o.kind === 's' ? 'My B4 Strategy' : 'My B4 Indicator';
     return o;
   }
 
-  function specLines(sp) {
-    var s = normalize(sp), L = [];
-    L.push(['Name', s.name + ' (class ' + s.className + ')']);
-    L.push(['Type', TEMPLATES[s.template].label + (TEMPLATES[s.template].overlay ? ', drawn on the price panel' : ', drawn in its own panel')]);
-    if (s.template === 'ma_cross') {
-      L.push(['Buy signal', s.maType + '(' + s.fast + ') crosses above ' + s.maType + '(' + s.slow + ')']);
-      L.push(['Sell signal', s.maType + '(' + s.fast + ') crosses below ' + s.maType + '(' + s.slow + ')']);
-      L.push(['Confirmation', '1 while the fast average is above the slow one, -1 while below']);
-    } else if (s.template === 'level_cross') {
-      var o = s.osc === 'Stochastics' ? 'Stochastics %K(' + s.period + ')' : s.osc + '(' + s.period + ')';
-      L.push(['Buy signal', o + ' crosses back above ' + s.lower + ' (leaving the low zone)']);
-      L.push(['Sell signal', o + ' crosses back below ' + s.upper + ' (leaving the high zone)']);
-      L.push(['Confirmation', '1 while ' + o + ' is above the midpoint of ' + s.lower + ' and ' + s.upper + ', -1 while below']);
-    } else {
-      var b = s.band === 'Bollinger' ? 'Bollinger(' + s.period + ', ' + s.width + ' std dev)' : s.band === 'Keltner' ? 'Keltner(' + s.period + ', x' + s.width + ')' : 'Donchian(' + s.period + ', previous bar)';
-      if (s.bandMode === 'breakout') {
-        L.push(['Buy signal', 'Close breaks above the upper ' + b + ' band']);
-        L.push(['Sell signal', 'Close breaks below the lower ' + b + ' band']);
-      } else {
-        L.push(['Buy signal', 'Close moves back above the lower ' + b + ' band (reversal)']);
-        L.push(['Sell signal', 'Close moves back below the upper ' + b + ' band (reversal)']);
-      }
-      L.push(['Confirmation', '1 while Close is above the middle of the bands, -1 while below']);
+  function normalize(sp) {
+    sp = sp || {};
+    var kind = sp.kind === 's' ? 's' : 'i', d = defaults(kind), o = { kind: kind };
+    FIELDS.forEach(function (f) {
+      var v = sp[f.id];
+      if (v === undefined || v === null || v === '') v = f.t === 'text' && f.id !== 'name' ? '' : d[f.id];
+      if (f.t === 'sel') { var ok = opts(f.o).some(function (x) { return String(x[0]) === String(v); }); o[f.id] = ok ? String(v) : f.d; }
+      else if (f.t === 'num') o[f.id] = clamp(v, f.d, f.min, f.max);
+      else if (f.t === 'chk') o[f.id] = v === true || v === 'true' || v === 1 || v === 'on';
+      else if (f.t === 'time') o[f.id] = hhmm(v, f.d);
+      else o[f.id] = String(v).replace(/[<>"`\\{}\r\n\t]/g, '').replace(/\s+/g, ' ').slice(0, f.id === 'name' ? 60 : 80);   // text fields: no markup, quotes, braces or control characters
+    });
+    if (!String(o.name).trim()) o.name = d.name;
+    ['fast', 'slow', 'maLen', 'oscLen', 'macdFast', 'macdSlow', 'macdSmooth', 'bandLen', 'nbarLen', 'dmiLen', 'trendStrength', 'fTrendLen', 'fHtfLen', 'fAdxLen',
+      'fVolLen', 'fAtrLen', 'cooldown', 'markerOffset', 'shadeOpacity', 'plotWidth', 'alertRearm', 'entryOffset', 'qty', 'maxQty', 'stopTicks', 'swingLen',
+      'swingPad', 'tgtTicks', 'exitAtrLen', 'beTrigger', 'beOffset', 'trailTicks', 'timeStop', 'maxTrades', 'maxConsec', 'barsReq', 'fAtrMin', 'fAtrMax']
+      .forEach(function (k) { o[k] = Math.round(o[k]); });
+    if (o.slow <= o.fast) o.slow = o.fast + 1;
+    if (o.macdSlow <= o.macdFast) o.macdSlow = o.macdFast + 1;
+    var lv = OSC[o.osc];
+    if (o.lower >= o.upper) { o.upper = lv.up; o.lower = lv.lo; }
+    if (o.sarMax < o.sarAcc) o.sarMax = o.sarAcc;
+    if (o.entryType === 'stop' && o.entryOffset < 1) o.entryOffset = 1;
+    // exits that need a stop distance
+    if (o.stopMode === 'none') { o.beOn = false; o.trailMode = 'none'; if (o.tgtMode === 'r') o.tgtMode = 'ticks'; if (o.qtyMode === 'risk') o.qtyMode = 'fixed'; }
+    o.className = cls(o.name, kind);
+    o.overlay = !(o.sig === 'osc' || o.sig === 'macd' || o.sig === 'dmi');
+    return o;
+  }
+
+  function visible(f, s) { return (!f.k || f.k === s.kind) && (!f.show || f.show(s)); }
+
+  // ---------------------------------------------------------------- plain-language reading (keywords, NOT AI)
+  function suggest(text, kind) {
+    var t = String(text || '').toLowerCase(), sp = defaults(kind);
+    if (/\bstrateg|\bauto.?trad|\benter (a |the )?(long|short|trade)|\bstop.?loss|\bprofit target|\bcontracts?\b|\btake profit/.test(t)) sp.kind = 's';
+    sp.name = sp.kind === 's' ? 'My B4 Strategy' : 'My B4 Indicator';
+    if (/macd/.test(t)) sp.sig = 'macd';
+    else if (/parabolic|\bsar\b/.test(t)) sp.sig = 'psar';
+    else if (/\bdmi\b|\bdi\+|directional/.test(t)) sp.sig = 'dmi';
+    else if (/engulf|harami|hammer|shooting star|morning star|evening star|doji|soldiers|crows|piercing|dark cloud|belt hold|three methods|candle(stick)? pattern/.test(t)) sp.sig = 'candle';
+    else if (/bollinger|keltner|donchian|channel|\bbands?\b/.test(t)) sp.sig = 'band';
+    else if (/\b\d+.?bar (high|low|breakout)|highest high|lowest low|range breakout|n.?bar/.test(t)) sp.sig = 'nbar';
+    else if (/rsi|cci|stoch|williams|\bmfi\b|money flow|\bcmo\b|ultimate|\broc\b|rate of change|momentum|oversold|overbought|oscillator/.test(t)) sp.sig = 'osc';
+    else if (/(price|close) (crosses|closes above|closes below|moves above|moves below|above|below)/.test(t)
+      || (/crosses (above |below )?(the )?\d+ ?(ema|sma|wma|hma)/.test(t) && !/\d+ ?(ema|sma|wma|hma|average)s? cross/.test(t))) sp.sig = 'price_ma';
+    else if (/slope|turns? (up|down)|direction change/.test(t)) sp.sig = 'ma_slope';
+    else sp.sig = 'ma_cross';
+    [['hull', 'HMA'], ['\\bhma\\b', 'HMA'], ['\\btema\\b', 'TEMA'], ['\\bdema\\b', 'DEMA'], ['\\btma\\b|triangular', 'TMA'], ['zlema|zero.?lag', 'ZLEMA'], ['vwma|volume.?weighted', 'VWMA'],
+      ['kama|kaufman|adaptive', 'KAMA'], ['\\bt3\\b|tillson', 'T3'], ['linreg|linear regression', 'LinReg'], ['\\bwma\\b|weighted', 'WMA'], ['\\bsma\\b|simple', 'SMA'], ['\\bema\\b|exponential', 'EMA']]
+      .some(function (p) { if (new RegExp(p[0]).test(t)) { sp.maType = p[1]; return true; } return false; });
+    if (/\bcci\b/.test(t)) sp.osc = 'CCI'; else if (/stoch(astic)?.?rsi/.test(t)) sp.osc = 'StochRSI'; else if (/stoch/.test(t)) sp.osc = 'Stochastics';
+    else if (/williams/.test(t)) sp.osc = 'WilliamsR'; else if (/\bmfi\b|money flow/.test(t)) sp.osc = 'MFI'; else if (/\bcmo\b|chande/.test(t)) sp.osc = 'CMO';
+    else if (/ultimate/.test(t)) sp.osc = 'UltimateOscillator'; else if (/\broc\b|rate of change/.test(t)) sp.osc = 'ROC'; else if (/momentum/.test(t) && !/rsi/.test(t)) sp.osc = 'Momentum';
+    sp.upper = OSC[sp.osc].up; sp.lower = OSC[sp.osc].lo;
+    if (/midline|middle line|crosses 50/.test(t)) sp.oscMode = 'mid'; else if (/(enters|into) (the )?(overbought|oversold|zone)|momentum/.test(t) && sp.sig === 'osc') sp.oscMode = 'enter';
+    if (/zero.?line|crosses zero|above zero/.test(t)) sp.macdMode = 'zero';
+    if (/keltner/.test(t)) sp.band = 'Keltner'; else if (/donchian/.test(t)) sp.band = 'Donchian'; else sp.band = 'Bollinger';
+    if (/revers|fade|mean.?revert|bounce|back inside/.test(t)) sp.bandMode = 'reversal';
+    Object.keys(CANDLES).some(function (k) { var re = { engulfing: /engulf/, harami: /harami(?! cross)/, haramiCross: /harami cross/, beltHold: /belt hold/, star: /morning star|evening star/,
+      soldiers: /soldiers|crows/, hammer: /hammer|shooting star/, piercing: /piercing|dark cloud/, methods: /three methods/ }[k]; if (re.test(t)) { sp.candle = k; return true; } return false; });
+    if (/long only|only long|longs only|buy only/.test(t)) sp.side = 'long'; else if (/short only|only short|shorts only|sell only/.test(t)) sp.side = 'short';
+
+    // numbers: strip the ones that belong to a named setting first
+    var used = [];
+    function grab(re, key, fn) { var m = t.match(re); if (m) { sp[key] = fn ? fn(m[1]) : Number(m[1]); used.push(m[0]); } }
+    grab(/oversold\D{0,10}?(-?\d+(?:\.\d+)?)/, 'lower'); grab(/overbought\D{0,10}?(-?\d+(?:\.\d+)?)/, 'upper');
+    var STOP_T = /(\d+)\s*(?:tick|tk)s?\s*stop|stop(?:\s*loss)?(?:\s*(?:of|at|=|:))?\s*(\d+)\s*(?:tick|tk)s?/;
+    var stm = t.match(STOP_T); if (stm) { sp.stopMode = 'ticks'; sp.stopTicks = Number(stm[1] || stm[2]); used.push(stm[0]); }
+    var ma = t.match(/(\d+(?:\.\d+)?)\s*(?:x\s*)?atr\s*stop|stop(?:\s*loss)?(?:\s*(?:of|at|=|:))?\s*(\d+(?:\.\d+)?)\s*(?:x\s*)?atr/); if (ma) { sp.stopMode = 'atr'; sp.stopAtr = Number(ma[1] || ma[2]); used.push(ma[0]); }
+    if (/swing (low|high|stop)|stop (below|above) the swing/.test(t)) sp.stopMode = 'swing';
+    var tr = t.match(/(\d+(?:\.\d+)?)\s*r\b(?:\s*target)?|target\D{0,8}?(\d+(?:\.\d+)?)\s*r\b/); if (tr) { sp.tgtMode = 'r'; sp.tgtR = Number(tr[1] || tr[2]); used.push(tr[0]); }
+    var tt = t.match(/(\d+)\s*ticks?\s*(?:profit\s*)?target|target(?:\s*(?:of|at|=|:))?\s*(\d+)\s*ticks?/); if (tt) { sp.tgtMode = 'ticks'; sp.tgtTicks = Number(tt[1] || tt[2]); used.push(tt[0]); }
+    grab(/(\d+)\s*contracts?/, 'qty');
+    var rk = t.match(/risk\D{0,6}?\$?\s*(\d+)/); if (rk) { sp.qtyMode = 'risk'; sp.riskUsd = Number(rk[1]); used.push(rk[0]); }
+    var dl = t.match(/(?:daily|day) loss\D{0,10}?\$?\s*(\d+)|max(?:imum)? loss\D{0,10}?\$?\s*(\d+)/); if (dl) { sp.dailyLoss = Number(dl[1] || dl[2]); used.push(dl[0]); }
+    if (/trail/.test(t)) { sp.trailMode = /atr/.test(t.slice(t.indexOf('trail'), t.indexOf('trail') + 30)) ? 'atr' : 'ticks'; var tk = t.match(/trail\D{0,12}?(\d+)\s*ticks?/); if (tk) { sp.trailTicks = Number(tk[1]); used.push(tk[0]); } }
+    if (/break.?even/.test(t)) sp.beOn = true;
+    if (/reverse|always in|stop and reverse/.test(t)) sp.reverse = true;
+    var adx = t.match(/adx\D{0,10}?(?:above|over|>|at least)?\D{0,4}?(\d+)/); if (adx) { sp.fAdx = true; sp.fAdxMin = Number(adx[1]); used.push(adx[0]); }
+    var trd = t.match(/(?:above|below|with) (?:the )?(\d+)\s*(ema|sma|wma|hma)?\s*(?:trend|filter)|trend filter\D{0,10}?(\d+)/);
+    if (trd) { sp.fTrend = true; sp.fTrendLen = Number(trd[1] || trd[3]); if (trd[2]) sp.fTrendMa = trd[2].toUpperCase(); used.push(trd[0]); }
+    var htf = t.match(/(\d+)\s*(?:min(?:ute)?s?|m)\s*(?:chart )?trend|(?:higher time ?frame|htf)\D{0,12}?(\d+)/); if (htf) { var hv = String(htf[1] || htf[2]); sp.fHtf = true; if (['5', '15', '30', '60', '240'].indexOf(hv) >= 0) sp.fHtfTf = hv; used.push(htf[0]); }
+    if (/daily trend|daily chart trend/.test(t)) { sp.fHtf = true; sp.fHtfTf = 'D'; }
+    if (/volume (spike|filter|above average|confirm)/.test(t)) sp.fVol = true;
+    var win = t.match(/(?:between|from)\s*(\d{1,2}:\d{2})\s*(?:and|to|-)\s*(\d{1,2}:\d{2})/); if (win) { sp.fSess = true; sp.sessStart = win[1]; sp.sessEnd = win[2]; used.push(win[0]); }
+    var ft = t.match(/flat(?:ten)?\D{0,8}?(\d{1,2}:\d{2})/); if (ft) { sp.flatOn = true; sp.flatTime = ft[1]; used.push(ft[0]); }
+    var cd = t.match(/cool.?down\D{0,6}?(\d+)/); if (cd) { sp.cooldown = Number(cd[1]); used.push(cd[0]); }
+    var rest = t; used.forEach(function (u) { rest = rest.replace(u, ' '); });
+    var nums = (rest.match(/\b\d+(?:\.\d+)?\b/g) || []).map(Number).filter(function (n) { return n >= 1 && n < 500; });
+    if (sp.sig === 'ma_cross' && nums.length >= 2) { sp.fast = Math.min(nums[0], nums[1]); sp.slow = Math.max(nums[0], nums[1]); }
+    else if (nums.length >= 1) {
+      var n0 = Math.round(nums[0]);
+      ({ price_ma: 'maLen', ma_slope: 'maLen', osc: 'oscLen', band: 'bandLen', nbar: 'nbarLen', dmi: 'dmiLen' })[sp.sig] && (sp[({ price_ma: 'maLen', ma_slope: 'maLen', osc: 'oscLen', band: 'bandLen', nbar: 'nbarLen', dmi: 'dmiLen' })[sp.sig]] = n0);
+      if (sp.sig === 'macd' && nums.length >= 3) { sp.macdFast = nums[0]; sp.macdSlow = nums[1]; sp.macdSmooth = nums[2]; }
     }
-    L.push(['Signals', 'Published through the B4 Signal API v1 (pulses on the signal bar only); compatible with B4 CoPilot Dev']);
-    L.push(['Extras', [s.arrows ? 'arrows' : '', s.alerts ? 'alerts (real-time)' : '', s.colorBars ? 'signal bars coloured' : ''].filter(Boolean).join(', ') || 'none']);
-    L.push(['Orders', 'None. Indicators publish information only.']);
+    sp.alerts = /alert|sound|notify|ding/.test(t);
+    if (/colou?r (the )?(bars|candles)|paint/.test(t)) sp.colorBars = true;
+    if (/shade|highlight (the )?background/.test(t)) sp.shade = true;
+    if (/label|text/.test(t)) sp.labels = true;
+    if (/triangle/.test(t)) sp.marker = 'triangle'; else if (/\bdots?\b/.test(t)) sp.marker = 'dot'; else if (/diamond/.test(t)) sp.marker = 'diamond';
+    if (/each tick|every tick|intrabar|intra-bar/.test(t) && sp.kind === 'i') sp.calc = 'tick';
+    if (/live account|real account/.test(t)) sp.accounts = 'sim';   // never switched on from text; owner chooses it explicitly
+    var m = t.match(/(?:called|named)\s+["']?([a-z0-9]+(?:\s+[a-z0-9]+){0,3})/);
+    if (m) sp.name = titleCase(m[1].split(/\s+(?:when|with|that|which|and|to|for|on|using|if|where)\b/)[0]);
+    return sp;
+  }
+
+  // ---------------------------------------------------------------- human-readable specification and review
+  function sigText(s) {
+    var M = function (len) { return s.maType + '(' + len + ')'; };
+    switch (s.sig) {
+      case 'ma_cross': return [M(s.fast) + ' crosses above ' + M(s.slow), M(s.fast) + ' crosses below ' + M(s.slow), '1 while the fast average is above the slow one, -1 while below'];
+      case 'price_ma': return ['Close crosses above ' + M(s.maLen), 'Close crosses below ' + M(s.maLen), '1 while the close is above the average, -1 while below'];
+      case 'ma_slope': return [M(s.maLen) + ' turns up', M(s.maLen) + ' turns down', '1 while the average is rising, -1 while falling'];
+      case 'osc':
+        var o = OSC[s.osc].l + '(' + s.oscLen + ')', mid = (s.upper + s.lower) / 2;
+        if (s.oscMode === 'exit') return [o + ' crosses back above ' + s.lower, o + ' crosses back below ' + s.upper, '1 above the midpoint ' + mid + ', -1 below'];
+        if (s.oscMode === 'enter') return [o + ' crosses above ' + s.upper, o + ' crosses below ' + s.lower, '1 above the midpoint ' + mid + ', -1 below'];
+        return [o + ' crosses above ' + mid, o + ' crosses below ' + mid, '1 above ' + mid + ', -1 below'];
+      case 'macd':
+        var mc = 'MACD(' + s.macdFast + ', ' + s.macdSlow + ', ' + s.macdSmooth + ')';
+        return s.macdMode === 'signal' ? [mc + ' crosses above its signal line', mc + ' crosses below its signal line', '1 while MACD is above its signal line, -1 below']
+          : [mc + ' crosses above zero', mc + ' crosses below zero', '1 while MACD is above zero, -1 below'];
+      case 'band':
+        var b = s.band === 'Bollinger' ? 'Bollinger(' + s.bandLen + ', ' + s.width + ' std dev)' : s.band === 'Keltner' ? 'Keltner(' + s.bandLen + ', x' + s.width + ')' : 'Donchian(' + s.bandLen + ', previous bar)';
+        return s.bandMode === 'breakout' ? ['Close breaks above the upper ' + b + ' band', 'Close breaks below the lower ' + b + ' band', '1 while the close is above the middle, -1 below']
+          : ['Close moves back above the lower ' + b + ' band', 'Close moves back below the upper ' + b + ' band', '1 while the close is above the middle, -1 below'];
+      case 'nbar': return ['Close breaks above the highest high of the previous ' + s.nbarLen + ' bars', 'Close breaks below the lowest low of the previous ' + s.nbarLen + ' bars', '1 above the middle of that range, -1 below'];
+      case 'dmi': return ['DI+ crosses above DI- (' + s.dmiLen + ')', 'DI- crosses above DI+ (' + s.dmiLen + ')', '1 while DI+ leads, -1 while DI- leads'];
+      case 'psar': return ['Close crosses above Parabolic SAR(' + s.sarAcc + ', ' + s.sarMax + ', ' + s.sarStep + ')', 'Close crosses below the SAR', '1 while the close is above the SAR, -1 below'];
+      default: var c = CANDLES[s.candle]; return [c[1].replace(/([a-z])([A-Z])/g, '$1 $2') + ' (prior trend ' + s.trendStrength + ' bars)', c[2].replace(/([a-z])([A-Z])/g, '$1 $2'), '1 on a bullish pattern bar, -1 on a bearish one'];
+    }
+  }
+  function filterText(s) {
+    var f = [];
+    if (s.fTrend) f.push('longs above / shorts below ' + s.fTrendMa + '(' + s.fTrendLen + ')');
+    if (s.fHtf) f.push('with the ' + (s.fHtfTf === 'D' ? 'daily' : s.fHtfTf + '-minute') + ' trend: close vs ' + s.fHtfMa + '(' + s.fHtfLen + ')');
+    if (s.fAdx) f.push('ADX(' + s.fAdxLen + ') at least ' + s.fAdxMin);
+    if (s.fVol) f.push('volume at least ' + s.fVolMult + 'x its ' + s.fVolLen + '-bar average');
+    if (s.fAtr) f.push('ATR(' + s.fAtrLen + ') of at least ' + s.fAtrMin + ' ticks' + (s.fAtrMax > 0 ? ' and at most ' + s.fAtrMax : ''));
+    if (s.fSess) f.push('between ' + s.sessStart + ' and ' + s.sessEnd);
+    if (s.cooldown > 0) f.push('at least ' + s.cooldown + ' bars between signals');
+    if (s.side !== 'both') f.push(s.side === 'long' ? 'long side only' : 'short side only');
+    return f.length ? f.join('; ') : 'none';
+  }
+  function stopText(s) {
+    return { ticks: s.stopTicks + ' ticks', atr: s.stopAtr + ' x ATR(' + s.exitAtrLen + ')', percent: s.stopPct + '% of price', swing: 'beyond the ' + s.swingLen + '-bar swing + ' + s.swingPad + ' ticks', none: 'none' }[s.stopMode];
+  }
+  function specLines(sp) {
+    var s = normalize(sp), x = sigText(s), L = [];
+    L.push(['Name', s.name + ' (class ' + s.className + ')']);
+    L.push(['Kind', s.kind === 's' ? 'Strategy (managed orders, calculated on bar close)' : 'Indicator, ' + (s.overlay ? 'drawn on the price panel' : 'drawn in its own panel') + (s.calc === 'tick' ? ', calculated on each tick' : ', calculated on bar close')]);
+    L.push([s.kind === 's' ? 'Long setup' : 'Buy signal', x[0]]);
+    L.push([s.kind === 's' ? 'Short setup' : 'Sell signal', x[1]]);
+    L.push(['Filters', filterText(s)]);
+    if (s.kind === 'i') {
+      L.push(['Confirmation', x[2]]);
+      L.push(['Display', (s.marker === 'none' ? 'no markers' : s.marker + ' markers ' + s.buyColor + ' / ' + s.sellColor) + (s.labels ? ', BUY/SELL text' : '') + (s.colorBars ? ', coloured bars' : '') + (s.shade ? ', background shading ' + s.shadeOpacity + '%' : '')]);
+      L.push(['Alerts', s.alerts ? 'real-time, ' + s.alertSide + ', ' + (s.alertSound || 'no sound') + ', priority ' + s.alertPriority + ', re-arm ' + s.alertRearm + ' s' : 'off']);
+      L.push(['Signals', 'B4 Signal API v1 (pulses on the signal bar); works with B4 CoPilot Dev as a signal, filter or exit tool']);
+      L.push(['Orders', 'None. Indicators publish information only.']);
+    } else {
+      L.push(['Entry', { market: 'market order', limit: 'limit ' + s.entryOffset + ' ticks better than the close (1 bar)', stop: 'stop-market ' + s.entryOffset + ' ticks beyond the signal bar (1 bar)' }[s.entryType] + '; ' +
+        (s.qtyMode === 'fixed' ? s.qty + ' contract' + (s.qty > 1 ? 's' : '') : 'risk $' + s.riskUsd + ' per trade, max ' + s.maxQty + ' contracts') + (s.reverse ? '; reverses on an opposite signal' : s.exitOpp ? '; exits on an opposite signal' : '')]);
+      L.push(['Stop', stopText(s) + (s.beOn ? '; break-even at +' + s.beTrigger + ' ticks (+' + s.beOffset + ')' : '') + (s.trailMode !== 'none' ? '; trailing ' + (s.trailMode === 'ticks' ? s.trailTicks + ' ticks' : s.trailAtr + ' x ATR') : '')]);
+      L.push(['Target', { r: s.tgtR + 'R (' + s.tgtR + ' x the stop distance)', ticks: s.tgtTicks + ' ticks', atr: s.tgtAtr + ' x ATR(' + s.exitAtrLen + ')', none: 'none' }[s.tgtMode] + (s.timeStop > 0 ? '; time stop ' + s.timeStop + ' bars' : '')]);
+      L.push(['Risk limits', [s.maxTrades > 0 ? s.maxTrades + ' entries/day' : '', s.dailyLoss > 0 ? 'daily loss $' + s.dailyLoss : '', s.dailyProfit > 0 ? 'daily target $' + s.dailyProfit : '',
+        s.maxConsec > 0 ? s.maxConsec + ' losses in a row' : '', s.flatOn ? 'flat at ' + s.flatTime : '', s.exitOnClose ? 'exit at session close' : ''].filter(Boolean).join(', ') || 'none']);
+      L.push(['Accounts', s.accounts === 'sim' ? 'Simulation and Playback only (refuses other accounts)' : 'Any account, including live']);
+      L.push(['Alerts', s.alerts ? 'entries (' + s.alertSide + ') and risk-limit stops, ' + (s.alertSound || 'no sound') : 'off']);
+    }
     return L;
   }
-
-  function generate(sp) {
-    var s = normalize(sp), c = s.className, I = '        ', II = I + '    ', III = II + '    ';
-    var fields = [], init = [], props = [], defs = [], plots = [], body = [], warm;
-    if (s.template === 'ma_cross') {
-      fields.push('private ISeries<double> fast;', 'private ISeries<double> slow;');
-      defs.push('FastPeriod = ' + s.fast + ';', 'SlowPeriod = ' + s.slow + ';');
-      plots.push('AddPlot(Brushes.DeepSkyBlue, "Fast");', 'AddPlot(Brushes.Goldenrod, "Slow");');
-      init.push('fast = ' + s.maType + '(Close, FastPeriod);', 'slow = ' + s.maType + '(Close, SlowPeriod);');
-      props.push(prop('int', 'FastPeriod', 'Fast ' + s.maType + ' period', 1, '[Range(1, int.MaxValue)]'),
-                 prop('int', 'SlowPeriod', 'Slow ' + s.maType + ' period', 2, '[Range(2, int.MaxValue)]'));
-      warm = 'Math.Max(FastPeriod, SlowPeriod) + 1';
-      body.push('Values[0][0] = fast[0];', 'Values[1][0] = slow[0];',
-        'bool buy = CrossAbove(fast, slow, 1);', 'bool sell = CrossBelow(fast, slow, 1);',
-        'int direction = fast[0] > slow[0] ? 1 : fast[0] < slow[0] ? -1 : 0;');
-    } else if (s.template === 'level_cross') {
-      fields.push('private ISeries<double> osc;');
-      defs.push('Period = ' + s.period + ';', 'UpperLevel = ' + dbl(s.upper) + ';', 'LowerLevel = ' + dbl(s.lower) + ';');
-      plots.push('AddPlot(Brushes.DeepSkyBlue, "' + s.osc + '");');
-      var mk = s.osc === 'RSI' ? 'RSI(Close, Period, 3)' : s.osc === 'CCI' ? 'CCI(Close, Period)' : 'Stochastics(3, Period, 3).K';
-      init.push('osc = ' + mk + ';');
-      props.push(prop('int', 'Period', s.osc + ' period', 1, '[Range(2, int.MaxValue)]'),
-                 prop('double', 'UpperLevel', 'High zone level', 2, ''), prop('double', 'LowerLevel', 'Low zone level', 3, ''));
-      warm = 'Period + 3';
-      body.push('Values[0][0] = osc[0];', 'bool buy = CrossAbove(osc, LowerLevel, 1);', 'bool sell = CrossBelow(osc, UpperLevel, 1);',
-        'double mid = (UpperLevel + LowerLevel) / 2.0;', 'int direction = osc[0] > mid ? 1 : osc[0] < mid ? -1 : 0;');
+  function review(sp) {
+    var s = normalize(sp), R = [];
+    function add(level, text) { R.push({ level: level, text: text }); }
+    if (s.kind === 's') {
+      if (s.stopMode === 'none') add('high', 'No protective stop: one bad trade has no limit. Choose a stop.');
+      if (s.dailyLoss <= 0) add('high', 'No daily loss limit.');
+      if (s.accounts === 'any') add('high', 'Live accounts are allowed. Test for weeks in simulation first; you are responsible for every order.');
+      if (s.tgtMode === 'none' && s.trailMode === 'none' && !s.exitOpp && !s.reverse && s.timeStop === 0) add('warn', 'The only exit is the stop (and the session close). Add a target, trailing stop, opposite-signal exit or time stop.');
+      if (s.tgtMode === 'r' && s.tgtR < 1) add('warn', 'Target is smaller than the stop (below 1R): the win rate must be high to break even.');
+      if (s.maxConsec === 0 && s.maxTrades === 0) add('warn', 'No limit on entries or losing streaks per day.');
+      if (s.entryType !== 'market') add('info', 'Limit and stop entries expire after one bar if not filled; an unfilled entry still counts toward the daily entry limit.');
+      if (s.qtyMode === 'risk') add('info', 'Position size depends on the stop distance; wide stops trade fewer contracts or are skipped.');
+      if (s.flatOn && s.fSess && s.sessEnd > s.flatTime && s.sessStart < s.flatTime) add('info', 'The time window ends after the flatten time; no entries are made after ' + s.flatTime + '.');
+      add('info', 'Risk limits are checked at each bar close by the strategy, not by the broker. Keep the platform\'s own account risk settings on as well.');
     } else {
-      fields.push('private ISeries<double> upper;', 'private ISeries<double> lower;', 'private ISeries<double> middle;');
-      defs.push('Period = ' + s.period + ';');
-      if (s.band !== 'Donchian') defs.push('Width = ' + dbl(s.width) + ';');
-      plots.push('AddPlot(Brushes.SteelBlue, "Upper");', 'AddPlot(Brushes.SteelBlue, "Lower");');
-      if (s.band === 'Bollinger') init.push('var bands = Bollinger(Close, Width, Period);', 'upper = bands.Upper;', 'lower = bands.Lower;', 'middle = bands.Middle;');
-      else if (s.band === 'Keltner') init.push('var bands = KeltnerChannel(Close, Width, Period);', 'upper = bands.Upper;', 'lower = bands.Lower;', 'middle = bands.Midline;');
-      else init.push('var bands = DonchianChannel(Close, Period);', 'upper = bands.Upper;', 'lower = bands.Lower;', 'middle = bands.Mean;');
-      props.push(prop('int', 'Period', s.band + ' period', 1, '[Range(2, int.MaxValue)]'));
-      if (s.band !== 'Donchian') props.push(prop('double', 'Width', s.band === 'Bollinger' ? 'Standard deviations' : 'Offset multiplier', 2, '[Range(0.1, 10)]'));
-      warm = 'Period + 2';
-      var ref = s.band === 'Donchian' ? 1 : 0;   // Donchian: compare with the previous bar's channel (the current bar is inside it by definition)
-      body.push('Values[0][0] = upper[0];', 'Values[1][0] = lower[0];');
-      if (s.bandMode === 'breakout')
-        body.push('bool buy = Close[0] > upper[' + ref + '] && Close[1] <= upper[' + (ref + 1) + '];', 'bool sell = Close[0] < lower[' + ref + '] && Close[1] >= lower[' + (ref + 1) + '];');
-      else
-        body.push('bool buy = Close[0] > lower[' + ref + '] && Close[1] <= lower[' + (ref + 1) + '];', 'bool sell = Close[0] < upper[' + ref + '] && Close[1] >= upper[' + (ref + 1) + '];');
-      body.push('int direction = Close[0] > middle[0] ? 1 : Close[0] < middle[0] ? -1 : 0;');
+      if (s.calc === 'tick') add('warn', 'On each tick, signals can appear and vanish before the bar closes' + (s.alerts ? ' and alerts can fire for signals that later disappear.' : '.'));
+      if (s.marker === 'none' && !s.colorBars && !s.shade && !s.labels) add('info', 'Nothing is drawn for signals; they are still published through the B4 Signal API.');
     }
-    defs.push('ShowArrows = ' + s.arrows + ';', 'UseAlerts = ' + s.alerts + ';', 'ColorSignalBars = ' + s.colorBars + ';', 'B4UseEntrySignals = true;', 'B4UseConfirmations = true;');
-    props.push(prop('bool', 'ShowArrows', 'Show arrows', 10, ''), prop('bool', 'UseAlerts', 'Alerts (real-time)', 11, ''), prop('bool', 'ColorSignalBars', 'Colour signal bars', 12, ''));
+    if (s.fHtf) add('info', 'The higher-timeframe filter needs enough history: load at least a few days for minute timeframes, a year for daily.');
+    if (s.sig === 'candle') add('info', 'Candlestick patterns are frequent on small timeframes; combine them with a trend or volume filter.');
+    if (s.sig === 'ma_cross' && s.slow / s.fast < 1.5) add('warn', 'The fast and slow periods are close together: expect many whipsaws.');
+    return R;
+  }
+
+  // ---------------------------------------------------------------- code generation
+  function generate(sp) {
+    var s = normalize(sp), S = s.kind === 's', c = s.className;
+    var I = '        ', II = I + '    ', III = II + '    ';
+    var fields = [], props = [], defs = [], configure = [], init = [], chart = [], plots = [], lines = [], lineInit = [], body = [], warm = [], plotVals = [];
+    var order = 0;
+
+    function P(type, name, label, grp, def, tip, extra) {
+      extra = extra || {};
+      props.push({ type: type, name: name, label: label, grp: GN[grp], def: def, tip: tip, order: ++order, range: extra.range, nsp: S && extra.nsp !== false && /^(int|double|bool|DateTime)$/.test(type), editor: extra.editor });
+      if (def !== null && def !== undefined) defs.push(name + ' = ' + def + ';');
+    }
+    function intP(name, label, grp, v, min, tip) { P('int', name, label, grp, String(v), tip, { range: '[Range(' + min + ', int.MaxValue)]' }); }
+    function dblP(name, label, grp, v, min, tip) { P('double', name, label, grp, dbl(v), tip, { range: '[Range(' + dbl(min) + ', double.MaxValue)]' }); }
+    function boolP(name, label, grp, v, tip) { P('bool', name, label, grp, v ? 'true' : 'false', tip); }
+    function timeP(name, label, grp, v, tip) { P('DateTime', name, label, grp, 'DateTime.Parse("' + v + '", System.Globalization.CultureInfo.InvariantCulture)', tip, { editor: '[PropertyEditor("NinjaTrader.Gui.Tools.TimeEditorKey")]' }); }
+    function plot(color, name, style) {
+      var w = S ? 2 : s.plotWidth;
+      plots.push(style === 'Dash' ? 'AddPlot(new Stroke(Brushes.' + color + ', DashStyleHelper.Dash, ' + w + '), PlotStyle.Line, "' + name + '");'
+        : 'AddPlot(new Stroke(Brushes.' + color + ', ' + w + '), PlotStyle.' + (style || 'Line') + ', "' + name + '");');
+    }
+    var drawPlots = !S && (!s.overlay || s.showPlots);
+
+    // ---- signal
+    var yPanel = 'Values[0][0]';
+    switch (s.sig) {
+      case 'ma_cross':
+        fields.push('private ISeries<double> fastMa;', 'private ISeries<double> slowMa;');
+        intP('FastPeriod', 'Fast ' + s.maType + ' period', 'sig', s.fast, 1, BY.fast.tip); intP('SlowPeriod', 'Slow ' + s.maType + ' period', 'sig', s.slow, 2, BY.slow.tip);
+        init.push('var fastInd = ' + maX(s.maType, 'Close', 'FastPeriod') + ';', 'var slowInd = ' + maX(s.maType, 'Close', 'SlowPeriod') + ';', 'fastMa = fastInd;', 'slowMa = slowInd;'); chart.push('fastInd', 'slowInd');
+        plot('DeepSkyBlue', 'Fast'); plot('Goldenrod', 'Slow'); plotVals.push('fastMa[0]', 'slowMa[0]');
+        warm.push('SlowPeriod + 2', 'FastPeriod + 2');
+        body.push('bool sigBuy = CrossAbove(fastMa, slowMa, 1);', 'bool sigSell = CrossBelow(fastMa, slowMa, 1);', 'int direction = fastMa[0] > slowMa[0] ? 1 : fastMa[0] < slowMa[0] ? -1 : 0;');
+        break;
+      case 'price_ma': case 'ma_slope':
+        fields.push('private ISeries<double> ma;');
+        intP('MaPeriod', s.maType + ' period', 'sig', s.maLen, 2, BY.maLen.tip);
+        init.push('var maInd = ' + maX(s.maType, 'Close', 'MaPeriod') + ';', 'ma = maInd;'); chart.push('maInd');
+        plot('Goldenrod', s.maType); plotVals.push('ma[0]'); warm.push('MaPeriod + 3');
+        if (s.sig === 'price_ma') body.push('bool sigBuy = CrossAbove(Close, ma, 1);', 'bool sigSell = CrossBelow(Close, ma, 1);', 'int direction = Close[0] > ma[0] ? 1 : Close[0] < ma[0] ? -1 : 0;');
+        else body.push('bool sigBuy = ma[0] > ma[1] && ma[1] <= ma[2];', 'bool sigSell = ma[0] < ma[1] && ma[1] >= ma[2];', 'int direction = ma[0] > ma[1] ? 1 : ma[0] < ma[1] ? -1 : 0;');
+        break;
+      case 'osc':
+        var od = OSC[s.osc];
+        fields.push('private ISeries<double> osc;');
+        intP('OscPeriod', od.l + ' period', 'sig', s.oscLen, 2, BY.oscLen.tip);
+        P('double', 'UpperLevel', 'High level', 'sig', dbl(s.upper), BY.upper.tip); P('double', 'LowerLevel', 'Low level', 'sig', dbl(s.lower), BY.lower.tip);
+        init.push('var oscInd = ' + od.ind + ';', 'osc = oscInd' + (od.ser || '') + ';'); chart.push('oscInd');
+        plot('DeepSkyBlue', s.osc); plotVals.push('osc[0]'); warm.push('OscPeriod * 2 + 3');
+        lines.push('AddLine(Brushes.DimGray, ' + dbl(s.upper) + ', "High level");', 'AddLine(Brushes.DimGray, ' + dbl(s.lower) + ', "Low level");');
+        lineInit.push('Lines[0].Value = UpperLevel;', 'Lines[1].Value = LowerLevel;');
+        body.push('double mid = (UpperLevel + LowerLevel) / 2.0;');
+        if (s.oscMode === 'exit') body.push('bool sigBuy = CrossAbove(osc, LowerLevel, 1);', 'bool sigSell = CrossBelow(osc, UpperLevel, 1);');
+        else if (s.oscMode === 'enter') body.push('bool sigBuy = CrossAbove(osc, UpperLevel, 1);', 'bool sigSell = CrossBelow(osc, LowerLevel, 1);');
+        else body.push('bool sigBuy = CrossAbove(osc, mid, 1);', 'bool sigSell = CrossBelow(osc, mid, 1);');
+        body.push('int direction = osc[0] > mid ? 1 : osc[0] < mid ? -1 : 0;');
+        break;
+      case 'macd':
+        fields.push('private ISeries<double> macdLine;', 'private ISeries<double> macdSignal;');
+        intP('MacdFast', 'MACD fast', 'sig', s.macdFast, 1, BY.macdFast.tip); intP('MacdSlow', 'MACD slow', 'sig', s.macdSlow, 2, BY.macdSlow.tip); intP('MacdSmooth', 'Signal line', 'sig', s.macdSmooth, 1, BY.macdSmooth.tip);
+        init.push('var macdInd = MACD(Close, MacdFast, MacdSlow, MacdSmooth);', 'macdLine = macdInd;', 'macdSignal = macdInd.Avg;'); chart.push('macdInd');
+        plot('DeepSkyBlue', 'MACD'); plot('Goldenrod', 'Signal'); plotVals.push('macdLine[0]', 'macdSignal[0]'); lines.push('AddLine(Brushes.DimGray, 0, "Zero");');
+        warm.push('MacdSlow + MacdSmooth + 2');
+        if (s.macdMode === 'signal') body.push('bool sigBuy = CrossAbove(macdLine, macdSignal, 1);', 'bool sigSell = CrossBelow(macdLine, macdSignal, 1);', 'int direction = macdLine[0] > macdSignal[0] ? 1 : macdLine[0] < macdSignal[0] ? -1 : 0;');
+        else body.push('bool sigBuy = CrossAbove(macdLine, 0, 1);', 'bool sigSell = CrossBelow(macdLine, 0, 1);', 'int direction = macdLine[0] > 0 ? 1 : macdLine[0] < 0 ? -1 : 0;');
+        break;
+      case 'band':
+        fields.push('private ISeries<double> upperBand;', 'private ISeries<double> lowerBand;', 'private ISeries<double> middleBand;');
+        intP('BandPeriod', s.band + ' period', 'sig', s.bandLen, 2, BY.bandLen.tip);
+        if (s.band !== 'Donchian') dblP('BandWidth', s.band === 'Bollinger' ? 'Standard deviations' : 'Range multiplier', 'sig', s.width, 0.1, BY.width.tip);
+        if (s.band === 'Bollinger') init.push('var bandInd = Bollinger(Close, BandWidth, BandPeriod);', 'upperBand = bandInd.Upper;', 'lowerBand = bandInd.Lower;', 'middleBand = bandInd.Middle;');
+        else if (s.band === 'Keltner') init.push('var bandInd = KeltnerChannel(Close, BandWidth, BandPeriod);', 'upperBand = bandInd.Upper;', 'lowerBand = bandInd.Lower;', 'middleBand = bandInd.Midline;');
+        else init.push('var bandInd = DonchianChannel(Close, BandPeriod);', 'upperBand = bandInd.Upper;', 'lowerBand = bandInd.Lower;', 'middleBand = bandInd.Mean;');
+        chart.push('bandInd');
+        plot('SteelBlue', 'Upper'); plot('SteelBlue', 'Lower'); plot('SlateGray', 'Middle', 'Dash'); plotVals.push('upperBand[0]', 'lowerBand[0]', 'middleBand[0]');
+        warm.push('BandPeriod + 2');
+        var r0 = s.band === 'Donchian' ? 1 : 0;   // Donchian: compare with the previous bar's channel (the current bar is inside it by definition)
+        if (s.bandMode === 'breakout') body.push('bool sigBuy = Close[0] > upperBand[' + r0 + '] && Close[1] <= upperBand[' + (r0 + 1) + '];', 'bool sigSell = Close[0] < lowerBand[' + r0 + '] && Close[1] >= lowerBand[' + (r0 + 1) + '];');
+        else body.push('bool sigBuy = Close[0] > lowerBand[' + r0 + '] && Close[1] <= lowerBand[' + (r0 + 1) + '];', 'bool sigSell = Close[0] < upperBand[' + r0 + '] && Close[1] >= upperBand[' + (r0 + 1) + '];');
+        body.push('int direction = Close[0] > middleBand[0] ? 1 : Close[0] < middleBand[0] ? -1 : 0;');
+        break;
+      case 'nbar':
+        fields.push('private ISeries<double> rangeHigh;', 'private ISeries<double> rangeLow;');
+        intP('LookbackBars', 'Look-back bars', 'sig', s.nbarLen, 2, BY.nbarLen.tip);
+        init.push('rangeHigh = MAX(High, LookbackBars);', 'rangeLow = MIN(Low, LookbackBars);');
+        plot('SteelBlue', 'Range high'); plot('SteelBlue', 'Range low'); plotVals.push('rangeHigh[1]', 'rangeLow[1]');
+        warm.push('LookbackBars + 3');
+        body.push('bool sigBuy = Close[0] > rangeHigh[1] && Close[1] <= rangeHigh[2];', 'bool sigSell = Close[0] < rangeLow[1] && Close[1] >= rangeLow[2];',
+          'double rangeMid = (rangeHigh[1] + rangeLow[1]) / 2.0;', 'int direction = Close[0] > rangeMid ? 1 : Close[0] < rangeMid ? -1 : 0;');
+        break;
+      case 'dmi':
+        fields.push('private ISeries<double> diPlus;', 'private ISeries<double> diMinus;');
+        intP('DmiPeriod', 'DMI period', 'sig', s.dmiLen, 2, BY.dmiLen.tip);
+        init.push('var dmInd = DM(Close, DmiPeriod);', 'diPlus = dmInd.DiPlus;', 'diMinus = dmInd.DiMinus;'); chart.push('dmInd');
+        plot('LimeGreen', 'DI+'); plot('Red', 'DI-'); plotVals.push('diPlus[0]', 'diMinus[0]'); warm.push('DmiPeriod * 2 + 2');
+        body.push('bool sigBuy = CrossAbove(diPlus, diMinus, 1);', 'bool sigSell = CrossAbove(diMinus, diPlus, 1);', 'int direction = diPlus[0] > diMinus[0] ? 1 : diPlus[0] < diMinus[0] ? -1 : 0;');
+        break;
+      case 'psar':
+        fields.push('private ISeries<double> sar;');
+        dblP('SarAcceleration', 'SAR acceleration', 'sig', s.sarAcc, 0.001, BY.sarAcc.tip); dblP('SarMaximum', 'SAR maximum', 'sig', s.sarMax, 0.001, BY.sarMax.tip); dblP('SarStep', 'SAR step', 'sig', s.sarStep, 0.001, BY.sarStep.tip);
+        init.push('var sarInd = ParabolicSAR(Close, SarAcceleration, SarMaximum, SarStep);', 'sar = sarInd;'); chart.push('sarInd');
+        plot('Orange', 'SAR', 'Dot'); plotVals.push('sar[0]'); warm.push('5');
+        body.push('bool sigBuy = Close[0] > sar[0] && Close[1] <= sar[1];', 'bool sigSell = Close[0] < sar[0] && Close[1] >= sar[1];', 'int direction = Close[0] > sar[0] ? 1 : Close[0] < sar[0] ? -1 : 0;');
+        break;
+      default:
+        var cp = CANDLES[s.candle];
+        fields.push('private ISeries<double> bullPattern;', 'private ISeries<double> bearPattern;');
+        intP('TrendStrength', 'Prior trend bars', 'sig', s.trendStrength, 0, BY.trendStrength.tip);
+        init.push('bullPattern = CandlestickPattern(ChartPattern.' + cp[1] + ', TrendStrength);', 'bearPattern = CandlestickPattern(ChartPattern.' + cp[2] + ', TrendStrength);');
+        warm.push('TrendStrength + 4');
+        body.push('bool sigBuy = bullPattern[0] > 0.5;', 'bool sigSell = bearPattern[0] > 0.5;', 'int direction = sigBuy ? 1 : sigSell ? -1 : 0;');
+    }
+    if (!drawPlots) plots = [];
+
+    // ---- filters
+    var flt = ['bool longOk = ' + (s.side === 'short' ? 'false' : 'true') + ';', 'bool shortOk = ' + (s.side === 'long' ? 'false' : 'true') + ';'];
+    if (s.fTrend) {
+      fields.push('private ISeries<double> trendMa;'); intP('TrendPeriod', 'Trend ' + s.fTrendMa + ' period', 'flt', s.fTrendLen, 2, BY.fTrendLen.tip);
+      init.push('trendMa = ' + maX(s.fTrendMa, 'Close', 'TrendPeriod') + ';'); warm.push('TrendPeriod + 1');
+      flt.push('if (Close[0] <= trendMa[0]) longOk = false;      // trend filter', 'if (Close[0] >= trendMa[0]) shortOk = false;');
+    }
+    if (s.fHtf) {
+      fields.push('private ISeries<double> htfMa;'); intP('HtfPeriod', 'Higher-timeframe ' + s.fHtfMa + ' period', 'flt', s.fHtfLen, 2, BY.fHtfLen.tip);
+      configure.push(s.fHtfTf === 'D' ? 'AddDataSeries(BarsPeriodType.Day, 1);' : 'AddDataSeries(BarsPeriodType.Minute, ' + s.fHtfTf + ');');
+      init.push('htfMa = ' + maX(s.fHtfMa, 'BarsArray[1]', 'HtfPeriod') + ';');
+      flt.push('if (CurrentBars[1] < HtfPeriod) { longOk = false; shortOk = false; }   // higher timeframe still warming up',
+        'else { if (Closes[1][0] <= htfMa[0]) longOk = false; if (Closes[1][0] >= htfMa[0]) shortOk = false; }');
+    }
+    if (s.fAdx) {
+      fields.push('private ISeries<double> adx;'); intP('AdxPeriod', 'ADX period', 'flt', s.fAdxLen, 2, BY.fAdxLen.tip); dblP('AdxMinimum', 'ADX minimum', 'flt', s.fAdxMin, 0, BY.fAdxMin.tip);
+      init.push('adx = ADX(Close, AdxPeriod);'); warm.push('AdxPeriod * 2');
+      flt.push('if (adx[0] < AdxMinimum) { longOk = false; shortOk = false; }');
+    }
+    if (s.fVol) {
+      fields.push('private ISeries<double> volumeAvg;'); intP('VolumePeriod', 'Volume average period', 'flt', s.fVolLen, 2, BY.fVolLen.tip); dblP('VolumeMultiplier', 'Volume multiplier', 'flt', s.fVolMult, 0, BY.fVolMult.tip);
+      init.push('volumeAvg = SMA(Volume, VolumePeriod);'); warm.push('VolumePeriod + 1');
+      flt.push('if (Volume[0] < volumeAvg[0] * VolumeMultiplier) { longOk = false; shortOk = false; }');
+    }
+    if (s.fAtr) {
+      fields.push('private ISeries<double> atrFilter;'); intP('AtrFilterPeriod', 'ATR period', 'flt', s.fAtrLen, 2, BY.fAtrLen.tip);
+      dblP('AtrMinTicks', 'ATR minimum (ticks)', 'flt', s.fAtrMin, 0, BY.fAtrMin.tip); dblP('AtrMaxTicks', 'ATR maximum (ticks, 0 = none)', 'flt', s.fAtrMax, 0, BY.fAtrMax.tip);
+      init.push('atrFilter = ATR(Close, AtrFilterPeriod);'); warm.push('AtrFilterPeriod + 1');
+      flt.push('double atrTicks = atrFilter[0] / TickSize;', 'if (atrTicks < AtrMinTicks || (AtrMaxTicks > 0 && atrTicks > AtrMaxTicks)) { longOk = false; shortOk = false; }');
+    }
+    if (s.fSess) {
+      timeP('WindowStart', 'Window start', 'flt', s.sessStart, BY.sessStart.tip); timeP('WindowEnd', 'Window end', 'flt', s.sessEnd, BY.sessEnd.tip);
+      flt.push('if (!InWindow(ToTime(Time[0]), ToTime(WindowStart), ToTime(WindowEnd))) { longOk = false; shortOk = false; }');
+    }
+    intP('CooldownBars', 'Cool-down bars', 'flt', s.cooldown, 0, BY.cooldown.tip);
+    flt.push('if (CooldownBars > 0 && lastSignalBar >= 0 && CurrentBar - lastSignalBar < CooldownBars) { longOk = false; shortOk = false; }');
+    flt.push('bool goLong = sigBuy && longOk;', 'bool goShort = sigSell && shortOk;');
+    fields.push('private int lastSignalBar;');
+    var warmExpr = maxExpr(warm);
+
+    // ---- alerts / logging (shared)
+    if (s.alerts) {
+      boolP('UseAlerts', 'Alerts (real-time)', 'alr', true, BY.alerts.tip);
+      boolP('AlertOnBuy', S ? 'Alert on long entries' : 'Alert on buy signals', 'alr', s.alertSide !== 'sell', BY.alertSide.tip);
+      boolP('AlertOnSell', S ? 'Alert on short entries' : 'Alert on sell signals', 'alr', s.alertSide !== 'buy', BY.alertSide.tip);
+      P('string', 'AlertSound', 'Sound file (in NinjaTrader\\\\sounds)', 'alr', '"' + s.alertSound + '"', BY.alertSound.tip, { nsp: false });
+      P('Priority', 'AlertPriority', 'Priority', 'alr', 'Priority.' + s.alertPriority, BY.alertPriority.tip, { nsp: false });
+      intP('AlertRearmSeconds', 'Re-arm (seconds)', 'alr', s.alertRearm, 0, BY.alertRearm.tip);
+      P('string', 'AlertMessage', 'Message prefix', 'alr', '"' + esc(s.alertMsg) + '"', BY.alertMsg.tip, { nsp: false });
+    }
+    boolP('LogToOutput', 'Log to the Output window', 'alr', s.logSignals, BY.logSignals.tip);
 
     var out = [];
-    out.push('// ' + s.name + ' - generated by B4 AI Indicator Studio (Phase 1 preview: template generator, no AI).');
+    var tag = S ? 'strategy' : 'indicator';
+    out.push('// ' + s.name + ' - generated by B4 AI Indicator Studio (template generator, no AI).');
     out.push('// Status: GENERATED. The B4 templates are compile-checked against NinjaTrader 8, but this exact file has not been');
-    out.push('// compiled or tested by B4. Compile it (F5), test it in simulation, and review the logic before you rely on it.');
-    out.push('// Educational and research use only. Not trading advice. This indicator places no orders.');
+    out.push('// compiled or tested by B4. Compile it (F5), test it ' + (S ? 'in the Strategy Analyzer and on a simulation account' : 'in simulation') + ', and review the logic before you rely on it.');
+    out.push('// Educational and research use only. Not trading advice.' + (S ? ' Trading futures involves substantial risk of loss.' : ' This indicator places no orders.'));
+    if (String(s.author).trim()) out.push('// Author: ' + esc(s.author).replace(/[^A-Za-z0-9 .,_@()-]/g, ''));
+    out.push('// Visibility: ' + (s.visibility === 'public' ? 'public, open source under the ' + s.license + ' license' : 'private') + '. Generator: ' + VERSION + '.');
     out.push('//');
     specLines(s).forEach(function (l) { out.push('// ' + l[0] + ': ' + l[1]); });
-    out.push('#region Using declarations', 'using System;', 'using System.ComponentModel;', 'using System.ComponentModel.DataAnnotations;',
-      'using System.Windows.Media;', 'using System.Xml.Serialization;', 'using NinjaTrader.Gui;', 'using NinjaTrader.NinjaScript;',
-      'using NinjaTrader.NinjaScript.DrawingTools;', '#endregion', '');
-    out.push('namespace NinjaTrader.NinjaScript.Indicators.B4Studio', '{', '    public class ' + c + ' : Indicator', '    {');
-    fields.forEach(function (f) { out.push(I + f); });
-    out.push(I + 'private Series<bool> b4BuySignal;', I + 'private Series<bool> b4SellSignal;', I + 'private Series<int> b4ConfirmationDirection;', '');
-    out.push(I + 'protected override void OnStateChange()', I + '{', II + 'if (State == State.SetDefaults)', II + '{');
-    out.push(III + 'Description = "' + s.name.replace(/"/g, '') + ' (B4 AI Indicator Studio). Publishes B4 Signal API v1 signals.";');
-    out.push(III + 'Name = "' + s.name.replace(/"/g, '') + '";', III + 'Calculate = Calculate.OnBarClose;', III + 'IsOverlay = ' + TEMPLATES[s.template].overlay + ';',
-      III + 'DisplayInDataBox = true;', III + 'IsSuspendedWhileInactive = true;');
-    defs.forEach(function (d) { out.push(III + d); });
-    plots.forEach(function (p) { out.push(III + p); });
-    out.push(II + '}', II + 'else if (State == State.DataLoaded)', II + '{');
-    init.forEach(function (x) { out.push(III + x); });
-    out.push(III + 'b4BuySignal = new Series<bool>(this, MaximumBarsLookBack.Infinite);', III + 'b4SellSignal = new Series<bool>(this, MaximumBarsLookBack.Infinite);',
-      III + 'b4ConfirmationDirection = new Series<int>(this, MaximumBarsLookBack.Infinite);', II + '}', I + '}', '');
-    out.push(I + 'protected override void OnBarUpdate()', I + '{', II + 'b4BuySignal[0] = false;      // B4 Signal API: pulse, then reset every bar',
-      II + 'b4SellSignal[0] = false;', II + 'b4ConfirmationDirection[0] = 0;', II + 'if (CurrentBar < ' + warm + ') return;', '');
-    body.forEach(function (b) { out.push(II + b); });
-    out.push('', II + 'if (B4UseEntrySignals) { b4BuySignal[0] = buy; b4SellSignal[0] = sell; }', II + 'if (B4UseConfirmations) b4ConfirmationDirection[0] = direction;');
-    out.push(II + 'if (ColorSignalBars && buy) BarBrush = Brushes.LimeGreen;', II + 'if (ColorSignalBars && sell) BarBrush = Brushes.Red;');
-    if (TEMPLATES[s.template].overlay) {
-      out.push(II + 'if (ShowArrows && buy) Draw.ArrowUp(this, "' + c + 'Buy" + CurrentBar, false, 0, Low[0] - 2 * TickSize, Brushes.LimeGreen);',
-        II + 'if (ShowArrows && sell) Draw.ArrowDown(this, "' + c + 'Sell" + CurrentBar, false, 0, High[0] + 2 * TickSize, Brushes.Red);');
-    } else {
-      out.push(II + 'if (ShowArrows && buy) Draw.ArrowUp(this, "' + c + 'Buy" + CurrentBar, false, 0, LowerLevel, Brushes.LimeGreen);',
-        II + 'if (ShowArrows && sell) Draw.ArrowDown(this, "' + c + 'Sell" + CurrentBar, false, 0, UpperLevel, Brushes.Red);');
-    }
-    out.push(II + 'if (UseAlerts && State == State.Realtime && (buy || sell))',
-      III + 'Alert("' + c + '", Priority.Medium, Name + (buy ? ": buy signal" : ": sell signal"), NinjaTrader.Core.Globals.InstallDir + @"\\sounds\\Alert1.wav", 10, Brushes.Black, buy ? Brushes.LimeGreen : Brushes.Red);');
-    out.push(I + '}', '', I + '#region Your settings (normal properties, so B4 CoPilot Dev can load this indicator)');
-    props.forEach(function (p) { out.push(p); });
-    out.push(I + '#endregion', '', I + '#region B4 Signal API v1 (public contract - keep names and attributes exactly)',
-      I + '[NinjaScriptProperty][Display(Name = "B4 Entry Signals Enabled", Order = 41, GroupName = "B4 CoPilot Pro Integration")]', I + 'public bool B4UseEntrySignals { get; set; }', '',
-      I + '[NinjaScriptProperty][Display(Name = "B4 Confirmation Signals Enabled", Order = 42, GroupName = "B4 CoPilot Pro Integration")]', I + 'public bool B4UseConfirmations { get; set; }', '',
-      I + '[NinjaScriptProperty][Browsable(false)][XmlIgnore]', I + 'public Series<bool> B4BuySignals { get { return b4BuySignal; } set { } }', '',
-      I + '[NinjaScriptProperty][Browsable(false)][XmlIgnore]', I + 'public Series<bool> B4SellSignals { get { return b4SellSignal; } set { } }', '',
-      I + '[NinjaScriptProperty][Browsable(false)][XmlIgnore]', I + 'public Series<int> B4ConfirmationDirections { get { return b4ConfirmationDirection; } set { } }',
-      I + '#endregion', '    }', '}', '');
+    out.push('#region Using declarations', 'using System;', 'using System.ComponentModel;', 'using System.ComponentModel.DataAnnotations;', 'using System.Windows.Media;',
+      'using System.Xml.Serialization;', 'using NinjaTrader.Cbi;', 'using NinjaTrader.Data;', 'using NinjaTrader.Gui;', 'using NinjaTrader.Gui.Tools;', 'using NinjaTrader.NinjaScript;',
+      'using NinjaTrader.NinjaScript.DrawingTools;', 'using NinjaTrader.NinjaScript.Indicators;', '#endregion', '');
+
+    if (!S) genIndicator(); else genStrategy();
     return out.join('\r\n');
 
-    function prop(type, name, label, order, range) {
-      return I + (range ? range : '') + '[Display(Name = "' + label + '", Order = ' + order + ', GroupName = "1. Settings")]\r\n' + I + 'public ' + type + ' ' + name + ' { get; set; }';
+    // ======================================================== indicator
+    function genIndicator() {
+      var mk = { arrow: ['ArrowUp', 'ArrowDown'], triangle: ['TriangleUp', 'TriangleDown'], dot: ['Dot', 'Dot'], diamond: ['Diamond', 'Diamond'], square: ['Square', 'Square'] }[s.marker];
+      if (mk) intP('MarkerOffsetTicks', 'Marker offset (ticks)', 'disp', s.markerOffset, 0, BY.markerOffset.tip);
+      P('Brush', 'BuyBrush', 'Buy colour', 'disp', 'Brushes.' + s.buyColor, BY.buyColor.tip, { nsp: false });
+      P('Brush', 'SellBrush', 'Sell colour', 'disp', 'Brushes.' + s.sellColor, BY.sellColor.tip, { nsp: false });
+      boolP('ShowLabels', 'BUY / SELL text', 'disp', s.labels, BY.labels.tip);
+      boolP('ColorSignalBars', 'Colour signal bars', 'disp', s.colorBars, BY.colorBars.tip);
+      boolP('ShadeBackground', 'Shade background', 'disp', s.shade, BY.shade.tip);
+      intP('ShadeOpacity', 'Shade opacity (%)', 'disp', s.shadeOpacity, 1, BY.shadeOpacity.tip);
+      defs.push('B4UseEntrySignals = true;', 'B4UseConfirmations = true;');
+      out.push('namespace NinjaTrader.NinjaScript.Indicators.B4Studio', '{', '    public class ' + c + ' : Indicator', '    {');
+      fields.forEach(function (f) { out.push(I + f); });
+      out.push(I + 'private Brush buyShade;', I + 'private Brush sellShade;');
+      out.push(I + 'private Series<bool> b4BuySignal;', I + 'private Series<bool> b4SellSignal;', I + 'private Series<int> b4ConfirmationDirection;', '');
+      out.push(I + 'protected override void OnStateChange()', I + '{', II + 'if (State == State.SetDefaults)', II + '{');
+      out.push(III + 'Description = "' + (String(s.description).trim() ? esc(s.description) + ' ' : '') + '(B4 AI Indicator Studio. Publishes B4 Signal API v1 signals.)";', III + 'Name = "' + esc(s.name) + '";',
+        III + 'Calculate = Calculate.' + (s.calc === 'tick' ? 'OnEachTick' : 'OnBarClose') + ';', III + 'IsOverlay = ' + s.overlay + ';', III + 'DisplayInDataBox = true;',
+        III + 'DrawOnPricePanel = true;', III + 'PaintPriceMarkers = ' + (s.overlay ? 'true' : 'false') + ';', III + 'IsSuspendedWhileInactive = true;');
+      defs.forEach(function (d) { out.push(III + d); });
+      plots.forEach(function (p) { out.push(III + p); });
+      lines.forEach(function (p) { out.push(III + p); });
+      out.push(II + '}');
+      if (configure.length) { out.push(II + 'else if (State == State.Configure)', II + '{'); configure.forEach(function (x) { out.push(III + x); }); out.push(II + '}'); }
+      out.push(II + 'else if (State == State.DataLoaded)', II + '{');
+      init.forEach(function (x) { out.push(III + x); });
+      lineInit.forEach(function (x) { out.push(III + x); });
+      out.push(III + 'lastSignalBar = -1;', III + 'buyShade = MakeShade(BuyBrush);', III + 'sellShade = MakeShade(SellBrush);',
+        III + 'b4BuySignal = new Series<bool>(this, MaximumBarsLookBack.Infinite);', III + 'b4SellSignal = new Series<bool>(this, MaximumBarsLookBack.Infinite);',
+        III + 'b4ConfirmationDirection = new Series<int>(this, MaximumBarsLookBack.Infinite);', II + '}', I + '}', '');
+      out.push(I + 'protected override void OnBarUpdate()', I + '{');
+      if (configure.length) out.push(II + 'if (BarsInProgress != 0) return;');
+      out.push(II + 'b4BuySignal[0] = false;      // B4 Signal API: pulse, then reset every bar', II + 'b4SellSignal[0] = false;', II + 'b4ConfirmationDirection[0] = 0;');
+      if (s.calc === 'tick') out.push(II + 'ClearMarks();   // each tick: a signal that is no longer true on this bar is removed');
+      out.push(II + 'if (CurrentBar < ' + warmExpr + ') return;', '');
+      body.forEach(function (b) { out.push(II + b); });
+      flt.forEach(function (b) { out.push(II + b); });
+      if (plots.length) plotVals.forEach(function (v, i) { out.push(II + 'Values[' + i + '][0] = ' + v + ';'); });
+      out.push('', II + 'if (goLong || goShort) lastSignalBar = CurrentBar;',
+        II + 'if (B4UseEntrySignals) { b4BuySignal[0] = goLong; b4SellSignal[0] = goShort; }', II + 'if (B4UseConfirmations) b4ConfirmationDirection[0] = direction;');
+      var yb = s.overlay ? 'Low[0] - ' + (mk ? 'MarkerOffsetTicks' : '2') + ' * TickSize' : yPanel, ys = s.overlay ? 'High[0] + ' + (mk ? 'MarkerOffsetTicks' : '2') + ' * TickSize' : yPanel;
+      out.push(II + 'if (goLong) Mark(true, ' + yb + ');', II + 'if (goShort) Mark(false, ' + ys + ');', I + '}', '');
+      // Mark
+      out.push(I + 'private void Mark(bool isBuy, double y)', I + '{', II + 'Brush b = isBuy ? BuyBrush : SellBrush;', II + 'string tag = (isBuy ? "B4StudioBuy" : "B4StudioSell") + CurrentBar;');
+      if (mk) out.push(II + 'if (isBuy) Draw.' + mk[0] + '(this, tag, false, 0, y, b); else Draw.' + mk[1] + '(this, tag, false, 0, y, b);');
+      out.push(II + 'if (ShowLabels) Draw.Text(this, tag + "T", false, isBuy ? "BUY" : "SELL", 0, y, isBuy ? -16 : 16, b, new SimpleFont("Arial", 10), System.Windows.TextAlignment.Center, Brushes.Transparent, Brushes.Transparent, 0);',
+        II + 'if (ColorSignalBars) BarBrush = b;', II + 'if (ShadeBackground) BackBrush = isBuy ? buyShade : sellShade;');
+      if (s.alerts) out.push(II + 'if (UseAlerts && State == State.Realtime && (isBuy ? AlertOnBuy : AlertOnSell))',
+        III + 'Alert("B4Studio" + (isBuy ? "Buy" : "Sell"), AlertPriority, Prefix() + Name + " " + Instrument.FullName + (isBuy ? " BUY signal" : " SELL signal") + " @ " + Instrument.MasterInstrument.FormatPrice(Close[0]), SoundPath(), AlertRearmSeconds, Brushes.Black, b);');
+      out.push(II + 'if (LogToOutput) Print(string.Format("{0} {1} {2} {3} @ {4}", Time[0], Name, Instrument.FullName, isBuy ? "BUY" : "SELL", Instrument.MasterInstrument.FormatPrice(Close[0])));', I + '}', '');
+      if (s.calc === 'tick') out.push(I + 'private void ClearMarks()', I + '{', II + 'RemoveDrawObject("B4StudioBuy" + CurrentBar); RemoveDrawObject("B4StudioBuy" + CurrentBar + "T");',
+        II + 'RemoveDrawObject("B4StudioSell" + CurrentBar); RemoveDrawObject("B4StudioSell" + CurrentBar + "T");', II + 'BarBrush = null; BackBrush = null;', I + '}', '');
+      out.push(I + 'private Brush MakeShade(Brush source)', I + '{', II + 'if (source == null) return null;', II + 'Brush shade = source.Clone();', II + 'shade.Opacity = Math.Max(1, Math.Min(100, ShadeOpacity)) / 100.0;', II + 'shade.Freeze();', II + 'return shade;', I + '}', '');
+      helpers();
+      out.push(I + '#region Settings (normal properties, so B4 CoPilot Dev can load this indicator)');
+      emitProps();
+      out.push(I + '[Browsable(false)]', I + 'public string BuyBrushSerializable { get { return Serialize.BrushToString(BuyBrush); } set { BuyBrush = Serialize.StringToBrush(value); } }', '',
+        I + '[Browsable(false)]', I + 'public string SellBrushSerializable { get { return Serialize.BrushToString(SellBrush); } set { SellBrush = Serialize.StringToBrush(value); } }');
+      out.push(I + '#endregion', '', I + '#region B4 Signal API v1 (public contract - keep names and attributes exactly)',
+        I + '[NinjaScriptProperty][Display(Name = "B4 Entry Signals Enabled", Order = 41, GroupName = "B4 CoPilot Pro Integration")]', I + 'public bool B4UseEntrySignals { get; set; }', '',
+        I + '[NinjaScriptProperty][Display(Name = "B4 Confirmation Signals Enabled", Order = 42, GroupName = "B4 CoPilot Pro Integration")]', I + 'public bool B4UseConfirmations { get; set; }', '',
+        I + '[NinjaScriptProperty][Browsable(false)][XmlIgnore]', I + 'public Series<bool> B4BuySignals { get { return b4BuySignal; } set { } }', '',
+        I + '[NinjaScriptProperty][Browsable(false)][XmlIgnore]', I + 'public Series<bool> B4SellSignals { get { return b4SellSignal; } set { } }', '',
+        I + '[NinjaScriptProperty][Browsable(false)][XmlIgnore]', I + 'public Series<int> B4ConfirmationDirections { get { return b4ConfirmationDirection; } set { } }',
+        I + '#endregion', '    }', '}', '');
+    }
+
+    // ======================================================== strategy
+    function genStrategy() {
+      var stopOn = s.stopMode !== 'none', track = stopOn && (s.beOn || s.trailMode !== 'none');
+      if (s.entryType !== 'market') intP('EntryOffsetTicks', 'Entry offset (ticks)', 'ord', s.entryOffset, s.entryType === 'stop' ? 1 : 0, BY.entryOffset.tip);
+      if (s.qtyMode === 'fixed') intP('Contracts', 'Contracts', 'ord', s.qty, 1, BY.qty.tip);
+      else { dblP('RiskPerTrade', 'Risk per trade ($)', 'ord', s.riskUsd, 1, BY.riskUsd.tip); intP('MaxContracts', 'Maximum contracts', 'ord', s.maxQty, 1, BY.maxQty.tip); }
+      boolP('ExitOnOpposite', 'Exit on an opposite signal', 'ord', s.exitOpp, BY.exitOpp.tip);
+      boolP('ReverseOnOpposite', 'Reverse on an opposite signal', 'ord', s.reverse, BY.reverse.tip);
+      if (s.stopMode === 'ticks') intP('StopLossTicks', 'Stop (ticks)', 'exit', s.stopTicks, 1, BY.stopTicks.tip);
+      if (s.stopMode === 'atr') dblP('StopAtrMultiple', 'Stop (x ATR)', 'exit', s.stopAtr, 0.1, BY.stopAtr.tip);
+      if (s.stopMode === 'percent') dblP('StopPercent', 'Stop (% of price)', 'exit', s.stopPct, 0.01, BY.stopPct.tip);
+      if (s.stopMode === 'swing') { intP('SwingLookback', 'Swing look-back (bars)', 'exit', s.swingLen, 2, BY.swingLen.tip); intP('SwingPadTicks', 'Swing padding (ticks)', 'exit', s.swingPad, 0, BY.swingPad.tip); }
+      if (s.tgtMode === 'r') dblP('TargetR', 'Target (R)', 'exit', s.tgtR, 0.1, BY.tgtR.tip);
+      if (s.tgtMode === 'ticks') intP('ProfitTargetTicks', 'Target (ticks)', 'exit', s.tgtTicks, 1, BY.tgtTicks.tip);
+      if (s.tgtMode === 'atr') dblP('TargetAtrMultiple', 'Target (x ATR)', 'exit', s.tgtAtr, 0.1, BY.tgtAtr.tip);
+      if (anyAtr(s)) { intP('ExitAtrPeriod', 'ATR period (exits)', 'exit', s.exitAtrLen, 2, BY.exitAtrLen.tip); fields.push('private ATR exitAtr;'); init.push('exitAtr = ATR(Close, ExitAtrPeriod);'); warm.push('ExitAtrPeriod + 1'); }
+      if (s.stopMode === 'swing') { fields.push('private MIN swingLow;', 'private MAX swingHigh;'); init.push('swingLow = MIN(Low, SwingLookback);', 'swingHigh = MAX(High, SwingLookback);'); warm.push('SwingLookback + 1'); }
+      if (s.beOn) { intP('BreakevenTriggerTicks', 'Break-even trigger (ticks)', 'exit', s.beTrigger, 1, BY.beTrigger.tip); intP('BreakevenOffsetTicks', 'Break-even offset (ticks)', 'exit', s.beOffset, 0, BY.beOffset.tip); }
+      if (s.trailMode === 'ticks') intP('TrailTicks', 'Trail distance (ticks)', 'exit', s.trailTicks, 1, BY.trailTicks.tip);
+      if (s.trailMode === 'atr') dblP('TrailAtrMultiple', 'Trail distance (x ATR)', 'exit', s.trailAtr, 0.1, BY.trailAtr.tip);
+      intP('TimeStopBars', 'Time stop (bars, 0 = off)', 'exit', s.timeStop, 0, BY.timeStop.tip);
+      intP('MaxEntriesPerDay', 'Max entries per day (0 = no limit)', 'risk', s.maxTrades, 0, BY.maxTrades.tip);
+      dblP('DailyLossLimit', 'Daily loss limit ($, 0 = off)', 'risk', s.dailyLoss, 0, BY.dailyLoss.tip);
+      dblP('DailyProfitTarget', 'Daily profit target ($, 0 = off)', 'risk', s.dailyProfit, 0, BY.dailyProfit.tip);
+      intP('MaxConsecutiveLosses', 'Max losing trades in a row (0 = off)', 'risk', s.maxConsec, 0, BY.maxConsec.tip);
+      boolP('FlattenAtTime', 'Flatten at a set time', 'risk', s.flatOn, BY.flatOn.tip);
+      timeP('FlattenTime', 'Flatten time', 'risk', s.flatTime, BY.flatTime.tip);
+      if (s.showOnChart) boolP('ShowSignalIndicators', 'Show the signal indicators on the chart', 'disp', true, BY.showOnChart.tip);
+      warm = warm.concat([]); var wx = maxExpr(warm);
+
+      out.push('namespace NinjaTrader.NinjaScript.Strategies.B4Studio', '{', '    public class ' + c + ' : Strategy', '    {');
+      fields.forEach(function (f) { out.push(I + f); });
+      out.push(I + 'private const string LongName = "Long";', I + 'private const string ShortName = "Short";',
+        I + 'private double dayStartProfit;', I + 'private int entriesToday;', I + 'private int lossStreak;', I + 'private int tradesSeen;',
+        I + 'private bool haltedToday;', I + 'private bool pastFlattenTime;', I + 'private MarketPosition managedSide;');
+      if (track) out.push(I + 'private double armedStopTicks;', I + 'private double entryPrice;', I + 'private double bestPrice;', I + 'private double currentStop;');
+      if (track && s.beOn) out.push(I + 'private bool breakevenDone;');
+      if (s.accounts === 'sim') out.push(I + 'private bool accountBlocked;');
+      out.push('', I + 'protected override void OnStateChange()', I + '{', II + 'if (State == State.SetDefaults)', II + '{');
+      out.push(III + 'Description = "' + (String(s.description).trim() ? esc(s.description) + ' ' : '') + '(B4 AI Indicator Studio strategy: bar close, managed orders, daily risk limits.)";', III + 'Name = "' + esc(s.name) + '";',
+        III + 'Calculate = Calculate.OnBarClose;', III + 'EntriesPerDirection = 1;', III + 'EntryHandling = EntryHandling.AllEntries;',
+        III + 'IsExitOnSessionCloseStrategy = ' + s.exitOnClose + ';', III + 'ExitOnSessionCloseSeconds = 30;', III + 'IsFillLimitOnTouch = false;',
+        III + 'MaximumBarsLookBack = MaximumBarsLookBack.TwoHundredFiftySix;', III + 'OrderFillResolution = OrderFillResolution.Standard;', III + 'Slippage = 0;',
+        III + 'StartBehavior = StartBehavior.WaitUntilFlat;', III + 'TimeInForce = TimeInForce.Gtc;', III + 'TraceOrders = ' + s.trace + ';',
+        III + 'RealtimeErrorHandling = RealtimeErrorHandling.StopCancelClose;', III + 'StopTargetHandling = StopTargetHandling.PerEntryExecution;',
+        III + 'BarsRequiredToTrade = ' + s.barsReq + ';', III + 'IsInstantiatedOnEachOptimizationIteration = true;');
+      defs.forEach(function (d) { out.push(III + d); });
+      out.push(II + '}');
+      if (configure.length) { out.push(II + 'else if (State == State.Configure)', II + '{'); configure.forEach(function (x) { out.push(III + x); }); out.push(II + '}'); }
+      out.push(II + 'else if (State == State.DataLoaded)', II + '{');
+      init.forEach(function (x) { out.push(III + x); });
+      if (s.showOnChart && chart.length) out.push(III + 'if (ShowSignalIndicators)', III + '{', chart.map(function (v) { return III + '    AddChartIndicator(' + v + ');'; }).join('\r\n'), III + '}');
+      out.push(III + 'lastSignalBar = -1;', III + 'ResetDay();', III + 'tradesSeen = 0;', III + 'managedSide = MarketPosition.Flat;', II + '}');
+      if (s.accounts === 'sim') out.push(II + 'else if (State == State.Realtime)', II + '{', III + 'accountBlocked = !IsSimulationAccount(Account);',
+        III + 'if (accountBlocked)', III + '{', III + '    Print(Name + ": account \'" + (Account != null ? Account.Name : "?") + "\' is not a simulation or Playback account. This strategy never trades it.");',
+        III + '    Draw.TextFixed(this, "B4StudioAccount", Name + ": simulation and Playback accounts only. No orders will be placed on this account.", TextPosition.TopRight, Brushes.OrangeRed, new SimpleFont("Arial", 12), Brushes.Transparent, Brushes.Black, 70);',
+        III + '}', II + '}');
+      out.push(I + '}', '');
+
+      out.push(I + 'protected override void OnBarUpdate()', I + '{', II + 'if (BarsInProgress != 0) return;', II + 'if (CurrentBar < Math.Max(BarsRequiredToTrade, ' + wx + ')) return;',
+        II + 'if (Bars.IsFirstBarOfSession) ResetDay();', II + 'CountClosedTrades();', '');
+      body.forEach(function (b) { out.push(II + b); });
+      flt.forEach(function (b) { out.push(II + b); });
+      out.push(II + 'if (goLong || goShort) lastSignalBar = CurrentBar;', '');
+      out.push(II + '// ---- session risk limits (checked at bar close)',
+        II + 'double sessionPnl = SystemPerformance.AllTrades.TradesPerformance.Currency.CumProfit - dayStartProfit + Position.GetUnrealizedProfitLoss(PerformanceUnit.Currency, Close[0]);',
+        II + 'if (!haltedToday)', II + '{', III + 'string breach = RiskBreach(sessionPnl);', III + 'if (breach != null) { haltedToday = true; FlattenAll(breach); Notify(breach + " - no more entries this session", true); }', II + '}',
+        II + 'if (FlattenAtTime && !pastFlattenTime && ToTime(Time[0]) >= ToTime(FlattenTime)) { pastFlattenTime = true; FlattenAll("Flatten time"); }');
+      if (s.accounts === 'sim') out.push(II + 'if (State == State.Realtime && accountBlocked) return;');
+      out.push('', II + '// ---- manage an open position', II + 'ManagePosition();', '');
+      out.push(II + '// ---- opposite signals', II + 'bool canEnter = !haltedToday && !pastFlattenTime && (MaxEntriesPerDay <= 0 || entriesToday < MaxEntriesPerDay);',
+        II + 'if (Position.MarketPosition == MarketPosition.Long && sigSell)', II + '{',
+        III + 'if (ReverseOnOpposite && goShort && canEnter) { EnterSide(false); return; }', III + 'if (ExitOnOpposite || ReverseOnOpposite) ExitLong("Opposite signal", LongName);', II + '}',
+        II + 'else if (Position.MarketPosition == MarketPosition.Short && sigBuy)', II + '{',
+        III + 'if (ReverseOnOpposite && goLong && canEnter) { EnterSide(true); return; }', III + 'if (ExitOnOpposite || ReverseOnOpposite) ExitShort("Opposite signal", ShortName);', II + '}', '',
+        II + '// ---- new entries (flat only)', II + 'if (Position.MarketPosition != MarketPosition.Flat || !canEnter) return;',
+        II + 'if (goLong) EnterSide(true);', II + 'else if (goShort) EnterSide(false);', I + '}', '');
+
+      // EnterSide
+      out.push(I + 'private void EnterSide(bool isLong)', I + '{', II + 'string signal = isLong ? LongName : ShortName;', II + 'double stopTicks = StopDistanceTicks(isLong);');
+      out.push(II + 'int quantity = PositionSize(stopTicks);', II + 'if (quantity < 1) { Notify("Entry skipped: one contract risks more than the risk per trade", false); return; }');
+      if (stopOn) out.push(II + 'SetStopLoss(signal, CalculationMode.Ticks, stopTicks, false);');
+      if (s.tgtMode !== 'none') out.push(II + 'double targetTicks = TargetDistanceTicks(stopTicks);', II + 'SetProfitTarget(signal, CalculationMode.Ticks, targetTicks);');
+      if (track) out.push(II + 'armedStopTicks = stopTicks;');
+      out.push(II + 'entriesToday++;');
+      if (s.entryType === 'market') out.push(II + 'if (isLong) EnterLong(quantity, signal); else EnterShort(quantity, signal);');
+      else if (s.entryType === 'limit') out.push(II + 'if (isLong) EnterLongLimit(quantity, Close[0] - EntryOffsetTicks * TickSize, signal);', II + 'else EnterShortLimit(quantity, Close[0] + EntryOffsetTicks * TickSize, signal);');
+      else out.push(II + 'if (isLong) EnterLongStopMarket(quantity, Math.Max(High[0], Close[0]) + EntryOffsetTicks * TickSize, signal);', II + 'else EnterShortStopMarket(quantity, Math.Min(Low[0], Close[0]) - EntryOffsetTicks * TickSize, signal);');
+      out.push(II + 'Notify((isLong ? "LONG " : "SHORT ") + quantity + " " + Instrument.FullName + " @ " + Instrument.MasterInstrument.FormatPrice(Close[0]) + (stopTicks > 0 ? ", stop " + stopTicks + " ticks" : ""), false, isLong);', I + '}', '');
+
+      // distances
+      out.push(I + 'private double StopDistanceTicks(bool isLong)', I + '{');
+      out.push(II + { ticks: 'return StopLossTicks;', atr: 'return Math.Max(1, Math.Round(exitAtr[0] * StopAtrMultiple / TickSize));', percent: 'return Math.Max(1, Math.Round(Close[0] * StopPercent / 100.0 / TickSize));',
+        swing: 'double d = isLong ? Close[0] - swingLow[0] : swingHigh[0] - Close[0];\r\n' + II + 'return Math.Max(1, Math.Round(d / TickSize) + SwingPadTicks);', none: 'return 0;' }[s.stopMode], I + '}', '');
+      if (s.tgtMode !== 'none') out.push(I + 'private double TargetDistanceTicks(double stopTicks)', I + '{',
+        II + { r: 'return Math.Max(1, Math.Round(stopTicks * TargetR));', ticks: 'return ProfitTargetTicks;', atr: 'return Math.Max(1, Math.Round(exitAtr[0] * TargetAtrMultiple / TickSize));' }[s.tgtMode], I + '}', '');
+      out.push(I + 'private int PositionSize(double stopTicks)', I + '{');
+      if (s.qtyMode === 'fixed') out.push(II + 'return Contracts;');
+      else out.push(II + 'double riskPerContract = stopTicks * TickSize * Instrument.MasterInstrument.PointValue;', II + 'if (riskPerContract <= 0) return 0;',
+        II + 'return Math.Min(MaxContracts, (int)Math.Floor(RiskPerTrade / riskPerContract));');
+      out.push(I + '}', '');
+
+      // ManagePosition
+      out.push(I + 'private void ManagePosition()', I + '{', II + 'if (Position.MarketPosition == MarketPosition.Flat) { managedSide = MarketPosition.Flat; return; }',
+        II + 'bool isLong = Position.MarketPosition == MarketPosition.Long;',
+        II + 'if (managedSide != Position.MarketPosition)   // a new position (or a reversal): start tracking it', II + '{', III + 'managedSide = Position.MarketPosition;',
+        track ? III + 'entryPrice = Position.AveragePrice;\r\n' + III + 'bestPrice = entryPrice;\r\n' + (s.beOn ? III + 'breakevenDone = false;\r\n' : '') + III + 'currentStop = isLong ? entryPrice - armedStopTicks * TickSize : entryPrice + armedStopTicks * TickSize;' : III + '// no break-even or trailing stop: the stop and target set at entry manage the trade',
+        II + '}',
+        II + 'if (TimeStopBars > 0 && BarsSinceEntryExecution() >= TimeStopBars)', II + '{', III + 'if (isLong) ExitLong("Time stop", LongName); else ExitShort("Time stop", ShortName);', III + 'return;', II + '}');
+      if (track) {
+        out.push(II + 'bestPrice = isLong ? Math.Max(bestPrice, High[0]) : Math.Min(bestPrice, Low[0]);', II + 'double newStop = currentStop;');
+        if (s.beOn) out.push(II + 'if (!breakevenDone && (isLong ? bestPrice >= entryPrice + BreakevenTriggerTicks * TickSize : bestPrice <= entryPrice - BreakevenTriggerTicks * TickSize))', II + '{',
+          III + 'breakevenDone = true;', III + 'double be = isLong ? entryPrice + BreakevenOffsetTicks * TickSize : entryPrice - BreakevenOffsetTicks * TickSize;',
+          III + 'newStop = isLong ? Math.Max(newStop, be) : Math.Min(newStop, be);', II + '}');
+        if (s.trailMode !== 'none') out.push(II + 'double trail = ' + (s.trailMode === 'ticks' ? 'TrailTicks * TickSize' : 'exitAtr[0] * TrailAtrMultiple') + ';',
+          II + 'newStop = isLong ? Math.Max(newStop, bestPrice - trail) : Math.Min(newStop, bestPrice + trail);');
+        out.push(II + 'newStop = Instrument.MasterInstrument.RoundToTickSize(newStop);',
+          II + 'bool tighter = isLong ? newStop > currentStop && newStop < Close[0] : newStop < currentStop && newStop > Close[0];   // only ever tighten, never cross the market',
+          II + 'if (tighter) { currentStop = newStop; SetStopLoss(isLong ? LongName : ShortName, CalculationMode.Price, currentStop, false); }');
+      }
+      out.push(I + '}', '');
+
+      // risk helpers
+      out.push(I + 'private string RiskBreach(double sessionPnl)', I + '{',
+        II + 'if (DailyLossLimit > 0 && sessionPnl <= -DailyLossLimit) return "Daily loss limit reached (" + sessionPnl.ToString("C0") + ")";',
+        II + 'if (DailyProfitTarget > 0 && sessionPnl >= DailyProfitTarget) return "Daily profit target reached (" + sessionPnl.ToString("C0") + ")";',
+        II + 'if (MaxConsecutiveLosses > 0 && lossStreak >= MaxConsecutiveLosses) return lossStreak + " losing trades in a row";', II + 'return null;', I + '}', '');
+      out.push(I + 'private void FlattenAll(string reason)', I + '{', II + 'if (Position.MarketPosition == MarketPosition.Long) ExitLong(reason, LongName);',
+        II + 'else if (Position.MarketPosition == MarketPosition.Short) ExitShort(reason, ShortName);', I + '}', '');
+      out.push(I + 'private void ResetDay()', I + '{', II + 'dayStartProfit = SystemPerformance != null ? SystemPerformance.AllTrades.TradesPerformance.Currency.CumProfit : 0;',
+        II + 'entriesToday = 0;', II + 'lossStreak = 0;', II + 'haltedToday = false;', II + 'pastFlattenTime = false;', I + '}', '');
+      out.push(I + 'private void CountClosedTrades()', I + '{', II + 'int count = SystemPerformance.AllTrades.Count;', II + 'while (tradesSeen < count)', II + '{',
+        III + 'Trade trade = SystemPerformance.AllTrades[tradesSeen++];', III + 'lossStreak = trade.ProfitCurrency < 0 ? lossStreak + 1 : 0;', II + '}', I + '}', '');
+      out.push(I + 'private void Notify(string text, bool riskEvent, bool isLong = true)', I + '{',
+        II + 'if (LogToOutput) Print(string.Format("{0} {1}: {2}", Time[0], Name, text));');
+      if (s.alerts) out.push(II + 'if (UseAlerts && State == State.Realtime && (riskEvent || (isLong ? AlertOnBuy : AlertOnSell)))',
+        III + 'Alert("B4Studio" + (riskEvent ? "Risk" : isLong ? "Long" : "Short"), riskEvent ? Priority.High : AlertPriority, Prefix() + Name + ": " + text, SoundPath(), AlertRearmSeconds, Brushes.Black, riskEvent ? Brushes.OrangeRed : isLong ? Brushes.LimeGreen : Brushes.Red);');
+      out.push(I + '}', '');
+      if (s.accounts === 'sim') out.push(I + 'public static bool IsSimulationAccount(Account a)', I + '{', II + 'if (a == null || string.IsNullOrEmpty(a.Name)) return false;',
+        II + 'string n = a.Name;', II + 'return n == "Playback101" || n == "Backtest" || n.StartsWith("Sim", StringComparison.OrdinalIgnoreCase);', I + '}', '');
+      helpers();
+      out.push(I + '#region Settings');
+      emitProps();
+      out.push(I + '#endregion', '    }', '}', '');
+    }
+
+    function helpers() {
+      if (s.fSess) out.push(I + 'private static bool InWindow(int t, int start, int end)', I + '{', II + 'return start <= end ? t >= start && t <= end : t >= start || t <= end;   // windows across midnight work', I + '}', '');
+      if (s.alerts) {
+        out.push(I + 'private string SoundPath()', I + '{', II + 'return string.IsNullOrWhiteSpace(AlertSound) ? "" : System.IO.Path.Combine(NinjaTrader.Core.Globals.InstallDir, "sounds", AlertSound.Trim());', I + '}', '');
+        out.push(I + 'private string Prefix()', I + '{', II + 'return string.IsNullOrWhiteSpace(AlertMessage) ? "" : AlertMessage.Trim() + " ";', I + '}', '');
+      }
+    }
+
+    function emitProps() {
+      props.forEach(function (p) {
+        out.push(I + (p.nsp ? '[NinjaScriptProperty]' : '') + (p.range || '') + (p.editor || '') + (p.type === 'Brush' ? '[XmlIgnore]' : ''));
+        out.push(I + '[Display(Name = "' + p.label + '", Description = "' + esc(p.tip || '') + '", Order = ' + p.order + ', GroupName = "' + p.grp + '")]');
+        out.push(I + 'public ' + p.type + ' ' + p.name + ' { get; set; }', '');
+      });
+      // remove empty attribute lines
+      for (var i = out.length - 1; i >= 0; i--) if (out[i] === I) out.splice(i, 1);
     }
   }
 
-  var api = { TEMPLATES: TEMPLATES, defaults: defaults, normalize: normalize, suggest: suggest, specLines: specLines, generate: generate };
+  // ---------------------------------------------------------------- supported-feature check (never silently invent behaviour)
+  var UNSUPPORTED = [
+    [/\bvwap\b/, 'VWAP', 'NinjaTrader 8 has no built-in VWAP without the Order Flow+ add-on. Use a moving average or bands instead.'],
+    [/order.?flow|footprint|\bdelta\b|bid.?ask|imbalance|absorption/, 'Order flow / footprint / delta', 'Needs tick-level order-flow data and Tick Replay. Not generated by this prototype.'],
+    [/volume profile|\bpoc\b|value area|market profile|\btpo\b/, 'Volume / market profile', 'Not generated by this prototype.'],
+    [/\bdom\b|depth of market|level ?2|order book/, 'Market depth (DOM)', 'Not generated by this prototype.'],
+    [/tick replay/, 'Tick Replay', 'Platform setting with its own prerequisites; not generated by this prototype.'],
+    [/machine learning|\bml\b|neural|\bai\b model|predict/, 'Machine learning / prediction', 'Not part of the template generator.'],
+    [/\bnews\b|economic calendar|sentiment/, 'News or sentiment data', 'No news data source is available to NinjaScript here.'],
+    [/pine|tradingview|thinkscript|\bmql\b|metatrader|python/, 'Other platforms or languages', 'This Studio generates NinjaTrader 8 NinjaScript only.'],
+    [/\boptions?\b (chain|greeks)|implied volatility|\bgreeks\b/, 'Options data', 'Not available.'],
+    [/(two|2|multiple|other) instruments?|spread|pairs? trad|correlation/, 'Multi-instrument logic', 'Only the chart instrument (plus one higher timeframe of it) is supported.'],
+    [/martingale|double (the )?(size|position) after (a )?loss|average down|grid trad/, 'Martingale / averaging down', 'Not supported: it removes the risk limit on a losing position.'],
+    [/b4 ?(algo|confirm|indicator pro|signal pro|copilot pro)|hosoda|kazoe|kyushu|shoyu/, 'Proprietary B4 logic', 'B4\'s own algorithms and confirmation rules are not available to the Studio.']
+  ];
+  function unsupported(text) {
+    var t = String(text || '').toLowerCase();
+    return UNSUPPORTED.filter(function (u) { return u[0].test(t); }).map(function (u) { return { feature: u[1], reason: u[2] }; });
+  }
+
+  // ---------------------------------------------------------------- confirmations and test plans per project type
+  function confirmations(sp) {
+    var s = normalize(sp);
+    var C = [['signal', s.kind === 's' ? 'The long and short setups above are what I want' : 'The buy and sell signals above are what I want']];
+    if (s.kind === 'i') C.push(['calc', s.calc === 'tick' ? 'I understand each-tick signals can disappear before the bar closes' : 'Signals are final on bar close (no repainting)']);
+    else {
+      C.push(['exits', 'Stop: ' + stopText(s) + '; target: ' + ({ r: s.tgtR + 'R', ticks: s.tgtTicks + ' ticks', atr: s.tgtAtr + ' x ATR', none: 'none' }[s.tgtMode])]);
+      C.push(['size', s.qtyMode === 'fixed' ? 'Size: ' + s.qty + ' contract(s) per entry' : 'Size: risk $' + s.riskUsd + ' per trade, up to ' + s.maxQty + ' contracts']);
+      C.push(['opposite', s.reverse ? 'An opposite signal reverses the position' : s.exitOpp ? 'An opposite signal exits (does not reverse)' : 'Opposite signals are ignored while in a trade']);
+      C.push(['limits', 'Daily limits: ' + (s.dailyLoss > 0 ? 'loss $' + s.dailyLoss : 'NO loss limit') + ', ' + (s.maxTrades > 0 ? s.maxTrades + ' entries' : 'no entry limit') + (s.flatOn ? ', flat at ' + s.flatTime : '')]);
+      C.push(['accounts', s.accounts === 'sim' ? 'Simulation and Playback accounts only' : 'I allow live accounts and accept the risk']);
+    }
+    if (s.visibility === 'public') C.push(['public', 'I will publish this under ' + s.license + ', it contains no one else\'s code, and I make no profit claims']);
+    return C.map(function (c) { return { id: c[0], text: c[1] }; });
+  }
+  function testPlan(sp) {
+    var s = normalize(sp), T = [];
+    T.push(['Compile', 'Copy the file to Documents\\NinjaTrader 8\\bin\\Custom\\' + (s.kind === 's' ? 'Strategies' : 'Indicators') + '\\ while flat, press F5 in the NinjaScript Editor: zero errors.']);
+    T.push(['Parameter boundaries', 'Set each period to its minimum and to a large value; the ' + (s.kind === 's' ? 'strategy' : 'indicator') + ' must load without errors in the Log tab.']);
+    if (s.kind === 'i') {
+      T.push(['Signals on history', 'Apply to a chart with 10+ days: markers appear only where the specification says.']);
+      T.push(['Bar close vs real time', s.calc === 'tick' ? 'In Playback, confirm a signal that disappears intrabar also loses its marker.' : 'In Playback, confirm signals appear only when the bar closes and never move afterwards.']);
+      T.push(['B4 Signal API', 'Load it in B4 CoPilot Dev as the signal tool on Sim101: CoPilot Dev must report the tool loaded.']);
+      if (s.alerts) T.push(['Alerts', 'In Playback (real-time mode), a signal writes one alert to the Alerts Log with the chosen sound; not again within the re-arm time.']);
+    } else {
+      T.push(['Backtest', 'Strategy Analyzer, 3+ months: every trade has a stop' + (s.tgtMode !== 'none' ? ' and a target' : '') + ' in the Executions tab.']);
+      T.push(['Order lifecycle', 'Playback on Sim101: entry, stop and target appear together; the stop ' + (s.beOn || s.trailMode !== 'none' ? 'moves only in your favour' : 'stays where it was placed') + '.']);
+      T.push(['Daily limits', 'Lower the daily loss limit to a small value in Playback: the position closes and no new entries are made until the next session.']);
+      if (s.flatOn) T.push(['Flatten time', 'In Playback across ' + s.flatTime + ': flat at that time, no entries after it.']);
+      if (s.accounts === 'sim') T.push(['Account guard', 'Enable on a non-simulation account (if you have one connected): it must refuse to trade and show the warning.']);
+      T.push(['Forward simulation', 'Run on a simulation account for at least 20 sessions before any live use. Past results do not guarantee future results.']);
+    }
+    T.push(['Regression', 'After any change, re-run the tests above on the new revision and keep its notes with the version.']);
+    return T.map(function (t) { return { name: t[0], how: t[1] }; });
+  }
+
+  // ---------------------------------------------------------------- static checks on the generated source (structural, safety, API, IP)
+  var FORBIDDEN = [[/System\.Net\b|WebClient|HttpClient|Socket/, 'network access'], [/System\.Diagnostics\.Process|Process\.Start/, 'starting processes'],
+    [/System\.Reflection|Assembly\.Load|Activator\.CreateInstance/, 'reflection / loading code'], [/File\.(Write|Delete|Move|Copy)|Directory\.Delete|StreamWriter/, 'writing or deleting files'],
+    [/Registry|DllImport|\bunsafe\b|Marshal\./, 'native or registry access']];
+  var B4_PRIVATE = /B4Algo|B4Confirm(?!ationDirections\b)|B4IV2|B4IndicatorPro|B4Hosoda|B4Kazoe|B4Kyushu|B4Shoyu|B4CoPilotPro|B4SignalPro/;
+  function staticChecks(code, sp) {
+    var s = normalize(sp), R = [];
+    function chk(name, pass, detail) { R.push({ name: name, pass: !!pass, detail: detail || '' }); }
+    var bare = code.replace(/\/\/[^\n]*/g, '').replace(/@?"(?:[^"\\\n]|\\.)*"/g, '""');
+    var bal = function (a, b) { return bare.split(a).length === bare.split(b).length; };
+    chk('Balanced braces and brackets', bal('{', '}') && bal('(', ')') && bal('[', ']'));
+    chk('Namespace and class', new RegExp('namespace NinjaTrader\\.NinjaScript\\.' + (s.kind === 's' ? 'Strategies' : 'Indicators') + '\\.B4Studio[\\s\\S]*public class ' + s.className + ' : ' + (s.kind === 's' ? 'Strategy' : 'Indicator')).test(code));
+    chk('Warm-up guard before any signal', /if \(CurrentBar < .+\) return;/.test(code));
+    var missing = []; (code.match(/public (?:int|double|bool|DateTime|string|Brush|Priority) (\w+) \{ get; set; \}/g) || []).forEach(function (m) {
+      var n = m.split(' ')[2]; if (!new RegExp('\\b' + n + ' = ').test(code)) missing.push(n); });
+    chk('Every setting has a default', missing.length === 0, missing.join(', '));
+    var bad = FORBIDDEN.filter(function (f) { return f[0].test(bare); }).map(function (f) { return f[1]; });
+    chk('No unsafe APIs (network, processes, files, reflection, native)', bad.length === 0, bad.join(', '));
+    chk('No proprietary B4 code or names', !B4_PRIVATE.test(code));
+    if (/Alert\(/.test(code)) chk('Alerts only in real time', /State == State\.Realtime/.test(code));
+    if (s.kind === 'i') {
+      chk('Places no orders', !/\b(Enter|Exit)(Long|Short)\w*\(|SubmitOrder/.test(bare));
+      chk('B4 Signal API v1 contract intact', ['public bool B4UseEntrySignals', 'public bool B4UseConfirmations', 'public Series<bool> B4BuySignals', 'public Series<bool> B4SellSignals', 'public Series<int> B4ConfirmationDirections']
+        .every(function (x) { return code.indexOf(x) >= 0; }) && (code.match(/\[NinjaScriptProperty\]/g) || []).length === 5, 'only the 5 API members may be [NinjaScriptProperty]');
+    } else {
+      chk('Bar-close calculation', /Calculate = Calculate\.OnBarClose;/.test(code));
+      chk('Waits until flat before trading', /StartBehavior = StartBehavior\.WaitUntilFlat;/.test(code));
+      chk('One position per direction', /EntriesPerDirection = 1;/.test(code));
+      chk('Protective stop on every entry', s.stopMode === 'none' || /SetStopLoss\(signal, CalculationMode\.Ticks/.test(code), s.stopMode === 'none' ? 'no stop chosen (see review)' : '');
+      chk('Daily risk limits wired', /RiskBreach\(sessionPnl\)/.test(code) && /DailyLossLimit/.test(code));
+      if (s.accounts === 'sim') chk('Simulation-account guard', /accountBlocked = !IsSimulationAccount\(Account\)/.test(code) && /State == State\.Realtime && accountBlocked\) return;/.test(code));
+    }
+    return R;
+  }
+
+  // ---------------------------------------------------------------- public vs private requirements
+  function publicRequirements(sp, code) {
+    var s = normalize(sp), Q = [];
+    function q(text, ok) { Q.push({ text: text, ok: !!ok }); }
+    q('Author name for attribution', String(s.author || '').trim().length >= 2);
+    q('Open-source license chosen (' + s.license + ')', !!s.license);
+    q('All static checks pass', staticChecks(code || generate(s), s).every(function (c) { return c.pass; }));
+    if (s.kind === 's') {
+      q('Simulation and Playback accounts only', s.accounts === 'sim');
+      q('Protective stop on every trade', s.stopMode !== 'none');
+      q('Daily loss limit set', s.dailyLoss > 0);
+      q('Daily entry limit set', s.maxTrades > 0);
+      q('No high-risk review items', review(s).filter(function (r) { return r.level === 'high'; }).length === 0);
+    }
+    return Q;
+  }
+
+  var PRESETS = {
+    i: [['Trend cross', { sig: 'ma_cross', maType: 'EMA', fast: 9, slow: 21, name: 'Trend Cross' }],
+      ['RSI reversal', { sig: 'osc', osc: 'RSI', oscLen: 14, oscMode: 'exit', upper: 70, lower: 30, name: 'RSI Reversal' }],
+      ['Bollinger breakout', { sig: 'band', band: 'Bollinger', bandMode: 'breakout', bandLen: 20, width: 2, name: 'Bollinger Breakout' }],
+      ['20-bar breakout', { sig: 'nbar', nbarLen: 20, name: 'Range Breakout' }],
+      ['MACD momentum', { sig: 'macd', macdMode: 'signal', name: 'MACD Momentum' }],
+      ['Trend-filtered pullback', { sig: 'osc', osc: 'Stochastics', oscMode: 'exit', upper: 80, lower: 20, fTrend: true, fTrendLen: 200, name: 'Trend Pullback' }]],
+    s: [['Trend follower', { sig: 'ma_cross', fast: 9, slow: 21, fTrend: true, fTrendLen: 200, stopMode: 'atr', stopAtr: 1.5, tgtMode: 'r', tgtR: 2, trailMode: 'atr', name: 'Trend Follower' }],
+      ['Mean reversion', { sig: 'band', band: 'Bollinger', bandMode: 'reversal', fAdx: false, stopMode: 'swing', tgtMode: 'r', tgtR: 1.5, name: 'Band Reversion' }],
+      ['Morning range breakout', { sig: 'nbar', nbarLen: 12, fSess: true, sessStart: '09:45', sessEnd: '11:30', stopMode: 'swing', tgtMode: 'r', tgtR: 2, beOn: true, name: 'Morning Breakout' }],
+      ['MACD with trailing stop', { sig: 'macd', macdMode: 'signal', fAdx: true, fAdxMin: 20, stopMode: 'ticks', stopTicks: 16, tgtMode: 'none', trailMode: 'ticks', trailTicks: 14, name: 'MACD Trail' }]]
+  };
+
+  var api = { VERSION: VERSION, FIELDS: FIELDS, GROUPS: GROUPS, OSC: OSC, PRESETS: PRESETS, defaults: defaults, normalize: normalize, visible: visible, suggest: suggest,
+    specLines: specLines, review: review, generate: generate, unsupported: unsupported, confirmations: confirmations, testPlan: testPlan, staticChecks: staticChecks, publicRequirements: publicRequirements };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.B4Studio = api;
 })(this);

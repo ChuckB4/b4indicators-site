@@ -2,158 +2,455 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
-<title>B4 AI Indicator Studio | Describe it. Build it.</title>
-<meta name="description" content="Describe a NinjaTrader 8 indicator and get a structured specification and a ready-to-compile NinjaScript skeleton with the B4 Signal API. Preview: template generator, no AI yet.">
+<title>B4 Studio | Indicator and Strategy Builder for NinjaTrader 8</title>
+<meta name="description" content="Build NinjaTrader 8 indicators and strategies: guided or advanced settings, a requirements review before code, static checks, version history and private or public projects. Template generator preview, no AI yet.">
 <link rel="canonical" href="https://www.b4indicators.com/studio/">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-:root{--navy:#071421;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--max:1180px}
+:root{--navy:#071421;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--amber:#8a5a00;--amberbg:#fff6dd;--red:#b42318;--redbg:#fdecea;--max:1320px}
 *{box-sizing:border-box}
-body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
+body{margin:0;background:var(--paper);color:var(--ink);font:15px/1.55 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
 a{color:var(--teal2)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
 code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
-header{position:sticky;top:0;z-index:20;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
-.nav{height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+header{position:sticky;top:0;z-index:30;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{height:60px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#102738;font-weight:700;letter-spacing:.14em;font-size:14px}
 .brand small{display:block;font-size:9px;letter-spacing:.18em;color:#687c87;font-weight:600}
-.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
+.mark{width:36px;height:36px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
 .navlinks{display:flex;gap:20px;font-size:14px;font-weight:600}.navlinks a{color:#354a58;text-decoration:none}.navlinks a:hover,.navlinks a[aria-current]{color:var(--teal2)}
-.btn{display:inline-flex;align-items:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:11px 19px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal);cursor:pointer;font-family:inherit}
-.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.line{background:#fff;color:#20394a;border-color:var(--line)}.btn.line:hover{border-color:var(--teal)}.btn.dark{background:var(--navy);border-color:var(--navy);color:#fff}
-.top{background:linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d);color:#fff;padding:46px 0 36px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:9px 16px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal);cursor:pointer;font-family:inherit;white-space:nowrap}
+.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.line{background:#fff;color:#20394a;border-color:var(--line)}.btn.line:hover{border-color:var(--teal)}.btn.dark{background:var(--navy);border-color:var(--navy);color:#fff}.btn.dark:hover{background:#163246}
+.btn.sm{padding:6px 12px;font-size:13px}
+.top{background:linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d);color:#fff;padding:30px 0 24px}
 .top .kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#61e5d1}
-.top h1{font-weight:200;font-size:clamp(32px,4.4vw,52px);margin:10px 0 8px;line-height:1.1}.top h1 em{font-style:normal;color:var(--glow);font-weight:300}
-.top p{color:#c2d3dc;max-width:780px;margin:0;font-weight:300;font-size:18px}
-.preview{display:inline-flex;margin-top:16px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:5px 12px;border-radius:999px;background:#fff6dd;color:#8a5a00;border:1px solid #ecd38f}
-main{padding:26px 0 60px}
-.grid{display:grid;grid-template-columns:420px minmax(0,1fr);gap:18px;align-items:start}.grid>*{min-width:0}
-.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px}
-.card h2{font-size:18px;font-weight:600;margin:0 0 10px;letter-spacing:0}
-.step{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2);margin-bottom:4px}
-textarea,input,select{width:100%;font:inherit;font-size:15px;padding:10px 12px;border:1px solid #cfdce2;border-radius:10px;background:#fff;color:var(--ink)}
-textarea{min-height:110px;resize:vertical}
-label{display:block;font-size:13px;font-weight:600;color:#3b5060;margin:12px 0 4px}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.checks{display:flex;gap:16px;flex-wrap:wrap;margin-top:12px;font-size:14px}.checks label{display:flex;gap:6px;align-items:center;margin:0;font-weight:500}.checks input{width:auto}
-.hint{font-size:13px;color:var(--muted);margin:8px 0 0}
-.out{display:grid;gap:18px;grid-template-columns:minmax(0,1fr)}.out>*{min-width:0}
-.spec{width:100%;border-collapse:collapse;font-size:14.5px}.spec td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}.spec td:first-child{font-weight:600;width:130px;color:#3b5060}
-.status{display:inline-block;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:#eef4f6;color:#36556a;border:1px solid #cdd9e0;margin-right:6px}
-.status.ok{background:var(--mint);color:#07604f;border-color:#9ee3d6}
+.top h1{font-weight:200;font-size:clamp(28px,3.6vw,44px);margin:6px 0 6px;line-height:1.1}.top h1 em{font-style:normal;color:var(--glow);font-weight:300}
+.top p{color:#c2d3dc;max-width:880px;margin:0;font-weight:300;font-size:16.5px}
+.preview{display:inline-flex;margin-top:12px;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 12px;border-radius:999px;background:var(--amberbg);color:var(--amber);border:1px solid #ecd38f}
+main{padding:18px 0 60px}
+.toolbar{display:flex;flex-wrap:wrap;gap:12px 18px;align-items:center;justify-content:space-between;background:#fff;border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:16px}
+.tgroup{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.seg{display:inline-flex;background:#eef3f5;border-radius:999px;padding:3px;border:1px solid var(--line)}
+.seg button{border:0;background:none;font:inherit;font-size:13.5px;font-weight:600;color:#3b5060;padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed=true]{background:#fff;color:var(--teal2);box-shadow:0 1px 4px #0b1b2722}
+.seg-l{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#7a8c97;margin-right:4px}
+select.proj{width:auto;min-width:200px}
+.grid{display:grid;grid-template-columns:440px minmax(0,1fr);gap:16px;align-items:start}.grid>*{min-width:0}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px 18px}
+.card h2{font-size:17px;font-weight:600;margin:0 0 8px;letter-spacing:0}
+.step{font-size:11.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--teal2);margin-bottom:2px}
+textarea,input,select{width:100%;font:inherit;font-size:14.5px;padding:8px 10px;border:1px solid #cfdce2;border-radius:9px;background:#fff;color:var(--ink)}
+textarea{min-height:92px;resize:vertical}
+input:focus,select:focus,textarea:focus{border-color:var(--teal);outline:2px solid #13bba433}
+.hint{font-size:12.5px;color:var(--muted);margin:6px 0 0}
+details.grp{border-top:1px solid var(--line);margin-top:6px}
+details.grp>summary{list-style:none;cursor:pointer;display:flex;justify-content:space-between;align-items:center;padding:12px 2px;font-weight:600;font-size:15px}
+details.grp>summary::-webkit-details-marker{display:none}
+details.grp>summary:after{content:"+";font-size:18px;color:#7a8c97}details.grp[open]>summary:after{content:"\2013"}
+details.grp>summary .cnt{font-size:11.5px;color:#7a8c97;font-weight:600;margin-left:auto;margin-right:10px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;padding-bottom:12px}
+.fld{position:relative;min-width:0}.fld.wide{grid-column:1/-1}
+.fld label{display:flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:#3b5060;margin:8px 0 3px}
+.fld.chk{grid-column:1/-1}.fld.chk label{font-size:14px;color:var(--ink);font-weight:500;margin:8px 0 0}.fld.chk input{width:auto;margin:0}
+.tip{display:inline-grid;place-items:center;width:17px;height:17px;border-radius:50%;border:1px solid #b8c8d0;background:#fff;color:#56707f;font-size:11px;font-weight:700;cursor:help;padding:0;font-family:inherit;flex:none}
+.tip:hover,.tip:focus{border-color:var(--teal);color:var(--teal2)}
+.tipbox{position:absolute;z-index:20;left:0;right:0;top:100%;margin-top:2px;background:#0b1b27;color:#e3eef2;font-size:12.5px;line-height:1.5;font-weight:400;padding:9px 11px;border-radius:10px;box-shadow:0 10px 30px #0006;display:none}
+.fld:has(.tip:hover) .tipbox,.fld:has(.tip:focus) .tipbox{display:block}
+.unsup{margin-top:10px;background:var(--amberbg);border:1px solid #ecd38f;border-radius:10px;padding:10px 12px;font-size:13px;color:#5c3d00}
+.unsup b{display:block;margin-bottom:2px}
+.tabs{display:flex;gap:4px;flex-wrap:wrap;border-bottom:1px solid var(--line);margin:-4px 0 14px}
+.tabs button{border:0;background:none;font:inherit;font-weight:600;font-size:14px;color:#56707f;padding:9px 12px;border-bottom:2px solid transparent;cursor:pointer;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--teal2);border-bottom-color:var(--teal)}
+.tabs .dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#e2a400;margin-left:6px;vertical-align:middle}
+.spec{width:100%;border-collapse:collapse;font-size:14px}.spec td{border-top:1px solid var(--line);padding:7px 6px;vertical-align:top}.spec td:first-child{font-weight:600;width:132px;color:#3b5060}
+.list{margin:6px 0 0;padding-left:20px}.list li{margin:3px 0}
+.sec{margin-top:16px}.sec h3{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#56707f;margin:0 0 6px}
+.rv{border-radius:10px;padding:8px 11px;margin:5px 0;font-size:13.5px;border:1px solid}
+.rv.high{background:var(--redbg);border-color:#f3b8b2;color:#7a1a12}.rv.warn{background:var(--amberbg);border-color:#ecd38f;color:#5c3d00}.rv.info{background:#eef4f6;border-color:#cdd9e0;color:#36556a}
+.confirm label{display:flex;gap:9px;align-items:flex-start;font-size:14px;margin:7px 0;cursor:pointer}.confirm input{width:auto;margin-top:3px}
+.genbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.msg{font-size:13px;color:var(--red)}.msg.ok{color:var(--teal2)}
+.banner{background:var(--amberbg);border:1px solid #ecd38f;color:#5c3d00;border-radius:10px;padding:9px 12px;font-size:13.5px;margin-bottom:10px}
 .codewrap{position:relative;border-radius:12px;overflow:hidden;background:#0b1b27}
-.codewrap pre{margin:0;padding:16px 18px;font-size:12.6px;line-height:1.6;color:#d6e6eb;overflow:auto;max-height:520px;tab-size:4}
-.codewrap.locked pre{max-height:360px;overflow:hidden}
-.codewrap.locked:after{content:"";position:absolute;left:0;right:0;bottom:0;height:160px;background:linear-gradient(180deg,#0b1b2700,#0b1b27 85%)}
-.unlock{position:absolute;left:50%;bottom:22px;transform:translateX(-50%);z-index:2}
+.codewrap pre{margin:0;padding:14px 16px;font-size:12.4px;line-height:1.6;color:#d6e6eb;overflow:auto;max-height:620px;tab-size:4}
+.codewrap.locked pre{max-height:340px;overflow:hidden}
+.codewrap.locked:after{content:"";position:absolute;left:0;right:0;bottom:0;height:150px;background:linear-gradient(180deg,#0b1b2700,#0b1b27 85%)}
+.unlock{position:absolute;left:50%;bottom:20px;transform:translateX(-50%);z-index:2}
 .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;margin-bottom:10px}
-.roadmap{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:6px}.roadmap div{background:#f6fafb;border:1px solid var(--line);border-radius:12px;padding:12px;font-size:13.5px;color:#3b5060}.roadmap b{display:block;color:var(--ink);font-size:14px}
-footer{background:#06121d;color:#a6bbc5;padding:36px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:920px;line-height:1.7}
+.status{display:inline-block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;border-radius:999px;background:#eef4f6;color:#36556a;border:1px solid #cdd9e0}
+.status.ok{background:var(--mint);color:#07604f;border-color:#9ee3d6}.status.no{background:#f4f5f6;color:#6b7a84}.status.bad{background:var(--redbg);color:var(--red);border-color:#f3b8b2}
+.ladder{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.ladder li{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:start;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.ladder .n{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;background:#eef3f5;color:#56707f}
+.ladder li.ok .n{background:var(--teal);color:#06231f}.ladder li.bad .n{background:#f3b8b2;color:#7a1a12}
+.ladder b{display:block;font-size:14.5px}.ladder small{color:var(--muted);font-size:12.8px}
+.checks{width:100%;border-collapse:collapse;font-size:13.5px;margin-top:6px}.checks td{border-top:1px solid var(--line);padding:6px}.checks td:first-child{width:62px;font-weight:700}
+.checks .p{color:var(--teal2)}.checks .f{color:var(--red)}
+.rev{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:12px;padding:9px 12px;margin:6px 0;font-size:13.5px}
+.rev .no{font-weight:700;color:var(--teal2)}.rev small{color:var(--muted)}
+.diff{margin-top:10px;background:#0b1b27;border-radius:12px;max-height:460px;overflow:auto;font-size:12px;line-height:1.55;padding:10px 0}
+.diff div{padding:0 14px;white-space:pre;color:#a9bcc4}.diff .a{background:#0f3b2e;color:#b8f5dd}.diff .d{background:#4a1d1d;color:#ffc9c2}.diff .s{color:#61e5d1;padding-top:6px}
+.req li{list-style:none;margin:6px 0;font-size:14px}.req{padding:0;margin:8px 0}.req .y:before{content:"✓ ";color:var(--teal2);font-weight:700}.req .x:before{content:"✗ ";color:var(--red);font-weight:700}
+.vis-pill{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:3px 9px;border-radius:999px;border:1px solid}
+.vis-pill.pub{background:#e8f1ff;color:#1d4fa3;border-color:#bcd3f7}.vis-pill.prv{background:#eef3f5;color:#3b5060;border-color:var(--line)}
+footer{background:#06121d;color:#a6bbc5;padding:32px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:960px;line-height:1.7}
 dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px #0008}dialog.gate::backdrop{background:#04101acc}
-.gate-in{padding:26px 26px 22px}.gate-in h2{font-weight:300;font-size:28px;margin:6px 0 8px;line-height:1.15}.gate-in .k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#087d73}
+.gate-in{padding:26px 26px 22px}.gate-in h2{font-weight:300;font-size:27px;margin:6px 0 8px;line-height:1.15}.gate-in .k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#087d73}
 .gate-in p{margin:0 0 12px;color:#5f7180;font-size:15px}.gate-in small{display:block;color:#7a8c97;font-size:12px;margin-top:10px}
 .gate-x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:24px;line-height:1;color:#7a8c97;cursor:pointer}
 .gate .kajabi-form__title,.gate .kajabi-form__subtitle{display:none!important}.gate #kajabi-form{background:transparent!important;padding:0!important;max-width:none!important}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
-@media(max-width:980px){.grid{grid-template-columns:1fr}.navlinks{display:none}.roadmap{grid-template-columns:1fr}}
-@media(max-width:560px){header .nav>.btn{display:none}.row{grid-template-columns:1fr}}
+@media(max-width:1060px){.grid{grid-template-columns:1fr}.navlinks{display:none}}
+@media(max-width:560px){header .nav>.btn{display:none}.fields{grid-template-columns:1fr}.toolbar{padding:10px}.seg button{padding:6px 10px}select.proj{min-width:0;width:100%}.tgroup{width:100%}}
 </style>
 </head>
 <body>
-<header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>AI INDICATOR STUDIO</small></span></a>
+<header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>STUDIO</small></span></a>
 <nav class="navlinks" aria-label="Main"><a href="../">Developer kit</a><a href="../repository/">Repository</a><a href="../ai/">B4 Indicator AI</a><a href="./" aria-current="page">Studio</a></nav>
 <a class="btn" href="../repository/">Open the repository</a></div></header>
 
 <section class="top"><div class="wrap">
-<div class="kicker">B4 AI Indicator Studio</div>
-<h1>Describe it. <em>Build it.</em></h1>
-<p>Describe a NinjaTrader 8 indicator in plain words. The Studio turns it into a structured specification and a NinjaScript indicator with the B4 Signal API wired in, ready for you to compile and test.</p>
+<div class="kicker">B4 Studio · Indicator and strategy builder</div>
+<h1>Describe it. Review it. <em>Build it.</em></h1>
+<p>Build NinjaTrader 8 indicators and strategies with guided or advanced settings. Review exactly what will be built before any code is made, then check every revision against clear safety and quality rules.</p>
 <span class="preview">Preview · template generator, no AI yet</span>
 </div></section>
 
-<main><div class="wrap grid">
-<div class="card">
-<div class="step">1 · Describe</div><h2>What should your indicator do?</h2>
-<textarea id="desc" aria-label="Describe your indicator">Create an indicator called Trend Turn that shows when the 9 EMA crosses the 21 EMA, with arrows and alerts.</textarea>
-<button class="btn dark" id="read" type="button" style="margin-top:10px">Read my description</button>
-<p class="hint">Preview: this reads keywords such as EMA, RSI, CCI, Stochastics, Bollinger, Keltner, Donchian, breakout, reversal, alerts and numbers. It is not AI. Check and adjust the choices below.</p>
-
-<div class="step" style="margin-top:22px">2 · Adjust</div>
-<label for="name">Indicator name</label><input id="name">
-<label for="template">Type</label>
-<select id="template"><option value="ma_cross">Moving-average cross</option><option value="level_cross">Oscillator level cross</option><option value="band_break">Band breakout / reversal</option></select>
-<div id="f-ma"><div class="row"><div><label for="maType">Average</label><select id="maType"><option>EMA</option><option>SMA</option><option>WMA</option><option>HMA</option></select></div>
-<div><label for="fast">Fast period</label><input id="fast" type="number" min="1"></div></div>
-<label for="slow">Slow period</label><input id="slow" type="number" min="2"></div>
-<div id="f-osc"><div class="row"><div><label for="osc">Oscillator</label><select id="osc"><option>RSI</option><option>CCI</option><option>Stochastics</option></select></div>
-<div><label for="period">Period</label><input id="period" type="number" min="2"></div></div>
-<div class="row"><div><label for="upper">High zone</label><input id="upper" type="number"></div><div><label for="lower">Low zone</label><input id="lower" type="number"></div></div></div>
-<div id="f-band"><div class="row"><div><label for="band">Bands</label><select id="band"><option>Bollinger</option><option>Keltner</option><option>Donchian</option></select></div>
-<div><label for="bandMode">Signal</label><select id="bandMode"><option value="breakout">Breakout</option><option value="reversal">Reversal</option></select></div></div>
-<div class="row"><div><label for="bperiod">Period</label><input id="bperiod" type="number" min="2"></div><div><label for="width">Width</label><input id="width" type="number" step="0.1" min="0.1"></div></div></div>
-<div class="checks"><label><input type="checkbox" id="arrows"> Arrows</label><label><input type="checkbox" id="alerts"> Alerts</label><label><input type="checkbox" id="colorBars"> Colour signal bars</label></div>
+<main><div class="wrap">
+<div class="toolbar" role="region" aria-label="Project">
+  <div class="tgroup">
+    <label class="sr" for="project">Project</label><select id="project" class="proj"></select>
+    <button class="btn line sm" id="newProj" type="button">New project</button>
+    <button class="btn line sm" id="delProj" type="button">Delete</button>
+  </div>
+  <div class="tgroup">
+    <span><span class="seg-l">Type</span><span class="seg" role="group" aria-label="Project type"><button type="button" data-kind="i">Indicator</button><button type="button" data-kind="s">Strategy</button></span></span>
+    <span><span class="seg-l">Mode</span><span class="seg" role="group" aria-label="Mode"><button type="button" data-mode="guided">Guided</button><button type="button" data-mode="adv">Advanced</button></span></span>
+    <span><span class="seg-l">Visibility</span><span class="seg" role="group" aria-label="Visibility"><button type="button" data-vis="private">Private</button><button type="button" data-vis="public">Public</button></span></span>
+  </div>
 </div>
 
-<div class="out">
-<div class="card"><div class="step">3 · Specification</div><h2>What your indicator will do</h2><table class="spec" id="spec"></table></div>
-<div class="card"><div class="bar"><div><div class="step">4 · Code</div><span class="status ok">Templates compile-checked</span><span class="status">This file: generated, not yet compiled</span></div>
-<div style="display:flex;gap:8px"><button class="btn line" id="copy" type="button">Copy code</button><button class="btn" id="dl" type="button">Download .cs</button></div></div>
-<div class="codewrap locked" id="cw"><pre id="code"></pre><button class="btn unlock" id="unlock" type="button">Unlock the full code (free)</button></div>
-<p class="hint">Next: copy the file into <code>Documents\NinjaTrader 8\bin\Custom\Indicators\</code> while you are flat, compile (F5) and test in simulation. It publishes B4 Signal API signals, so it works with <a href="../#copilot-dev">B4 CoPilot Dev</a> as a signal, filter or exit tool.</p></div>
-<div class="card"><div class="step">Coming next</div><h2>The full Studio</h2>
-<div class="roadmap"><div><b>AI generation</b>Plain-language requests beyond templates, with clarifying questions.</div><div><b>Real validation</b>Compile and test runs in an isolated environment, with honest status labels.</div><div><b>Projects and versions</b>Saved projects, version history, compare and restore.</div></div>
-<p class="hint">The full Studio will be a separate subscription. Your existing B4 membership is unchanged. Join with the form to hear when it opens.</p></div>
+<div class="grid">
+<div class="card" id="left">
+  <div class="step">1 · Describe</div><h2 id="descTitle">What should it do?</h2>
+  <textarea id="desc" aria-label="Describe your project"></textarea>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px"><button class="btn dark sm" id="read" type="button">Read my description</button>
+  <label class="sr" for="preset">Start from a preset</label><select id="preset" style="width:auto;flex:1;min-width:170px"></select></div>
+  <p class="hint">Reads keywords such as EMA, RSI, MACD, Bollinger, breakout, stop 12 ticks, 2R target, daily loss 500, long only. It is not AI: check every choice below.</p>
+  <div id="unsup"></div>
+  <div class="step" style="margin-top:16px">2 · Settings</div>
+  <div id="groups"></div>
+</div>
+
+<div class="card" id="right">
+  <div class="tabs" role="tablist" aria-label="Workspace">
+    <button role="tab" id="t-review" aria-controls="p-review" data-tab="review">Review</button>
+    <button role="tab" id="t-code" aria-controls="p-code" data-tab="code">Code</button>
+    <button role="tab" id="t-valid" aria-controls="p-valid" data-tab="valid">Validation</button>
+    <button role="tab" id="t-hist" aria-controls="p-hist" data-tab="hist">History</button>
+    <button role="tab" id="t-share" aria-controls="p-share" data-tab="share">Share</button>
+  </div>
+
+  <section role="tabpanel" id="p-review" aria-labelledby="t-review">
+    <div class="step">3 · Review before code</div><h2>What will be built</h2>
+    <table class="spec" id="spec"></table>
+    <div class="sec"><h3>Assumptions (defaults you have not changed)</h3><ul class="list" id="assume"></ul></div>
+    <div class="sec"><h3>Risk and quality review</h3><div id="review"></div></div>
+    <div class="sec"><h3>Outputs</h3><ul class="list" id="outputs"></ul></div>
+    <div class="sec"><h3>Tests that decide whether it works</h3><ul class="list" id="tests"></ul></div>
+    <div class="sec confirm"><h3>Confirm your choices</h3><div id="confirms"></div></div>
+    <div class="genbar"><button class="btn" id="generate" type="button">Confirm and generate</button><span class="msg" id="genmsg" role="status" aria-live="polite"></span></div>
+  </section>
+
+  <section role="tabpanel" id="p-code" aria-labelledby="t-code" hidden>
+    <div id="staleCode"></div>
+    <div class="bar"><div><div class="step">4 · Code</div><span class="status" id="revLabel">No revision yet</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn line sm" id="copy" type="button">Copy code</button><button class="btn sm" id="dl" type="button">Download .cs</button><button class="btn line sm" id="dlSpec" type="button">Specification + tests (.json)</button></div></div>
+    <div class="codewrap locked" id="cw"><pre id="code">Review your choices and press "Confirm and generate".</pre><button class="btn unlock" id="unlock" type="button">Unlock the full code (free)</button></div>
+    <p class="hint" id="codeHint"></p>
+  </section>
+
+  <section role="tabpanel" id="p-valid" aria-labelledby="t-valid" hidden>
+    <div class="step">5 · Validation</div><h2>Build status - each step is earned separately</h2>
+    <ol class="ladder" id="ladder"></ol>
+    <div class="sec"><h3>Static checks on this revision</h3><table class="checks" id="checks"></table></div>
+    <p class="hint">A compiled file is not proof of correct trading behaviour, and a simulation result is not proof of future results.</p>
+  </section>
+
+  <section role="tabpanel" id="p-hist" aria-labelledby="t-hist" hidden>
+    <div class="step">History</div><h2>Revisions of this project</h2>
+    <p class="hint">Every "Confirm and generate" saves a revision in this browser with its specification, code and checks. Restore brings back the settings of any revision.</p>
+    <div id="revs"></div><div id="diffbox"></div>
+  </section>
+
+  <section role="tabpanel" id="p-share" aria-labelledby="t-share" hidden>
+    <div class="step">Share</div><h2 id="shareTitle">Private project</h2>
+    <div id="shareBody"></div>
+  </section>
+</div>
 </div>
 </div></main>
 
 <footer><div class="wrap"><p><b style="color:#fff;letter-spacing:.14em">B4 INDICATORS</b> · part of the B4 Signals ecosystem · <a href="https://www.b4signals.com/">B4Signals.com</a> · <a href="mailto:info@b4signals.com">info@b4signals.com</a></p>
-<p>For educational and research purposes only. Not trading advice. Generated code is a starting point: you are responsible for reviewing, compiling and testing it before use. Trading involves substantial risk. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<p>For educational and research purposes only. Not trading advice. Generated code is a starting point: you are responsible for reviewing, compiling and testing it before use. Strategies place real orders on the account you choose; trading futures involves substantial risk of loss. Community projects are not B4 releases and are not reviewed for profitability or live-trading safety. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<div id="footShare" style="margin:14px 0"></div>
 <p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
 
 <dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in">
-<div class="k">Free</div><h2 id="gate-title">Unlock your indicator code</h2>
-<p>Enter your name and email to copy and download Studio code. We will also email you the free B4 Developer Kit.</p>
+<div class="k">Free</div><h2 id="gate-title">Unlock your Studio code</h2>
+<p>Enter your name and email to copy and download Studio code and specifications. We will also email you the free B4 Developer Kit.</p>
 <div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div>
-<small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small>
+<small>Your project is saved in this browser first. You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small>
 </div></dialog>
 
 <script src="gen.js"></script>
+<script src="../share.js"></script>
 <script>
 document.getElementById('y').textContent=new Date().getFullYear();
 (function(){
-  var $=function(id){return document.getElementById(id)}, S=window.B4Studio, KEY='b4studio-unlocked', pendingAction=null;
-  function unlocked(){ try{ return localStorage.getItem(KEY)==='1'; }catch(e){ return false; } }
-  function setSpec(sp){ var s=S.normalize(sp);
-    $('name').value=s.name; $('template').value=s.template; $('maType').value=s.maType; $('fast').value=s.fast; $('slow').value=s.slow;
-    $('osc').value=s.osc; $('period').value=s.period; $('upper').value=s.upper; $('lower').value=s.lower;
-    $('band').value=s.band; $('bandMode').value=s.bandMode; $('bperiod').value=s.period; $('width').value=s.width;
-    $('arrows').checked=s.arrows; $('alerts').checked=s.alerts; $('colorBars').checked=s.colorBars; render(); }
-  function getSpec(){ var t=$('template').value;
-    return { name:$('name').value, template:t, maType:$('maType').value, fast:$('fast').value, slow:$('slow').value, osc:$('osc').value,
-      period: t==='band_break' ? $('bperiod').value : $('period').value, upper:$('upper').value, lower:$('lower').value, band:$('band').value,
-      bandMode:$('bandMode').value, width:$('width').value, arrows:$('arrows').checked, alerts:$('alerts').checked, colorBars:$('colorBars').checked }; }
-  function render(){ var t=$('template').value;
-    $('f-ma').hidden=t!=='ma_cross'; $('f-osc').hidden=t!=='level_cross'; $('f-band').hidden=t!=='band_break';
-    var sp=getSpec(), rows=S.specLines(sp);
-    $('spec').innerHTML=rows.map(function(r){ var d=document.createElement('td'); d.textContent=r[1]; return '<tr><td>'+r[0]+'</td>'+d.outerHTML+'</tr>'; }).join('');
-    $('code').textContent=S.generate(sp);
-    var u=unlocked(); $('cw').classList.toggle('locked',!u); $('unlock').hidden=u; }
-  function fileName(){ return S.normalize(getSpec()).className+'.cs'; }
-  function doCopy(){ navigator.clipboard.writeText($('code').textContent).then(function(){ $('copy').textContent='Copied ✓'; setTimeout(function(){ $('copy').textContent='Copy code'; },1800); }); }
-  function doDownload(){ var b=new Blob([$('code').textContent],{type:'text/plain'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=fileName(); document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }
-  function gated(fn){ if(unlocked()){ fn(); return; } pendingAction=fn; openGate(); }
-  function openGate(){ save(); $('gate').showModal(); }   // the email form is left exactly as provided; the project is saved first
-  var SAVE='b4studio-project';
-  function save(){ try{ localStorage.setItem(SAVE, JSON.stringify({desc:$('desc').value, spec:getSpec()})); }catch(e){} }
-  function restore(){ try{ var j=JSON.parse(localStorage.getItem(SAVE)||'null'); if(j&&j.spec){ $('desc').value=j.desc||''; var s=j.spec; s.period = s.template==='band_break' ? s.period : s.period; setSpec(s); return true; } }catch(e){} return false; }
-  // the email form submits in a new tab so your work stays on this page; submitting it unlocks copy and download in this browser
-  $('gate').addEventListener('submit',function(){ try{ localStorage.setItem(KEY,'1'); }catch(e){} setTimeout(function(){ $('gate').close(); render(); if(pendingAction){ var f=pendingAction; pendingAction=null; f(); } },300); },true);
-  $('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) $('gate').close(); });
-  $('read').onclick=function(){ setSpec(S.suggest($('desc').value)); };
-  $('copy').onclick=function(){ gated(doCopy); }; $('dl').onclick=function(){ gated(doDownload); }; $('unlock').onclick=function(){ gated(function(){}); };
-  ['name','template','maType','fast','slow','osc','period','upper','lower','band','bandMode','bperiod','width','arrows','alerts','colorBars'].forEach(function(id){ $(id).addEventListener('input',render); $(id).addEventListener('change',render); });
-  ['desc','name','template','maType','fast','slow','osc','period','upper','lower','band','bandMode','bperiod','width','arrows','alerts','colorBars'].forEach(function(id){ $(id).addEventListener('change',save); });
-  if(!restore()) setSpec(S.suggest($('desc').value));
+'use strict';
+var $=function(id){return document.getElementById(id)}, S=window.B4Studio, STORE='b4studio2', UNLOCK='b4studio-unlocked', DAY=864e5;
+var COMMUNITY_URL=null;   // set to the community discussions URL once the community repository is live
+var ESSENTIAL={visibility:1,author:1,license:1,name:1,sig:1,maType:1,fast:1,slow:1,maLen:1,osc:1,oscLen:1,oscMode:1,upper:1,lower:1,macdMode:1,band:1,bandLen:1,width:1,bandMode:1,nbarLen:1,dmiLen:1,candle:1,
+  side:1,fTrend:1,fTrendLen:1,fSess:1,sessStart:1,sessEnd:1,alerts:1,alertSound:1,marker:1,buyColor:1,sellColor:1,entryType:1,qtyMode:1,qty:1,riskUsd:1,maxQty:1,exitOpp:1,reverse:1,
+  stopMode:1,stopTicks:1,stopAtr:1,stopPct:1,swingLen:1,tgtMode:1,tgtR:1,tgtTicks:1,tgtAtr:1,beOn:1,trailMode:1,trailTicks:1,trailAtr:1,dailyLoss:1,maxTrades:1,flatOn:1,flatTime:1,accounts:1};
+var st=load(), cur=null, tab='review', diffOpen=null;
+
+// ---------------------------------------------------------------- storage
+function load(){ try{ var j=JSON.parse(localStorage.getItem(STORE)||'null'); if(j&&j.projects) return j; }catch(e){} return {projects:{},current:null,mode:'guided'}; }
+function persist(){ try{ localStorage.setItem(STORE, JSON.stringify(st)); }catch(e){ trimRevisions(); try{ localStorage.setItem(STORE, JSON.stringify(st)); }catch(e2){} } }
+function trimRevisions(){ Object.keys(st.projects).forEach(function(id){ var r=st.projects[id].revisions; if(r.length>8) st.projects[id].revisions=r.slice(-8); }); }
+function newProject(kind, spec, desc){ var id='p'+Date.now().toString(36); var sp=S.normalize(spec||S.defaults(kind));
+  st.projects[id]={id:id, spec:sp, desc:desc||(sp.kind==='s'?'Create a strategy that buys when the 9 EMA crosses above the 21 EMA, long only above the 200 EMA, stop 16 ticks, 2R target, daily loss 500.':'Create an indicator called Trend Turn that shows when the 9 EMA crosses the 21 EMA, with arrows and alerts.'), touched:{}, confirmed:{}, revisions:[], created:Date.now()};
+  st.current=id; persist(); return st.projects[id]; }
+function unlocked(){ try{ var v=Number(localStorage.getItem(UNLOCK)); return v>1 && Date.now()-v < 30*DAY; }catch(e){ return false; } }
+
+// ---------------------------------------------------------------- settings UI built from the generator's field schema
+function buildGroups(){
+  $('groups').innerHTML=S.GROUPS.map(function(g){
+    var fs=S.FIELDS.filter(function(f){return f.g===g[0];});
+    return '<details class="grp" data-grp="'+g[0]+'"'+(g[0]==='sig'||g[0]==='proj'?' open':'')+'><summary>'+g[1]+'<span class="cnt"></span></summary><div class="fields">'+fs.map(fieldHtml).join('')+'</div></details>';
+  }).join('');
+  S.FIELDS.forEach(function(f){ $('f_'+f.id).addEventListener(f.t==='chk'||f.t==='sel'?'change':'input', function(){ onField(f); }); });
+}
+function fieldHtml(f){
+  var id='f_'+f.id, tipBtn='<button type="button" class="tip" aria-label="Help: '+esc(f.l)+'" aria-describedby="tip_'+f.id+'">?</button>', tipBox='<span class="tipbox" role="tooltip" id="tip_'+f.id+'">'+esc(f.tip||'')+'</span>';
+  var wide=(f.t==='text'||/^(sig|visibility|accounts|entryType|stopMode|tgtMode|qtyMode|license|candle)$/.test(f.id))?' wide':'';
+  if(f.t==='chk') return '<div class="fld chk" data-f="'+f.id+'"><label><input type="checkbox" id="'+id+'"> '+esc(f.l)+' '+tipBtn+'</label>'+tipBox+'</div>';
+  var ctl = f.t==='sel' ? '<select id="'+id+'">'+f.o.map(function(o){ o=Array.isArray(o)?o:[o,o]; return '<option value="'+esc(o[0])+'">'+esc(o[1])+'</option>'; }).join('')+'</select>'
+    : f.t==='num' ? '<input id="'+id+'" type="number" inputmode="decimal" min="'+f.min+'" max="'+f.max+'" step="'+(f.step||1)+'">'
+    : f.t==='time' ? '<input id="'+id+'" type="time">' : '<input id="'+id+'" type="text" maxlength="'+(f.id==='name'?60:80)+'">';
+  return '<div class="fld'+wide+'" data-f="'+f.id+'"><label for="'+id+'">'+esc(f.l)+' '+tipBtn+'</label>'+ctl+tipBox+'</div>';
+}
+function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];}); }
+function readFields(){ var o={kind:cur.spec.kind}; S.FIELDS.forEach(function(f){ var el=$('f_'+f.id); o[f.id]= f.t==='chk' ? el.checked : el.value; }); return o; }
+function writeFields(sp){ S.FIELDS.forEach(function(f){ var el=$('f_'+f.id); if(f.t==='chk') el.checked=!!sp[f.id]; else el.value=sp[f.id]; }); }
+function onField(f){
+  var raw=readFields();
+  if(f.id==='osc'){ raw.upper=S.OSC[raw.osc].up; raw.lower=S.OSC[raw.osc].lo; $('f_upper').value=raw.upper; $('f_lower').value=raw.lower; }
+  cur.touched[f.id]=1; cur.spec=S.normalize(raw); cur.confirmed={}; persist(); refresh(f.t==='sel'||f.t==='chk');
+}
+
+// ---------------------------------------------------------------- render
+function refresh(rewrite){
+  var s=cur.spec;
+  if(rewrite!==false) writeFields(s);
+  document.querySelectorAll('[data-kind]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.kind===s.kind); });
+  document.querySelectorAll('[data-mode]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.mode===st.mode); });
+  document.querySelectorAll('[data-vis]').forEach(function(b){ b.setAttribute('aria-pressed', b.dataset.vis===s.visibility); });
+  $('descTitle').textContent = s.kind==='s' ? 'What should your strategy do?' : 'What should your indicator do?';
+  S.FIELDS.forEach(function(f){ var show=S.visible(f,s) && (st.mode==='adv' || ESSENTIAL[f.id]); document.querySelector('[data-f="'+f.id+'"]').hidden=!show; });
+  document.querySelectorAll('details.grp').forEach(function(d){ var n=d.querySelectorAll('.fld:not([hidden])').length; d.hidden=n===0; d.querySelector('.cnt').textContent=n+' setting'+(n===1?'':'s'); });
+  projectList(); presetList(); renderUnsup(); renderReview(); renderCode(); renderValid(); renderHist(); renderShare();
+}
+function projectList(){ var sel=$('project'); sel.innerHTML=Object.keys(st.projects).map(function(id){ var p=st.projects[id]; return '<option value="'+id+'">'+esc(p.spec.name)+' · '+(p.spec.kind==='s'?'Strategy':'Indicator')+' · '+(p.spec.visibility==='public'?'Public':'Private')+'</option>'; }).join(''); sel.value=cur.id; }
+function presetList(){ var k=cur.spec.kind; $('preset').innerHTML='<option value="">Start from a preset…</option>'+S.PRESETS[k].map(function(p,i){ return '<option value="'+i+'">'+esc(p[0])+'</option>'; }).join(''); }
+function renderUnsup(){ var u=S.unsupported($('desc').value); $('unsup').innerHTML=u.length?'<div class="unsup"><b>Not supported - these parts of your description will not be built:</b>'+u.map(function(x){return '• '+esc(x.feature)+': '+esc(x.reason);}).join('<br>')+'</div>':''; }
+function specHash(sp){ var s=JSON.stringify(sp), h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h=Math.imul(h,16777619); } return ('0000000'+(h>>>0).toString(16)).slice(-8); }
+function assumptions(){
+  var s=cur.spec, d=S.normalize(S.defaults(s.kind)), out=[];
+  S.FIELDS.forEach(function(f){ if(!ESSENTIAL[f.id]||!S.visible(f,s)||cur.touched[f.id]||f.t==='text'||f.id==='visibility') return; if(String(s[f.id])!==String(d[f.id])) return;
+    var v=s[f.id]; if(f.t==='sel'){ var o=f.o.map(function(x){return Array.isArray(x)?x:[x,x];}).filter(function(x){return String(x[0])===String(v);})[0]; v=o?o[1]:v; } if(f.t==='chk') v=v?'on':'off';
+    out.push(f.l+': '+v); });
+  return out;
+}
+function renderReview(){
+  var s=cur.spec;
+  $('spec').innerHTML=S.specLines(s).map(function(r){ return '<tr><td>'+esc(r[0])+'</td><td>'+esc(r[1])+'</td></tr>'; }).join('');
+  var a=assumptions(); $('assume').innerHTML=a.length?a.map(function(x){return '<li>'+esc(x)+'</li>';}).join(''):'<li>None - every key choice was set by you or your description.</li>';
+  var R=S.review(s); $('review').innerHTML=R.length?R.map(function(r){return '<div class="rv '+r.level+'">'+(r.level==='high'?'<b>High risk:</b> ':r.level==='warn'?'<b>Check:</b> ':'')+esc(r.text)+'</div>';}).join(''):'<div class="rv info">No issues found.</div>';
+  $('outputs').innerHTML=['<li><code>'+esc(s.className)+'.cs</code> - NinjaScript '+(s.kind==='s'?'strategy':'indicator')+' for NinjaTrader 8 desktop</li>','<li>Specification, assumptions, confirmations, checks and test plan (.json)</li>',
+    s.kind==='i'?'<li>B4 Signal API v1 outputs: buy, sell and confirmation series for B4 CoPilot Dev</li>':'<li>Managed orders with a protective stop'+(s.tgtMode!=='none'?', profit target':'')+' and daily risk limits</li>'].join('');
+  $('tests').innerHTML=S.testPlan(s).map(function(t){return '<li><b>'+esc(t.name)+':</b> '+esc(t.how)+'</li>';}).join('');
+  var C=S.confirmations(s); $('confirms').innerHTML=C.map(function(c){ return '<label><input type="checkbox" data-c="'+c.id+'"'+(cur.confirmed[c.id]?' checked':'')+'> <span>'+esc(c.text)+'</span></label>'; }).join('');
+  $('confirms').querySelectorAll('input').forEach(function(i){ i.onchange=function(){ cur.confirmed[i.dataset.c]=i.checked; persist(); }; });
+  var last=lastRev(), stale=last&&last.hash!==specHash(s);
+  $('t-code').innerHTML='Code'+(stale?'<span class="dot" title="Settings changed since the last revision"></span>':'');
+}
+function lastRev(){ return cur.revisions[cur.revisions.length-1]||null; }
+function renderCode(){
+  var r=lastRev(), u=unlocked();
+  $('staleCode').innerHTML = r && r.hash!==specHash(cur.spec) ? '<div class="banner">Your settings changed after revision '+r.n+'. This code is revision '+r.n+'. Review and press "Confirm and generate" for a new revision.</div>' : '';
+  $('revLabel').textContent = r ? 'Revision '+r.n+' · '+new Date(r.at).toLocaleString()+' · generated, not compiled' : 'No revision yet';
+  $('code').textContent = r ? r.code : 'Review your choices and press "Confirm and generate".';
+  $('cw').classList.toggle('locked', !!r && !u); $('unlock').hidden = !r || u;
+  $('codeHint').innerHTML = r ? 'Copy the file to <code>Documents\\NinjaTrader 8\\bin\\Custom\\'+(r.spec.kind==='s'?'Strategies':'Indicators')+'\\</code> while flat, compile (F5) and follow the test plan. '+(r.spec.kind==='s'?'Test on a simulation account first.':'It works with <a href="../#copilot-dev">B4 CoPilot Dev</a> as a signal, filter or exit tool.') : '';
+}
+function renderValid(){
+  var r=lastRev(), checks=r?r.checks:[], allPass=checks.length&&checks.every(function(c){return c.pass;});
+  var L=[['Specification complete', r?'Reviewed and confirmed for revision '+r.n+'.':'Confirm your choices on the Review tab.', r?'ok':'no'],
+    ['Code generated', r?'Revision '+r.n+' created '+new Date(r.at).toLocaleString()+'. Not compiled.':'Not generated yet.', r?'ok':'no'],
+    ['Static checks passed', r?(allPass?checks.length+' structural, safety, API and IP checks passed in your browser.':'Some checks failed - see below.'):'Runs on each revision.', r?(allPass?'ok':'bad'):'no'],
+    ['Compilation passed', 'Not run for this file. The generator\'s templates (72 variants) compiled with 0 errors and 0 warnings against NinjaTrader 8 on 2026-10-10. Compile this file yourself (F5).', 'no'],
+    ['Behavioural tests passed', 'Not run. Follow the test plan on the Review tab and record your results.', 'no'],
+    ['Forward simulation passed', r&&r.spec.kind==='s'?'Not run. At least 20 sessions on a simulation account before any live use.':'Not run.', 'no']];
+  $('ladder').innerHTML=L.map(function(x,i){ var lab=x[2]==='ok'?'<span class="status ok">Earned</span>':x[2]==='bad'?'<span class="status bad">Failed</span>':'<span class="status no">Not earned</span>'; return '<li class="'+x[2]+'"><span class="n">'+(i+1)+'</span><span><b>'+x[0]+'</b><small>'+esc(x[1])+'</small></span>'+lab+'</li>'; }).join('');
+  $('checks').innerHTML = r ? checks.map(function(c){ return '<tr><td class="'+(c.pass?'p':'f')+'">'+(c.pass?'PASS':'FAIL')+'</td><td>'+esc(c.name)+(c.detail?' <span style="color:#7a8c97">('+esc(c.detail)+')</span>':'')+'</td></tr>'; }).join('') : '<tr><td></td><td>No revision yet.</td></tr>';
+}
+function renderHist(){
+  var R=cur.revisions.slice().reverse();
+  $('revs').innerHTML = R.length ? R.map(function(r){ return '<div class="rev"><span class="no">r'+r.n+'</span><span>'+esc(r.note)+'<br><small>'+new Date(r.at).toLocaleString()+' · spec '+r.hash+' · code sha256 '+r.sha.slice(0,12)+' · '+(r.checks.every(function(c){return c.pass;})?'checks passed':'checks failed')+'</small></span><span style="display:flex;gap:6px;flex-wrap:wrap">'+(R.length>1&&r.n!==cur.revisions[0].n?'<button class="btn line sm" data-diff="'+r.n+'" type="button">Changes</button>':'')+'<button class="btn line sm" data-restore="'+r.n+'" type="button">Restore</button></span></div>'; }).join('') : '<p class="hint">No revisions yet.</p>';
+  $('revs').querySelectorAll('[data-restore]').forEach(function(b){ b.onclick=function(){ var r=cur.revisions.filter(function(x){return x.n==b.dataset.restore;})[0]; cur.spec=S.normalize(r.spec); cur.confirmed={}; persist(); refresh(); showTab('review'); }; });
+  $('revs').querySelectorAll('[data-diff]').forEach(function(b){ b.onclick=function(){ diffOpen=+b.dataset.diff; renderDiff(); }; });
+  renderDiff();
+}
+function renderDiff(){
+  if(!diffOpen){ $('diffbox').innerHTML=''; return; }
+  var i=-1; cur.revisions.forEach(function(x,k){ if(x.n===diffOpen) i=k; });
+  var b=cur.revisions[i], a=cur.revisions[i-1];
+  if(!a||!b){ $('diffbox').innerHTML=''; return; }
+  var d=lineDiff(a.code.split('\r\n'), b.code.split('\r\n')), out=[], ctx=2;
+  d.forEach(function(x,k){ var near=d.slice(Math.max(0,k-ctx),k+ctx+1).some(function(y){return y[0]!==' ';}); if(x[0]!==' '||near) out.push('<div class="'+(x[0]==='+'?'a':x[0]==='-'?'d':'')+'">'+x[0]+' '+esc(x[1])+'</div>'); else if(out[out.length-1]!=='<div class="s">…</div>') out.push('<div class="s">…</div>'); });
+  var adds=d.filter(function(x){return x[0]==='+';}).length, dels=d.filter(function(x){return x[0]==='-';}).length;
+  $('diffbox').innerHTML='<div class="sec"><h3>Changes from r'+a.n+' to r'+b.n+' · +'+adds+' / -'+dels+' lines</h3><div class="diff mono">'+out.join('')+'</div></div>';
+}
+function lineDiff(A,B){ var n=A.length,m=B.length,L=[],i,j; for(i=0;i<=n;i++){ L[i]=new Uint16Array(m+1); }
+  for(i=n-1;i>=0;i--) for(j=m-1;j>=0;j--) L[i][j]=A[i]===B[j]?L[i+1][j+1]+1:Math.max(L[i+1][j],L[i][j+1]);
+  var out=[]; i=0;j=0; while(i<n&&j<m){ if(A[i]===B[j]){out.push([' ',A[i]]);i++;j++;} else if(L[i+1][j]>=L[i][j+1]) out.push(['-',A[i++]]); else out.push(['+',B[j++]]); }
+  while(i<n) out.push(['-',A[i++]]); while(j<m) out.push(['+',B[j++]]); return out; }
+// a build travels inside its link: only the settings that differ from the defaults, base64url-encoded after the #
+function buildLink(sp){ var d=S.defaults(sp.kind), o={kind:sp.kind};
+  S.FIELDS.forEach(function(f){ if(f.id!=='visibility' && String(sp[f.id])!==String(d[f.id])) o[f.id]=sp[f.id]; });
+  var b64=btoa(unescape(encodeURIComponent(JSON.stringify(o)))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return location.origin+location.pathname+'#b='+b64; }
+function readLink(){ var m=location.hash.match(/[#&]b=([A-Za-z0-9_-]+)/); if(!m) return null;
+  try{ var s=m[1].replace(/-/g,'+').replace(/_/g,'/'); while(s.length%4) s+='='; var o=JSON.parse(decodeURIComponent(escape(atob(s)))); return o&&typeof o==='object'?o:null; }catch(e){ return null; } }
+function shareLinkBlock(s){
+  return '<div class="sec"><h3>Share this build with friends</h3><p class="hint" style="margin:0 0 8px">The link carries this build\'s settings. Anyone who opens it gets their own copy in their browser'+(s.visibility==='public'?'':' (your private project itself is never uploaded)')+'.</p><div id="shareBuild"></div></div>'
+    +'<div class="sec"><h3>Invite friends to B4 Studio</h3><div id="shareSite"></div></div>';
+}
+function wireShare(){
+  var s=cur.spec;
+  if($('shareBuild')) B4Share.render($('shareBuild'), {url:function(){ return buildLink(cur.spec); }, title:function(){ return cur.spec.name+' - a NinjaTrader 8 '+(cur.spec.kind==='s'?'strategy':'indicator')+' built with B4 Studio'; }});
+  if($('shareSite')) B4Share.render($('shareSite'), {url:location.origin+location.pathname, title:'B4 Studio - build NinjaTrader 8 indicators and strategies', text:'Build NinjaTrader 8 indicators and strategies with B4 Studio:'});
+}
+function renderShare(){
+  var s=cur.spec, r=lastRev();
+  if(s.visibility!=='public'){
+    $('shareTitle').innerHTML='Private project <span class="vis-pill prv">Private</span>';
+    $('shareBody').innerHTML='<p>Private projects stay in this browser only. Nothing is uploaded. Private builds may use any option, including live accounts for strategies, and are your responsibility.</p><p>To publish this build to the community forum as open source, switch Visibility to <b>Public</b>. Public builds must meet stricter requirements, especially strategies.</p>'+shareLinkBlock(s);
+    wireShare(); return;
+  }
+  var Q=S.publicRequirements(s, r&&r.hash===specHash(s)?r.code:null), fresh=r&&r.hash===specHash(s), ok=Q.every(function(q){return q.ok;})&&fresh;
+  $('shareTitle').innerHTML='Public project <span class="vis-pill pub">Public</span>';
+  var h='<p>Public builds are open source, discussed and improved by the community. They are never B4 releases and are not reviewed for profitability or live-trading safety.</p>';
+  h+='<div class="sec"><h3>Public '+(s.kind==='s'?'strategy':'indicator')+' requirements</h3><ul class="req">'+Q.map(function(q){return '<li class="'+(q.ok?'y':'x')+'">'+esc(q.text)+'</li>';}).join('')+'<li class="'+(fresh?'y':'x')+'">Latest settings generated as a revision</li></ul></div>';
+  if(ok){
+    h+='<div class="genbar"><button class="btn" id="copyPost" type="button">Copy community post</button>'+(COMMUNITY_URL?'<a class="btn line" href="'+COMMUNITY_URL+'" target="_blank" rel="noopener">Open the community forum</a>':'')+'<span class="msg ok" id="postmsg" role="status"></span></div>';
+    h+='<p class="hint">'+(COMMUNITY_URL?'Paste the post into a new discussion in the right category (Indicators or Strategies). Others can comment, suggest changes and share improved revisions.':'The community forum is being set up. Your post is ready to copy now and to publish when the forum opens.')+'</p>';
+  } else h+='<p class="msg">Complete the items above to publish this build to the community forum.</p>';
+  $('shareBody').innerHTML=h+shareLinkBlock(s); wireShare();
+  var cp=$('copyPost'); if(cp) cp.onclick=function(){ gated(function(){ navigator.clipboard.writeText(postText(r)).then(function(){ $('postmsg').textContent='Post copied.'; }); }); };
+}
+function postText(r){
+  var s=r.spec, L=['# '+s.name+' ('+(s.kind==='s'?'strategy':'indicator')+', NinjaTrader 8)', '', s.description||'', '', '**Author:** '+s.author+'  ', '**License:** '+s.license+'  ', '**Revision:** r'+r.n+' · spec '+r.hash+' · code sha256 '+r.sha, '', '## Specification'];
+  S.specLines(s).forEach(function(l){ L.push('- **'+l[0]+':** '+l[1]); });
+  L.push('', '## Status', '- Static checks: '+r.checks.filter(function(c){return c.pass;}).length+'/'+r.checks.length+' passed', '- Compiled by the author: not yet reported', '- Behavioural tests: not yet reported', '', '## Test plan');
+  S.testPlan(s).forEach(function(t){ L.push('- **'+t.name+':** '+t.how); });
+  L.push('', '## Source', '```csharp', r.code.replace(/\r\n/g,'\n'), '```', '', '_Built with B4 Studio. Educational and research use only. Not trading advice. Not a B4 release; not reviewed for profitability or live-trading safety._');
+  return L.join('\n');
+}
+
+// ---------------------------------------------------------------- generate a revision
+function sha256(text){ if(!(window.crypto&&crypto.subtle)) return Promise.resolve('unavailable'); return crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)).then(function(b){ return Array.from(new Uint8Array(b)).map(function(x){return x.toString(16).padStart(2,'0');}).join(''); }); }
+function changeNote(prev, s){
+  if(!prev) return 'First revision';
+  var ch=S.FIELDS.filter(function(f){ return String(prev.spec[f.id])!==String(s[f.id]); }).map(function(f){ return f.l; });
+  if(prev.spec.kind!==s.kind) ch.unshift('Project type');
+  return ch.length ? 'Changed: '+ch.slice(0,6).join(', ')+(ch.length>6?' and '+(ch.length-6)+' more':'') : 'Regenerated (no setting changes)';
+}
+$('generate').onclick=function(){
+  var s=cur.spec, C=S.confirmations(s), miss=C.filter(function(c){return !cur.confirmed[c.id];});
+  if(miss.length){ $('genmsg').className='msg'; $('genmsg').textContent='Please confirm: '+miss.map(function(c){return c.text;}).join(' · '); return; }
+  var code=S.generate(s), checks=S.staticChecks(code,s), prev=lastRev();
+  sha256(code).then(function(sha){
+    cur.revisions.push({n:(prev?prev.n:0)+1, at:Date.now(), spec:JSON.parse(JSON.stringify(s)), hash:specHash(s), code:code, sha:sha, checks:checks, note:changeNote(prev,s), generator:S.VERSION});
+    if(cur.revisions.length>25) cur.revisions.shift();
+    persist(); $('genmsg').className='msg ok'; $('genmsg').textContent='Revision '+lastRev().n+' generated. '+(checks.every(function(c){return c.pass;})?'All static checks passed.':'Some static checks failed - see Validation.');
+    refresh(false); showTab('code');
+  });
+};
+
+// ---------------------------------------------------------------- downloads (email-gated)
+function fileDl(name, text, type){ var b=new Blob([text],{type:type||'text/plain'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }
+var pending=null;
+function gated(fn){ if(unlocked()){ fn(); return; } pending=fn; persist(); $('gate').showModal(); }
+$('copy').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){ navigator.clipboard.writeText(r.code).then(function(){ $('copy').textContent='Copied ✓'; setTimeout(function(){ $('copy').textContent='Copy code'; },1600); }); }); };
+$('dl').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){ fileDl(r.spec.className+'.cs', r.code); }); };
+$('dlSpec').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){
+  fileDl(r.spec.className+'.r'+r.n+'.spec.json', JSON.stringify({generator:r.generator, revision:r.n, generatedAt:new Date(r.at).toISOString(), specHash:r.hash, codeSha256:r.sha, visibility:r.spec.visibility,
+    specification:r.spec, summary:S.specLines(r.spec), assumptions:assumptions(), confirmations:S.confirmations(r.spec), staticChecks:r.checks, testPlan:S.testPlan(r.spec),
+    status:{specificationComplete:true, codeGenerated:true, staticChecksPassed:r.checks.every(function(c){return c.pass;}), compilationPassed:'not run', behaviouralTestsPassed:'not run', forwardSimulationPassed:'not run'}}, null, 2), 'application/json'); }); };
+$('unlock').onclick=function(){ gated(function(){}); };
+// unlock only when a valid email was entered; the form itself is left exactly as provided
+$('gate').addEventListener('submit',function(e){
+  var em=e.target.querySelector('input[type=email],input[name*=email i]'), v=em?String(em.value).trim():'';
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return;
+  try{ localStorage.setItem(UNLOCK, String(Date.now())); }catch(x){}
+  setTimeout(function(){ $('gate').close(); refresh(false); if(pending){ var f=pending; pending=null; f(); } },300);
+},true);
+$('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) $('gate').close(); });
+
+// ---------------------------------------------------------------- toolbar, tabs, description
+function showTab(t){ tab=t; document.querySelectorAll('[role=tab]').forEach(function(b){ var on=b.dataset.tab===t; b.setAttribute('aria-selected',on); b.tabIndex=on?0:-1; $('p-'+b.dataset.tab).hidden=!on; }); }
+document.querySelectorAll('[role=tab]').forEach(function(b){ b.onclick=function(){ showTab(b.dataset.tab); };
+  b.onkeydown=function(e){ var T=[].slice.call(document.querySelectorAll('[role=tab]')), i=T.indexOf(b); if(e.key==='ArrowRight'||e.key==='ArrowLeft'){ var n=T[(i+(e.key==='ArrowRight'?1:T.length-1))%T.length]; n.focus(); showTab(n.dataset.tab); } }; });
+document.querySelectorAll('[data-kind]').forEach(function(b){ b.onclick=function(){ if(cur.spec.kind===b.dataset.kind) return;
+  var raw=Object.assign({}, cur.spec, {kind:b.dataset.kind}); if(raw.name===S.defaults(cur.spec.kind).name) raw.name=S.defaults(b.dataset.kind).name;
+  cur.spec=S.normalize(raw); cur.confirmed={}; persist(); refresh(); }; });
+document.querySelectorAll('[data-mode]').forEach(function(b){ b.onclick=function(){ st.mode=b.dataset.mode; persist(); refresh(false); }; });
+document.querySelectorAll('[data-vis]').forEach(function(b){ b.onclick=function(){ cur.spec=S.normalize(Object.assign({},cur.spec,{visibility:b.dataset.vis})); cur.touched.visibility=1; cur.confirmed={}; persist(); refresh(); if(b.dataset.vis==='public') showTab('share'); }; });
+$('project').onchange=function(){ st.current=$('project').value; cur=st.projects[st.current]; diffOpen=null; persist(); $('desc').value=cur.desc; refresh(); };
+$('newProj').onclick=function(){ cur=newProject(cur?cur.spec.kind:'i'); diffOpen=null; $('desc').value=cur.desc; refresh(); showTab('review'); };
+$('delProj').onclick=function(){
+  if(!confirm('Delete "'+cur.spec.name+'" and its revisions from this browser?')) return;
+  delete st.projects[cur.id]; diffOpen=null;
+  var ids=Object.keys(st.projects); if(ids.length){ st.current=ids[0]; cur=st.projects[ids[0]]; persist(); } else cur=newProject('i');
+  $('desc').value=cur.desc; refresh(); };
+$('preset').onchange=function(){ var i=$('preset').value; if(i==='') return; var p=S.PRESETS[cur.spec.kind][+i];
+  cur.spec=S.normalize(Object.assign(S.defaults(cur.spec.kind),{visibility:cur.spec.visibility,author:cur.spec.author,license:cur.spec.license},p[1])); cur.touched={}; Object.keys(p[1]).forEach(function(k){cur.touched[k]=1;}); cur.confirmed={}; persist(); refresh(); };
+$('read').onclick=function(){ var sp=S.suggest($('desc').value, cur.spec.kind), d=S.defaults(sp.kind);
+  sp.visibility=cur.spec.visibility; sp.author=cur.spec.author; sp.license=cur.spec.license; sp.description=cur.spec.description;
+  cur.touched={}; Object.keys(sp).forEach(function(k){ if(String(sp[k])!==String(d[k])) cur.touched[k]=1; });   // anything still at its default stays listed as an assumption
+  cur.desc=$('desc').value; cur.spec=S.normalize(sp); cur.confirmed={}; persist(); refresh(); showTab('review'); };
+$('desc').addEventListener('input',function(){ cur.desc=$('desc').value; persist(); renderUnsup(); });
+
+// ---------------------------------------------------------------- start
+buildGroups();
+if(!st.mode) st.mode='guided';
+Object.keys(st.projects).forEach(function(id){ st.projects[id].spec=S.normalize(st.projects[id].spec); });   // stored projects are re-validated by the current generator on every load
+var shared=readLink(), importedFrom=null;
+if(shared){   // a shared build: validate through the same normaliser as every other input, open it as the visitor's own private copy
+  var sp=S.normalize(Object.assign(S.defaults(shared.kind==='s'?'s':'i'), shared, {visibility:'private'}));
+  importedFrom=sp.author; cur=newProject(sp.kind, sp, 'Opened from a shared link: '+sp.name+(sp.author?' by '+sp.author:'')+'.');
+  Object.keys(shared).forEach(function(k){ cur.touched[k]=1; }); persist();
+  history.replaceState(null,'',location.pathname+location.search);
+}
+cur = cur || (st.current && st.projects[st.current] ? st.projects[st.current] : newProject('i', S.suggest('Create an indicator called Trend Turn that shows when the 9 EMA crosses the 21 EMA, with arrows and alerts.','i')));
+$('desc').value=cur.desc; refresh(); showTab('review');
+if(shared){ $('genmsg').className='msg ok'; $('genmsg').textContent='Opened a shared build'+(importedFrom?' by '+importedFrom:'')+'. This is your own private copy: review it and press "Confirm and generate".'; }
+B4Share.render($('footShare'), {url:location.origin+location.pathname, title:'B4 Studio - build NinjaTrader 8 indicators and strategies', text:'Build NinjaTrader 8 indicators and strategies with B4 Studio:', label:'Share B4 Studio', dark:true});
 })();
 </script>
 </body></html>
