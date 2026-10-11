@@ -70,7 +70,14 @@
     { id: 'sig', t: 'sel', g: 'sig', l: 'Signal type', d: 'ma_cross', o: [['ma_cross', 'Moving-average cross'], ['price_ma', 'Price crosses a moving average'], ['ma_slope', 'Moving-average turn (slope change)'], ['osc', 'Oscillator levels'], ['macd', 'MACD'], ['band', 'Bands: breakout or reversal'], ['nbar', 'N-bar high / low breakout'], ['dmi', 'DMI: DI+ / DI- cross'], ['psar', 'Parabolic SAR flip'], ['candle', 'Candlestick pattern'],
       ['of_delta', 'Order flow: bar delta'], ['of_cvd', 'Order flow: cumulative delta (CVD)'], ['of_imb', 'Order flow: stacked imbalances (footprint)'], ['of_poc', 'Order flow: session POC cross'],
       ['of_va', 'Order flow: value area (VAH / VAL)'], ['of_vwap', 'Order flow: session VWAP cross'], ['of_big', 'Order flow: big trade'],
-      ['l2_book', 'Level 2: order book imbalance'], ['l2_wall', 'Level 2: liquidity wall break']],
+      ['l2_book', 'Level 2: order book imbalance'], ['l2_wall', 'Level 2: liquidity wall break'],
+      ['cl_supertrend', 'Classic: SuperTrend flip'], ['cl_chandelier', 'Classic: Chandelier Exit flip'], ['cl_chandekroll', 'Classic: Chande Kroll Stop break'],
+      ['cl_stc', 'Classic: Schaff Trend Cycle'], ['cl_crsi', 'Classic: Connors RSI'], ['cl_kst', 'Classic: Know Sure Thing (KST)'], ['cl_coppock', 'Classic: Coppock Curve'],
+      ['cl_supersmoother', 'Classic: Ehlers Super Smoother turn'], ['cl_itrend', 'Classic: Ehlers Instantaneous Trendline'], ['cl_laguerre', 'Classic: Laguerre RSI'],
+      ['cl_impulse', 'Classic: Elder Impulse System'], ['cl_elderray', 'Classic: Elder-Ray Bull / Bear Power'], ['cl_alligator', 'Classic: Williams Alligator'],
+      ['cl_ao', 'Classic: Awesome Oscillator'], ['cl_fractals', 'Classic: Williams Fractals breakout'], ['cl_er', 'Classic: Kaufman Efficiency Ratio'],
+      ['cl_alma', 'Classic: ALMA (Arnaud Legoux) cross'], ['cl_mcginley', 'Classic: McGinley Dynamic cross'], ['cl_squeeze', 'Classic: Bollinger / Keltner squeeze release'],
+      ['cl_avwap', 'Classic: Anchored VWAP cross']],
       tip: 'The core event that creates a buy or sell signal. Filters below can then block signals that do not meet your conditions.' },
     { id: 'maType', t: 'sel', g: 'sig', l: 'Average type', d: 'EMA', o: MA, show: isMa, tip: 'EMA reacts faster than SMA. HMA, ZLEMA and TEMA cut lag further but turn more often. KAMA adapts to volatility. VWMA weights each bar by its volume.' },
     { id: 'fast', t: 'num', g: 'sig', l: 'Fast period', d: 9, min: 1, max: 400, show: function (s) { return s.sig === 'ma_cross'; }, tip: 'Bars in the fast average. Smaller = earlier signals and more false ones.' },
@@ -111,6 +118,51 @@
     { id: 'l2Ratio', t: 'num', g: 'sig', l: 'Book imbalance ratio', d: 2, min: 1, max: 20, step: 0.1, show: function (s) { return s.sig === 'l2_book'; }, tip: 'Signal when resting bids are at least this many times the resting asks (or the reverse).' },
     { id: 'l2Wall', t: 'num', g: 'sig', l: 'Wall size (contracts)', d: 300, min: 1, max: 10000000, show: function (s) { return s.sig === 'l2_wall'; }, tip: 'A resting order at one price of at least this size counts as a liquidity wall.' },
     { id: 'l2Range', t: 'num', g: 'sig', l: 'Wall search range (ticks)', d: 8, min: 1, max: 200, show: function (s) { return s.sig === 'l2_wall'; }, tip: 'Only walls within this many ticks of the close are tracked.' },
+    { id: 'stPeriod', t: 'num', g: 'sig', l: 'ATR period', d: 10, min: 1, max: 500, show: function (s) { return s.sig === 'cl_supertrend'; }, tip: 'Bars in the average true range that sets the band width.' },
+    { id: 'stMult', t: 'num', g: 'sig', l: 'ATR multiplier', d: 3, min: 0.1, max: 20, step: 0.1, show: function (s) { return s.sig === 'cl_supertrend'; }, tip: 'Band distance in ATRs. Higher = fewer, later flips.' },
+    { id: 'cePeriod', t: 'num', g: 'sig', l: 'Look-back (bars)', d: 22, min: 2, max: 500, show: function (s) { return s.sig === 'cl_chandelier'; }, tip: 'Bars for the highest high / lowest low and the ATR. 22 is about one trading month on daily bars.' },
+    { id: 'ceMult', t: 'num', g: 'sig', l: 'ATR multiplier', d: 3, min: 0.1, max: 20, step: 0.1, show: function (s) { return s.sig === 'cl_chandelier'; }, tip: 'How many ATRs the exit line hangs below the highest high (or above the lowest low).' },
+    { id: 'ckP', t: 'num', g: 'sig', l: 'ATR / extreme period', d: 10, min: 1, max: 500, show: function (s) { return s.sig === 'cl_chandekroll'; }, tip: 'Bars for the first stop: highest high or lowest low and the ATR.' },
+    { id: 'ckX', t: 'num', g: 'sig', l: 'ATR multiplier', d: 1, min: 0.1, max: 20, step: 0.1, show: function (s) { return s.sig === 'cl_chandekroll'; }, tip: 'ATRs subtracted from the high (or added to the low) for the first stop.' },
+    { id: 'ckQ', t: 'num', g: 'sig', l: 'Stop look-back', d: 9, min: 1, max: 500, show: function (s) { return s.sig === 'cl_chandekroll'; }, tip: 'Bars over which the first stops are smoothed into the final stop lines.' },
+    { id: 'stcFast', t: 'num', g: 'sig', l: 'Fast EMA', d: 23, min: 1, max: 500, show: function (s) { return s.sig === 'cl_stc'; }, tip: 'Fast EMA of the MACD line inside STC.' },
+    { id: 'stcSlow', t: 'num', g: 'sig', l: 'Slow EMA', d: 50, min: 2, max: 1000, show: function (s) { return s.sig === 'cl_stc'; }, tip: 'Slow EMA of the MACD line inside STC.' },
+    { id: 'stcCycle', t: 'num', g: 'sig', l: 'Cycle length', d: 10, min: 2, max: 200, show: function (s) { return s.sig === 'cl_stc'; }, tip: 'Look-back of the two stochastic passes.' },
+    { id: 'stcLow', t: 'num', g: 'sig', l: 'Low level', d: 25, min: 0, max: 100, show: function (s) { return s.sig === 'cl_stc'; }, tip: 'Buy when STC rises through this level.' },
+    { id: 'stcHigh', t: 'num', g: 'sig', l: 'High level', d: 75, min: 0, max: 100, show: function (s) { return s.sig === 'cl_stc'; }, tip: 'Sell when STC falls through this level.' },
+    { id: 'crsiRsi', t: 'num', g: 'sig', l: 'Price RSI period', d: 3, min: 2, max: 100, show: function (s) { return s.sig === 'cl_crsi'; }, tip: 'Short RSI of price (3 in the original).' },
+    { id: 'crsiStreak', t: 'num', g: 'sig', l: 'Streak RSI period', d: 2, min: 2, max: 100, show: function (s) { return s.sig === 'cl_crsi'; }, tip: 'RSI of the up/down streak length (2 in the original).' },
+    { id: 'crsiRank', t: 'num', g: 'sig', l: 'Percent-rank look-back', d: 100, min: 10, max: 1000, show: function (s) { return s.sig === 'cl_crsi'; }, tip: 'Bars used to rank today\'s one-bar change (100 in the original).' },
+    { id: 'crsiLow', t: 'num', g: 'sig', l: 'Oversold level', d: 10, min: 0, max: 100, show: function (s) { return s.sig === 'cl_crsi'; }, tip: 'Buy when Connors RSI climbs back above this level.' },
+    { id: 'crsiHigh', t: 'num', g: 'sig', l: 'Overbought level', d: 90, min: 0, max: 100, show: function (s) { return s.sig === 'cl_crsi'; }, tip: 'Sell when Connors RSI falls back below this level.' },
+    { id: 'kstSig', t: 'num', g: 'sig', l: 'Signal line period', d: 9, min: 1, max: 100, show: function (s) { return s.sig === 'cl_kst'; }, tip: 'SMA of KST used as its signal line. The four ROC / SMA pairs use Pring\'s standard 10/15/20/30 and 10/10/10/15.' },
+    { id: 'copLong', t: 'num', g: 'sig', l: 'Long ROC', d: 14, min: 1, max: 500, show: function (s) { return s.sig === 'cl_coppock'; }, tip: 'Longer rate-of-change period (14 in the original, in months).' },
+    { id: 'copShort', t: 'num', g: 'sig', l: 'Short ROC', d: 11, min: 1, max: 500, show: function (s) { return s.sig === 'cl_coppock'; }, tip: 'Shorter rate-of-change period (11 in the original).' },
+    { id: 'copWma', t: 'num', g: 'sig', l: 'WMA period', d: 10, min: 1, max: 500, show: function (s) { return s.sig === 'cl_coppock'; }, tip: 'Weighted average applied to the summed ROCs.' },
+    { id: 'ssPeriod', t: 'num', g: 'sig', l: 'Smoothing period', d: 10, min: 2, max: 200, show: function (s) { return s.sig === 'cl_supersmoother'; }, tip: 'Cut-off period of the two-pole filter: lower follows price closer.' },
+    { id: 'itAlpha', t: 'num', g: 'sig', l: 'Alpha', d: 0.07, min: 0.001, max: 0.5, step: 0.001, show: function (s) { return s.sig === 'cl_itrend'; }, tip: 'Smoothing factor (0.07 in Ehlers\' original). Higher reacts faster.' },
+    { id: 'lgGamma', t: 'num', g: 'sig', l: 'Gamma', d: 0.5, min: 0.01, max: 0.99, step: 0.01, show: function (s) { return s.sig === 'cl_laguerre'; }, tip: 'Damping between 0 and 1: higher is smoother and slower.' },
+    { id: 'lgLow', t: 'num', g: 'sig', l: 'Low level', d: 0.2, min: 0, max: 1, step: 0.05, show: function (s) { return s.sig === 'cl_laguerre'; }, tip: 'Buy when Laguerre RSI rises through this level (0 to 1 scale).' },
+    { id: 'lgHigh', t: 'num', g: 'sig', l: 'High level', d: 0.8, min: 0, max: 1, step: 0.05, show: function (s) { return s.sig === 'cl_laguerre'; }, tip: 'Sell when Laguerre RSI falls through this level.' },
+    { id: 'impEma', t: 'num', g: 'sig', l: 'EMA period', d: 13, min: 2, max: 500, show: function (s) { return s.sig === 'cl_impulse'; }, tip: 'Trend EMA (13 in Elder\'s system); MACD uses the standard 12/26/9.' },
+    { id: 'erEma', t: 'num', g: 'sig', l: 'EMA period', d: 13, min: 2, max: 500, show: function (s) { return s.sig === 'cl_elderray'; }, tip: 'EMA that Bull Power (high - EMA) and Bear Power (low - EMA) are measured from.' },
+    { id: 'allJaw', t: 'num', g: 'sig', l: 'Jaw period', d: 13, min: 2, max: 200, show: function (s) { return s.sig === 'cl_alligator'; }, tip: 'Slowest smoothed average (blue), drawn 8 bars forward.' },
+    { id: 'allTeeth', t: 'num', g: 'sig', l: 'Teeth period', d: 8, min: 2, max: 200, show: function (s) { return s.sig === 'cl_alligator'; }, tip: 'Middle smoothed average (red), drawn 5 bars forward.' },
+    { id: 'allLips', t: 'num', g: 'sig', l: 'Lips period', d: 5, min: 2, max: 200, show: function (s) { return s.sig === 'cl_alligator'; }, tip: 'Fastest smoothed average (green), drawn 3 bars forward.' },
+    { id: 'aoFast', t: 'num', g: 'sig', l: 'Fast period', d: 5, min: 1, max: 200, show: function (s) { return s.sig === 'cl_ao'; }, tip: 'Fast SMA of the median price.' },
+    { id: 'aoSlow', t: 'num', g: 'sig', l: 'Slow period', d: 34, min: 2, max: 500, show: function (s) { return s.sig === 'cl_ao'; }, tip: 'Slow SMA of the median price.' },
+    { id: 'frBars', t: 'num', g: 'sig', l: 'Bars each side', d: 2, min: 1, max: 20, show: function (s) { return s.sig === 'cl_fractals'; }, tip: 'A fractal high needs this many lower highs on each side. It is confirmed this many bars later, so it never repaints.' },
+    { id: 'kerPeriod', t: 'num', g: 'sig', l: 'Period', d: 10, min: 2, max: 500, show: function (s) { return s.sig === 'cl_er'; }, tip: 'Bars over which net movement is compared with total movement.' },
+    { id: 'kerLevel', t: 'num', g: 'sig', l: 'Trend threshold', d: 0.3, min: 0.01, max: 1, step: 0.01, show: function (s) { return s.sig === 'cl_er'; }, tip: 'Signal when the ratio rises through this level (0 = noise, 1 = straight line).' },
+    { id: 'almaWin', t: 'num', g: 'sig', l: 'Window', d: 9, min: 2, max: 500, show: function (s) { return s.sig === 'cl_alma'; }, tip: 'Bars in the Gaussian-weighted average.' },
+    { id: 'almaOff', t: 'num', g: 'sig', l: 'Offset', d: 0.85, min: 0, max: 1, step: 0.01, show: function (s) { return s.sig === 'cl_alma'; }, tip: 'Where the weight peaks: 0.85 favours recent bars (smoother 0 ... responsive 1).' },
+    { id: 'almaSig', t: 'num', g: 'sig', l: 'Sigma', d: 6, min: 0.1, max: 50, step: 0.1, show: function (s) { return s.sig === 'cl_alma'; }, tip: 'Width of the Gaussian: higher = flatter weights.' },
+    { id: 'mcgPeriod', t: 'num', g: 'sig', l: 'Period', d: 14, min: 1, max: 500, show: function (s) { return s.sig === 'cl_mcginley'; }, tip: 'Comparable to the length of a moving average.' },
+    { id: 'mcgK', t: 'num', g: 'sig', l: 'Constant k', d: 0.6, min: 0.01, max: 5, step: 0.01, show: function (s) { return s.sig === 'cl_mcginley'; }, tip: 'McGinley\'s adjustment constant (0.6 is standard).' },
+    { id: 'sqLen', t: 'num', g: 'sig', l: 'Length', d: 20, min: 2, max: 500, show: function (s) { return s.sig === 'cl_squeeze'; }, tip: 'Period of the Bollinger Bands, Keltner Channel and momentum.' },
+    { id: 'sqBb', t: 'num', g: 'sig', l: 'Bollinger width (std dev)', d: 2, min: 0.1, max: 10, step: 0.1, show: function (s) { return s.sig === 'cl_squeeze'; }, tip: 'Bollinger Band standard deviations.' },
+    { id: 'sqKc', t: 'num', g: 'sig', l: 'Keltner width', d: 1.5, min: 0.1, max: 10, step: 0.1, show: function (s) { return s.sig === 'cl_squeeze'; }, tip: 'Keltner Channel multiplier. A squeeze is on while the Bollinger Bands sit inside the Keltner Channel.' },
+    { id: 'avAnchor', t: 'sel', g: 'sig', l: 'Anchor', d: 'session', o: [['session', 'Each session open'], ['week', 'Each week open'], ['month', 'Each month open']], show: function (s) { return s.sig === 'cl_avwap'; }, tip: 'Where the VWAP restarts. Volume-weighted from the typical price of each bar.' },
     { id: 'side', t: 'sel', g: 'sig', l: 'Direction', d: 'both', o: [['both', 'Long and short'], ['long', 'Long only'], ['short', 'Short only']], tip: 'Which side may signal or trade. Opposite-signal exits still work in one-sided strategies.' },
     { id: 'calc', t: 'sel', g: 'sig', l: 'Calculate', d: 'bar', k: 'i', o: [['bar', 'On bar close (recommended)'], ['tick', 'On each tick']], show: function (s) { return !/^(of|l2)_/.test(s.sig); }, tip: 'Bar close: a signal is final once shown. Each tick: signals appear earlier but can disappear before the bar closes (markers are removed if they do).' },
 
@@ -280,7 +332,9 @@
     ['fast', 'slow', 'maLen', 'oscLen', 'macdFast', 'macdSlow', 'macdSmooth', 'bandLen', 'nbarLen', 'dmiLen', 'trendStrength', 'fTrendLen', 'fHtfLen', 'fAdxLen',
       'fVolLen', 'fAtrLen', 'cooldown', 'markerOffset', 'shadeOpacity', 'plotWidth', 'alertRearm', 'entryOffset', 'qty', 'maxQty', 'stopTicks', 'swingLen',
       'swingPad', 'tgtTicks', 'exitAtrLen', 'beTrigger', 'beOffset', 'trailTicks', 'timeStop', 'maxTrades', 'maxConsec', 'barsReq', 'fAtrMin', 'fAtrMax',
-      'fontSize', 'labelBoxOpacity', 'tableOpacity', 'alertMax', 'ofCvdLen', 'ofStack', 'ofVaPct', 'l2Levels', 'l2Range', 'fpBars']
+      'fontSize', 'labelBoxOpacity', 'tableOpacity', 'alertMax', 'ofCvdLen', 'ofStack', 'ofVaPct', 'l2Levels', 'l2Range', 'fpBars',
+      'stPeriod', 'cePeriod', 'ckP', 'ckQ', 'stcFast', 'stcSlow', 'stcCycle', 'crsiRsi', 'crsiStreak', 'crsiRank', 'kstSig', 'copLong', 'copShort', 'copWma', 'ssPeriod',
+      'impEma', 'erEma', 'allJaw', 'allTeeth', 'allLips', 'aoFast', 'aoSlow', 'frBars', 'kerPeriod', 'almaWin', 'mcgPeriod', 'sqLen']
       .forEach(function (k) { o[k] = Math.round(o[k]); });
     if (o.slow <= o.fast) o.slow = o.fast + 1;
     if (o.macdSlow <= o.macdFast) o.macdSlow = o.macdFast + 1;
@@ -292,7 +346,14 @@
     // exits that need a stop distance
     if (o.stopMode === 'none') { o.beOn = false; o.trailMode = 'none'; if (o.tgtMode === 'r') o.tgtMode = 'ticks'; if (o.qtyMode === 'risk') o.qtyMode = 'fixed'; }
     o.className = cls(o.name, kind);
-    o.overlay = !(o.sig === 'osc' || o.sig === 'macd' || o.sig === 'dmi' || o.sig === 'of_delta' || o.sig === 'of_cvd' || o.sig === 'l2_book');
+    o.overlay = !(o.sig === 'osc' || o.sig === 'macd' || o.sig === 'dmi' || o.sig === 'of_delta' || o.sig === 'of_cvd' || o.sig === 'l2_book' ||
+      /^cl_(stc|crsi|kst|coppock|laguerre|elderray|ao|er|squeeze)$/.test(o.sig));
+    if (o.sig === 'cl_avwap') o.calc = 'bar';   // the anchored VWAP accumulates volume once per bar
+    if (o.stcHigh <= o.stcLow) { o.stcLow = 25; o.stcHigh = 75; }
+    if (o.crsiHigh <= o.crsiLow) { o.crsiLow = 10; o.crsiHigh = 90; }
+    if (o.lgHigh <= o.lgLow) { o.lgLow = 0.2; o.lgHigh = 0.8; }
+    if (o.stcSlow <= o.stcFast) o.stcSlow = o.stcFast + 1;
+    if (o.aoSlow <= o.aoFast) o.aoSlow = o.aoFast + 1;
     if (/^(of|l2)_/.test(o.sig)) o.calc = 'bar';   // order flow and depth are evaluated at bar close
     return o;
   }
@@ -313,7 +374,13 @@
     if (/footprint/.test(t)) sp.fpShow = true;
     if (/reversal|fade|back inside|failed break/.test(t) && flowSig === 'of_va') sp.ofVaMode = 'reversal';
     if (/\bflip|turns? (positive|negative)|changes sign/.test(t) && flowSig === 'of_delta') sp.ofDeltaMode = 'flip';
-    if (flowSig) sp.sig = flowSig;
+    var classicSig = /super ?trend/.test(t) ? 'cl_supertrend' : /chandelier/.test(t) ? 'cl_chandelier' : /chande ?kroll/.test(t) ? 'cl_chandekroll' : /schaff|\bstc\b/.test(t) ? 'cl_stc'
+      : /connors/.test(t) ? 'cl_crsi' : /know sure thing|\bkst\b/.test(t) ? 'cl_kst' : /coppock/.test(t) ? 'cl_coppock' : /super ?smoother/.test(t) ? 'cl_supersmoother'
+      : /instantaneous trend|\bitrend\b/.test(t) ? 'cl_itrend' : /laguerre/.test(t) ? 'cl_laguerre' : /impulse/.test(t) ? 'cl_impulse' : /elder.?ray|bull power|bear power/.test(t) ? 'cl_elderray'
+      : /alligator/.test(t) ? 'cl_alligator' : /awesome oscillator|\bao\b/.test(t) ? 'cl_ao' : /fractal/.test(t) ? 'cl_fractals' : /efficiency ratio|kaufman er\b/.test(t) ? 'cl_er'
+      : /\balma\b|arnaud|legoux/.test(t) ? 'cl_alma' : /mcginley/.test(t) ? 'cl_mcginley' : /squeeze/.test(t) ? 'cl_squeeze' : /anchored vwap|\bavwap\b/.test(t) ? 'cl_avwap' : '';
+    if (classicSig) { sp.sig = classicSig; if (/week/.test(t)) sp.avAnchor = 'week'; else if (/month/.test(t)) sp.avAnchor = 'month'; }
+    else if (flowSig) sp.sig = flowSig;
     else if (/macd/.test(t)) sp.sig = 'macd';
     else if (/parabolic|\bsar\b/.test(t)) sp.sig = 'psar';
     else if (/\bdmi\b|\bdi\+|directional/.test(t)) sp.sig = 'dmi';
@@ -417,6 +484,26 @@
         : ['Close comes back above the value-area low (' + s.ofVaPct + '%)', 'Close comes back below the value-area high', '1 above the POC, -1 below'];
       case 'of_vwap': return ['Close crosses above the session VWAP (from every trade)', 'Close crosses below the session VWAP', '1 above VWAP, -1 below'];
       case 'of_big': return ['A single buy trade of ' + s.ofBig + '+ contracts in the bar', 'A single sell trade of ' + s.ofBig + '+ contracts in the bar', '1 when bar delta is positive, -1 when negative'];
+      case 'cl_supertrend': return ['SuperTrend(' + s.stPeriod + ', ' + s.stMult + ') flips up', 'SuperTrend flips down', '1 while SuperTrend is up, -1 while down'];
+      case 'cl_chandelier': return ['Close rises above the Chandelier short exit (' + s.cePeriod + ', ' + s.ceMult + ' x ATR)', 'Close falls below the Chandelier long exit', '1 in a long regime, -1 in a short regime'];
+      case 'cl_chandekroll': return ['Close breaks above the Chande Kroll stop-short line (' + s.ckP + ', ' + s.ckX + ', ' + s.ckQ + ')', 'Close breaks below the stop-long line', '1 above the middle of the two stops, -1 below'];
+      case 'cl_stc': return ['Schaff Trend Cycle(' + s.stcFast + ', ' + s.stcSlow + ', ' + s.stcCycle + ') rises through ' + s.stcLow, 'STC falls through ' + s.stcHigh, '1 while STC is rising, -1 while falling'];
+      case 'cl_crsi': return ['Connors RSI(' + s.crsiRsi + ', ' + s.crsiStreak + ', ' + s.crsiRank + ') climbs back above ' + s.crsiLow, 'Connors RSI falls back below ' + s.crsiHigh, '1 above 50, -1 below'];
+      case 'cl_kst': return ['KST crosses above its ' + s.kstSig + '-bar signal line', 'KST crosses below its signal line', '1 while KST is above its signal line, -1 below'];
+      case 'cl_coppock': return ['Coppock Curve(' + s.copLong + ', ' + s.copShort + ', ' + s.copWma + ') crosses above zero', 'Coppock Curve crosses below zero', '1 above zero, -1 below'];
+      case 'cl_supersmoother': return ['Ehlers Super Smoother(' + s.ssPeriod + ') turns up', 'Super Smoother turns down', '1 while rising, -1 while falling'];
+      case 'cl_itrend': return ['Trigger crosses above the Instantaneous Trendline (alpha ' + s.itAlpha + ')', 'Trigger crosses below the trendline', '1 while the trigger is above, -1 below'];
+      case 'cl_laguerre': return ['Laguerre RSI (gamma ' + s.lgGamma + ') rises through ' + s.lgLow, 'Laguerre RSI falls through ' + s.lgHigh, '1 above 0.5, -1 below'];
+      case 'cl_impulse': return ['Elder Impulse turns green (EMA ' + s.impEma + ' and MACD histogram both rising)', 'Impulse turns red (both falling)', '1 green, -1 red, 0 blue'];
+      case 'cl_elderray': return ['EMA(' + s.erEma + ') rising and Bear Power negative but rising', 'EMA falling and Bull Power positive but falling', '1 while the EMA rises, -1 while it falls'];
+      case 'cl_alligator': return ['Alligator wakes up: lips above teeth above jaw (' + s.allLips + '/' + s.allTeeth + '/' + s.allJaw + ')', 'Lips below teeth below jaw', '1 when the lines are stacked up, -1 down, 0 sleeping'];
+      case 'cl_ao': return ['Awesome Oscillator(' + s.aoFast + ', ' + s.aoSlow + ') crosses above zero', 'AO crosses below zero', '1 above zero, -1 below'];
+      case 'cl_fractals': return ['Close breaks above the last up fractal (' + s.frBars + ' bars each side)', 'Close breaks below the last down fractal', '1 on a breakout bar up, -1 down'];
+      case 'cl_er': return ['Efficiency Ratio(' + s.kerPeriod + ') rises through ' + s.kerLevel + ' while price is up over the period', 'Efficiency Ratio rises through ' + s.kerLevel + ' while price is down', '1 when price is up over the period, -1 down'];
+      case 'cl_alma': return ['Close crosses above ALMA(' + s.almaWin + ', ' + s.almaOff + ', ' + s.almaSig + ')', 'Close crosses below ALMA', '1 above ALMA, -1 below'];
+      case 'cl_mcginley': return ['Close crosses above the McGinley Dynamic(' + s.mcgPeriod + ')', 'Close crosses below the McGinley Dynamic', '1 above, -1 below'];
+      case 'cl_squeeze': return ['Squeeze releases (Bollinger ' + s.sqBb + ' leaves Keltner ' + s.sqKc + ', length ' + s.sqLen + ') with positive momentum', 'Squeeze releases with negative momentum', '1 while momentum is positive, -1 negative'];
+      case 'cl_avwap': return ['Close crosses above the VWAP anchored at ' + ({ session: 'each session', week: 'each week', month: 'each month' }[s.avAnchor]) + ' open', 'Close crosses below the anchored VWAP', '1 above, -1 below'];
       case 'l2_book': return ['Resting bids in the top ' + s.l2Levels + ' levels reach ' + s.l2Ratio + 'x the asks (real time only)', 'Resting asks reach ' + s.l2Ratio + 'x the bids (real time only)', '1 bid-heavy book, -1 ask-heavy'];
       case 'l2_wall': return ['Close breaks above an ask wall of ' + s.l2Wall + '+ contracts within ' + s.l2Range + ' ticks (real time only)', 'Close breaks below a bid wall of ' + s.l2Wall + '+ contracts', '1 when the bid wall is larger, -1 when the ask wall is'];
       default: var c = CANDLES[s.candle]; return [c[1].replace(/([a-z])([A-Z])/g, '$1 $2') + ' (prior trend ' + s.trendStrength + ' bars)', c[2].replace(/([a-z])([A-Z])/g, '$1 $2'), '1 on a bullish pattern bar, -1 on a bearish one'];
@@ -499,6 +586,9 @@
       add('info', 'Each trade is counted as buying or selling from the bid and ask recorded with it; when the feed has no quote, the up-tick / down-tick rule is used. Numbers can differ slightly from other footprint tools.');
       if (s.kind === 's') add('info', 'Order-flow strategies can be backtested in the Strategy Analyzer for periods that have tick data.');
     }
+    if (s.sig === 'cl_fractals') add('info', 'A fractal is confirmed ' + s.frBars + ' bars after its high or low, so breakouts are signalled on confirmed levels only (no repainting).');
+    if (s.sig === 'cl_alligator') add('info', 'The Alligator lines are drawn forward in the original; here each bar shows the values the original would draw on it, so nothing looks ahead.');
+    if (s.sig === 'cl_squeeze') add('info', 'NinjaTrader\'s Keltner Channel uses the average bar range, which can differ slightly from ATR-based versions on other platforms.');
     if (/^l2_/.test(s.sig)) add(s.kind === 's' ? 'high' : 'warn', 'Level 2 has no history: signals appear only in real time or in Playback of Market Replay data that includes depth. The Strategy Analyzer and historical bars show no signals.');
     if (s.fHtf) add('info', 'The higher-timeframe filter needs enough history: load at least a few days for minute timeframes, a year for daily.');
     if (s.sig === 'candle') add('info', 'Candlestick patterns are frequent on small timeframes; combine them with a trend or volume filter.');
@@ -712,6 +802,219 @@
       }
     }
 
+    function ser() { for (var i = 0; i < arguments.length; i++) { fields.push('private Series<double> ' + arguments[i] + ';'); init.push(arguments[i] + ' = new Series<double>(this, MaximumBarsLookBack.Infinite);'); } }
+    function flips(series) { body.push('bool sigBuy = ' + series + '[0] > 0 && ' + series + '[1] < 0;', 'bool sigSell = ' + series + '[0] < 0 && ' + series + '[1] > 0;', 'int direction = ' + series + '[0] > 0 ? 1 : -1;'); }
+    function priceCross(series) { body.push('bool sigBuy = CrossAbove(Close, ' + series + ', 1);', 'bool sigSell = CrossBelow(Close, ' + series + ', 1);', 'int direction = Close[0] > ' + series + '[0] ? 1 : Close[0] < ' + series + '[0] ? -1 : 0;'); }
+    // classic formulas, built from the published math (recursive series are updated on every bar, before the warm-up return)
+    function classicSignal() {
+      switch (s.sig) {
+        case 'cl_supertrend':
+          intP('StPeriod', 'ATR period', 'sig', s.stPeriod, 1, BY.stPeriod.tip); dblP('StMultiplier', 'ATR multiplier', 'sig', s.stMult, 0.1, BY.stMult.tip);
+          fields.push('private ISeries<double> stAtr;'); init.push('stAtr = ATR(StPeriod);'); ser('stUpper', 'stLower', 'stTrend', 'stLine');
+          preBody.push('if (CurrentBar == 0) { stUpper[0] = Median[0]; stLower[0] = Median[0]; stTrend[0] = 1; stLine[0] = Median[0]; }', 'else', '{',
+            '    double stBand = StMultiplier * stAtr[0];', '    double stUp = Median[0] + stBand, stDown = Median[0] - stBand;',
+            '    stUpper[0] = stUp < stUpper[1] || Close[1] > stUpper[1] ? stUp : stUpper[1];', '    stLower[0] = stDown > stLower[1] || Close[1] < stLower[1] ? stDown : stLower[1];',
+            '    stTrend[0] = stTrend[1] > 0 ? (Close[0] < stLower[0] ? -1 : 1) : (Close[0] > stUpper[0] ? 1 : -1);', '    stLine[0] = stTrend[0] > 0 ? stLower[0] : stUpper[0];', '}');
+          plot(1, 'SuperTrend'); plotVals.push('stLine[0]'); colorLines.push('PlotBrushes[0][0] = stTrend[0] > 0 ? BuyBrush : SellBrush;'); warm.push('StPeriod + 2'); flips('stTrend');
+          break;
+        case 'cl_chandelier':
+          intP('ChandelierPeriod', 'Look-back (bars)', 'sig', s.cePeriod, 2, BY.cePeriod.tip); dblP('ChandelierMultiplier', 'ATR multiplier', 'sig', s.ceMult, 0.1, BY.ceMult.tip);
+          fields.push('private ISeries<double> ceAtr;', 'private ISeries<double> ceHigh;', 'private ISeries<double> ceLow;');
+          init.push('ceAtr = ATR(ChandelierPeriod);', 'ceHigh = MAX(High, ChandelierPeriod);', 'ceLow = MIN(Low, ChandelierPeriod);'); ser('ceLong', 'ceShort', 'ceDir', 'ceLine');
+          preBody.push('ceLong[0] = ceHigh[0] - ChandelierMultiplier * ceAtr[0];', 'ceShort[0] = ceLow[0] + ChandelierMultiplier * ceAtr[0];',
+            'ceDir[0] = CurrentBar == 0 ? 1 : Close[0] > ceShort[1] ? 1 : Close[0] < ceLong[1] ? -1 : ceDir[1];', 'ceLine[0] = ceDir[0] > 0 ? ceLong[0] : ceShort[0];');
+          plot(1, 'Chandelier Exit'); plotVals.push('ceLine[0]'); colorLines.push('PlotBrushes[0][0] = ceDir[0] > 0 ? BuyBrush : SellBrush;'); warm.push('ChandelierPeriod + 2'); flips('ceDir');
+          break;
+        case 'cl_chandekroll':
+          intP('CkPeriod', 'ATR / extreme period', 'sig', s.ckP, 1, BY.ckP.tip); dblP('CkMultiplier', 'ATR multiplier', 'sig', s.ckX, 0.1, BY.ckX.tip); intP('CkSmooth', 'Stop look-back', 'sig', s.ckQ, 1, BY.ckQ.tip);
+          fields.push('private ISeries<double> ckAtr;', 'private ISeries<double> ckHigh;', 'private ISeries<double> ckLow;', 'private ISeries<double> ckStopShort;', 'private ISeries<double> ckStopLong;');
+          init.push('ckAtr = ATR(CkPeriod);', 'ckHigh = MAX(High, CkPeriod);', 'ckLow = MIN(Low, CkPeriod);'); ser('ckFirstHigh', 'ckFirstLow');
+          init.push('ckStopShort = MAX(ckFirstHigh, CkSmooth);', 'ckStopLong = MIN(ckFirstLow, CkSmooth);');
+          preBody.push('ckFirstHigh[0] = ckHigh[0] - CkMultiplier * ckAtr[0];', 'ckFirstLow[0] = ckLow[0] + CkMultiplier * ckAtr[0];');
+          plot(1, 'Stop short'); plot(2, 'Stop long'); plotVals.push('ckStopShort[0]', 'ckStopLong[0]'); warm.push('CkPeriod + CkSmooth + 2');
+          body.push('bool sigBuy = Close[0] > ckStopShort[0] && Close[1] <= ckStopShort[1];', 'bool sigSell = Close[0] < ckStopLong[0] && Close[1] >= ckStopLong[1];',
+            'double ckMid = (ckStopShort[0] + ckStopLong[0]) / 2.0;', 'int direction = Close[0] > ckMid ? 1 : Close[0] < ckMid ? -1 : 0;');
+          break;
+        case 'cl_stc':
+          intP('StcFast', 'Fast EMA', 'sig', s.stcFast, 1, BY.stcFast.tip); intP('StcSlow', 'Slow EMA', 'sig', s.stcSlow, 2, BY.stcSlow.tip); intP('StcCycle', 'Cycle length', 'sig', s.stcCycle, 2, BY.stcCycle.tip);
+          dblP('StcLow', 'Low level', 'sig', s.stcLow, 0, BY.stcLow.tip); dblP('StcHigh', 'High level', 'sig', s.stcHigh, 0, BY.stcHigh.tip);
+          fields.push('private ISeries<double> stcFastEma;', 'private ISeries<double> stcSlowEma;', 'private ISeries<double> stcMacdMin;', 'private ISeries<double> stcMacdMax;', 'private ISeries<double> stcPfMin;', 'private ISeries<double> stcPfMax;');
+          init.push('stcFastEma = EMA(StcFast);', 'stcSlowEma = EMA(StcSlow);'); ser('stcMacd', 'stcF1', 'stcPf', 'stcF2', 'stcValue');
+          init.push('stcMacdMin = MIN(stcMacd, StcCycle);', 'stcMacdMax = MAX(stcMacd, StcCycle);', 'stcPfMin = MIN(stcPf, StcCycle);', 'stcPfMax = MAX(stcPf, StcCycle);');
+          preBody.push('stcMacd[0] = stcFastEma[0] - stcSlowEma[0];', 'double stcRange1 = stcMacdMax[0] - stcMacdMin[0];',
+            'stcF1[0] = stcRange1 > 0 ? (stcMacd[0] - stcMacdMin[0]) / stcRange1 * 100.0 : (CurrentBar > 0 ? stcF1[1] : 50.0);',
+            'stcPf[0] = CurrentBar == 0 ? stcF1[0] : stcPf[1] + 0.5 * (stcF1[0] - stcPf[1]);', 'double stcRange2 = stcPfMax[0] - stcPfMin[0];',
+            'stcF2[0] = stcRange2 > 0 ? (stcPf[0] - stcPfMin[0]) / stcRange2 * 100.0 : (CurrentBar > 0 ? stcF2[1] : 50.0);',
+            'stcValue[0] = CurrentBar == 0 ? stcF2[0] : stcValue[1] + 0.5 * (stcF2[0] - stcValue[1]);');
+          plot(1, 'STC'); plotVals.push('stcValue[0]'); level(dbl(s.stcLow), 'Low level'); level(dbl(s.stcHigh), 'High level'); lineInit.push('Lines[0].Value = StcLow;', 'Lines[1].Value = StcHigh;');
+          warm.push('StcSlow + StcCycle * 2');
+          body.push('bool sigBuy = CrossAbove(stcValue, StcLow, 1);', 'bool sigSell = CrossBelow(stcValue, StcHigh, 1);', 'int direction = stcValue[0] > stcValue[1] ? 1 : stcValue[0] < stcValue[1] ? -1 : 0;');
+          break;
+        case 'cl_crsi':
+          intP('CrsiRsiPeriod', 'Price RSI period', 'sig', s.crsiRsi, 2, BY.crsiRsi.tip); intP('CrsiStreakPeriod', 'Streak RSI period', 'sig', s.crsiStreak, 2, BY.crsiStreak.tip);
+          intP('CrsiRankPeriod', 'Percent-rank look-back', 'sig', s.crsiRank, 10, BY.crsiRank.tip); dblP('CrsiLow', 'Oversold level', 'sig', s.crsiLow, 0, BY.crsiLow.tip); dblP('CrsiHigh', 'Overbought level', 'sig', s.crsiHigh, 0, BY.crsiHigh.tip);
+          fields.push('private ISeries<double> crsiPriceRsi;', 'private ISeries<double> crsiStreakRsi;'); ser('crsiStreak', 'crsiRoc', 'crsiValue');
+          init.push('crsiPriceRsi = RSI(Close, CrsiRsiPeriod, 1);', 'crsiStreakRsi = RSI(crsiStreak, CrsiStreakPeriod, 1);');
+          preBody.push('if (CurrentBar == 0) { crsiStreak[0] = 0; crsiRoc[0] = 0; }', 'else', '{',
+            '    crsiStreak[0] = Close[0] > Close[1] ? Math.Max(crsiStreak[1], 0) + 1 : Close[0] < Close[1] ? Math.Min(crsiStreak[1], 0) - 1 : 0;',
+            '    crsiRoc[0] = Close[1] != 0 ? (Close[0] - Close[1]) / Close[1] * 100.0 : 0;', '}',
+            'int crsiBelow = 0, crsiCount = 0;', 'for (int k = 1; k <= CrsiRankPeriod && k <= CurrentBar; k++) { crsiCount++; if (crsiRoc[k] < crsiRoc[0]) crsiBelow++; }',
+            'crsiValue[0] = (crsiPriceRsi[0] + crsiStreakRsi[0] + (crsiCount > 0 ? 100.0 * crsiBelow / crsiCount : 50.0)) / 3.0;');
+          plot(1, 'Connors RSI'); plotVals.push('crsiValue[0]'); level(dbl(s.crsiLow), 'Oversold'); level(dbl(s.crsiHigh), 'Overbought'); lineInit.push('Lines[0].Value = CrsiLow;', 'Lines[1].Value = CrsiHigh;');
+          warm.push('CrsiRankPeriod + 2');
+          body.push('bool sigBuy = CrossAbove(crsiValue, CrsiLow, 1);', 'bool sigSell = CrossBelow(crsiValue, CrsiHigh, 1);', 'int direction = crsiValue[0] > 50 ? 1 : crsiValue[0] < 50 ? -1 : 0;');
+          break;
+        case 'cl_kst':
+          intP('KstSignalPeriod', 'Signal line period', 'sig', s.kstSig, 1, BY.kstSig.tip);
+          fields.push('private ISeries<double> kstR1;', 'private ISeries<double> kstR2;', 'private ISeries<double> kstR3;', 'private ISeries<double> kstR4;', 'private ISeries<double> kstSignalLine;');
+          init.push('kstR1 = SMA(ROC(Close, 10), 10);', 'kstR2 = SMA(ROC(Close, 15), 10);', 'kstR3 = SMA(ROC(Close, 20), 10);', 'kstR4 = SMA(ROC(Close, 30), 15);'); ser('kstValue');
+          init.push('kstSignalLine = SMA(kstValue, KstSignalPeriod);');
+          preBody.push('kstValue[0] = kstR1[0] + 2 * kstR2[0] + 3 * kstR3[0] + 4 * kstR4[0];');
+          plot(1, 'KST'); plot(2, 'Signal'); plotVals.push('kstValue[0]', 'kstSignalLine[0]'); level('0', 'Zero'); warm.push('50');
+          body.push('bool sigBuy = CrossAbove(kstValue, kstSignalLine, 1);', 'bool sigSell = CrossBelow(kstValue, kstSignalLine, 1);', 'int direction = kstValue[0] > kstSignalLine[0] ? 1 : kstValue[0] < kstSignalLine[0] ? -1 : 0;');
+          break;
+        case 'cl_coppock':
+          intP('CoppockLongRoc', 'Long ROC', 'sig', s.copLong, 1, BY.copLong.tip); intP('CoppockShortRoc', 'Short ROC', 'sig', s.copShort, 1, BY.copShort.tip); intP('CoppockWma', 'WMA period', 'sig', s.copWma, 1, BY.copWma.tip);
+          fields.push('private ISeries<double> copLongRoc;', 'private ISeries<double> copShortRoc;', 'private ISeries<double> coppock;');
+          init.push('copLongRoc = ROC(Close, CoppockLongRoc);', 'copShortRoc = ROC(Close, CoppockShortRoc);'); ser('copSum'); init.push('coppock = WMA(copSum, CoppockWma);');
+          preBody.push('copSum[0] = copLongRoc[0] + copShortRoc[0];');
+          plot(1, 'Coppock'); plotVals.push('coppock[0]'); level('0', 'Zero'); warm.push('Math.Max(CoppockLongRoc, CoppockShortRoc) + CoppockWma + 2');
+          body.push('bool sigBuy = CrossAbove(coppock, 0, 1);', 'bool sigSell = CrossBelow(coppock, 0, 1);', 'int direction = coppock[0] > 0 ? 1 : coppock[0] < 0 ? -1 : 0;');
+          break;
+        case 'cl_supersmoother':
+          intP('SmootherPeriod', 'Smoothing period', 'sig', s.ssPeriod, 2, BY.ssPeriod.tip); ser('ssValue');
+          preBody.push('double ssA = Math.Exp(-1.414 * Math.PI / SmootherPeriod), ssB = 2 * ssA * Math.Cos(1.414 * Math.PI / SmootherPeriod);',
+            'double ssC2 = ssB, ssC3 = -ssA * ssA, ssC1 = 1 - ssC2 - ssC3;',
+            'ssValue[0] = CurrentBar < 2 ? Close[0] : ssC1 * (Close[0] + Close[1]) / 2.0 + ssC2 * ssValue[1] + ssC3 * ssValue[2];');
+          plot(1, 'Super Smoother'); plotVals.push('ssValue[0]'); warm.push('SmootherPeriod + 3');
+          body.push('bool sigBuy = ssValue[0] > ssValue[1] && ssValue[1] <= ssValue[2];', 'bool sigSell = ssValue[0] < ssValue[1] && ssValue[1] >= ssValue[2];',
+            'int direction = ssValue[0] > ssValue[1] ? 1 : ssValue[0] < ssValue[1] ? -1 : 0;');
+          break;
+        case 'cl_itrend':
+          dblP('TrendAlpha', 'Alpha', 'sig', s.itAlpha, 0.001, BY.itAlpha.tip); ser('itValue', 'itTrigger');
+          preBody.push('double itA = TrendAlpha;',
+            'if (CurrentBar < 7) itValue[0] = CurrentBar < 2 ? Median[0] : (Median[0] + 2 * Median[1] + Median[2]) / 4.0;',
+            'else itValue[0] = (itA - itA * itA / 4.0) * Median[0] + 0.5 * itA * itA * Median[1] - (itA - 0.75 * itA * itA) * Median[2] + 2 * (1 - itA) * itValue[1] - (1 - itA) * (1 - itA) * itValue[2];',
+            'itTrigger[0] = CurrentBar < 2 ? itValue[0] : 2 * itValue[0] - itValue[2];');
+          plot(1, 'Trendline'); plot(2, 'Trigger'); plotVals.push('itValue[0]', 'itTrigger[0]'); warm.push('10');
+          body.push('bool sigBuy = CrossAbove(itTrigger, itValue, 1);', 'bool sigSell = CrossBelow(itTrigger, itValue, 1);', 'int direction = itTrigger[0] > itValue[0] ? 1 : itTrigger[0] < itValue[0] ? -1 : 0;');
+          break;
+        case 'cl_laguerre':
+          dblP('LaguerreGamma', 'Gamma', 'sig', s.lgGamma, 0.01, BY.lgGamma.tip); dblP('LaguerreLow', 'Low level', 'sig', s.lgLow, 0, BY.lgLow.tip); dblP('LaguerreHigh', 'High level', 'sig', s.lgHigh, 0, BY.lgHigh.tip);
+          ser('lgL0', 'lgL1', 'lgL2', 'lgL3', 'lgValue');
+          preBody.push('double lgG = Math.Min(0.99, LaguerreGamma);',
+            'if (CurrentBar == 0) { lgL0[0] = Close[0]; lgL1[0] = Close[0]; lgL2[0] = Close[0]; lgL3[0] = Close[0]; lgValue[0] = 0.5; }', 'else', '{',
+            '    lgL0[0] = (1 - lgG) * Close[0] + lgG * lgL0[1];', '    lgL1[0] = -lgG * lgL0[0] + lgL0[1] + lgG * lgL1[1];',
+            '    lgL2[0] = -lgG * lgL1[0] + lgL1[1] + lgG * lgL2[1];', '    lgL3[0] = -lgG * lgL2[0] + lgL2[1] + lgG * lgL3[1];',
+            '    double lgUp = 0, lgDown = 0;',
+            '    if (lgL0[0] >= lgL1[0]) lgUp += lgL0[0] - lgL1[0]; else lgDown += lgL1[0] - lgL0[0];',
+            '    if (lgL1[0] >= lgL2[0]) lgUp += lgL1[0] - lgL2[0]; else lgDown += lgL2[0] - lgL1[0];',
+            '    if (lgL2[0] >= lgL3[0]) lgUp += lgL2[0] - lgL3[0]; else lgDown += lgL3[0] - lgL2[0];',
+            '    lgValue[0] = lgUp + lgDown > 0 ? lgUp / (lgUp + lgDown) : lgValue[1];', '}');
+          plot(1, 'Laguerre RSI'); plotVals.push('lgValue[0]'); level(dbl(s.lgLow), 'Low level'); level(dbl(s.lgHigh), 'High level'); lineInit.push('Lines[0].Value = LaguerreLow;', 'Lines[1].Value = LaguerreHigh;');
+          warm.push('6');
+          body.push('bool sigBuy = CrossAbove(lgValue, LaguerreLow, 1);', 'bool sigSell = CrossBelow(lgValue, LaguerreHigh, 1);', 'int direction = lgValue[0] > 0.5 ? 1 : lgValue[0] < 0.5 ? -1 : 0;');
+          break;
+        case 'cl_impulse':
+          intP('ImpulseEma', 'EMA period', 'sig', s.impEma, 2, BY.impEma.tip);
+          fields.push('private ISeries<double> impEma;', 'private MACD impMacd;'); init.push('impEma = EMA(ImpulseEma);', 'impMacd = MACD(12, 26, 9);'); ser('impState');
+          preBody.push('if (CurrentBar == 0) impState[0] = 0;', 'else', '{', '    double impHist = impMacd.Diff[0] - impMacd.Diff[1];',
+            '    impState[0] = impEma[0] > impEma[1] && impHist > 0 ? 1 : impEma[0] < impEma[1] && impHist < 0 ? -1 : 0;', '}');
+          plot(1, 'Impulse EMA'); plotVals.push('impEma[0]');
+          colorLines.push('PlotBrushes[0][0] = impState[0] > 0 ? BuyBrush : impState[0] < 0 ? SellBrush : Brushes.DodgerBlue;', 'if (ColorSignalBars) BarBrush = impState[0] > 0 ? BuyBrush : impState[0] < 0 ? SellBrush : Brushes.DodgerBlue;');
+          warm.push('Math.Max(ImpulseEma, 35)');
+          body.push('bool sigBuy = impState[0] > 0 && impState[1] <= 0;', 'bool sigSell = impState[0] < 0 && impState[1] >= 0;', 'int direction = impState[0] > 0 ? 1 : impState[0] < 0 ? -1 : 0;');
+          break;
+        case 'cl_elderray':
+          intP('ElderRayEma', 'EMA period', 'sig', s.erEma, 2, BY.erEma.tip);
+          fields.push('private ISeries<double> erEma;'); init.push('erEma = EMA(ElderRayEma);'); ser('bullPower', 'bearPower');
+          preBody.push('bullPower[0] = High[0] - erEma[0];', 'bearPower[0] = Low[0] - erEma[0];');
+          plot(1, 'Bull Power', 'Bar'); plot(2, 'Bear Power', 'Bar'); plotVals.push('bullPower[0]', 'bearPower[0]'); level('0', 'Zero'); warm.push('ElderRayEma + 3');
+          body.push('bool erBuyNow = erEma[0] > erEma[1] && bearPower[0] < 0 && bearPower[0] > bearPower[1];', 'bool erBuyPrev = erEma[1] > erEma[2] && bearPower[1] < 0 && bearPower[1] > bearPower[2];',
+            'bool erSellNow = erEma[0] < erEma[1] && bullPower[0] > 0 && bullPower[0] < bullPower[1];', 'bool erSellPrev = erEma[1] < erEma[2] && bullPower[1] > 0 && bullPower[1] < bullPower[2];',
+            'bool sigBuy = erBuyNow && !erBuyPrev;', 'bool sigSell = erSellNow && !erSellPrev;', 'int direction = erEma[0] > erEma[1] ? 1 : erEma[0] < erEma[1] ? -1 : 0;');
+          break;
+        case 'cl_alligator':
+          intP('AlligatorJaw', 'Jaw period', 'sig', s.allJaw, 2, BY.allJaw.tip); intP('AlligatorTeeth', 'Teeth period', 'sig', s.allTeeth, 2, BY.allTeeth.tip); intP('AlligatorLips', 'Lips period', 'sig', s.allLips, 2, BY.allLips.tip);
+          ser('smmaJaw', 'smmaTeeth', 'smmaLips');
+          preBody.push('smmaJaw[0] = CurrentBar == 0 ? Median[0] : (smmaJaw[1] * (AlligatorJaw - 1) + Median[0]) / AlligatorJaw;',
+            'smmaTeeth[0] = CurrentBar == 0 ? Median[0] : (smmaTeeth[1] * (AlligatorTeeth - 1) + Median[0]) / AlligatorTeeth;',
+            'smmaLips[0] = CurrentBar == 0 ? Median[0] : (smmaLips[1] * (AlligatorLips - 1) + Median[0]) / AlligatorLips;');
+          plot('DodgerBlue', 'Jaw'); plot('Red', 'Teeth'); plot('LimeGreen', 'Lips'); plotVals.push('smmaJaw[8]', 'smmaTeeth[5]', 'smmaLips[3]'); warm.push('AlligatorJaw + 12');
+          body.push('// the jaw, teeth and lips are drawn 8, 5 and 3 bars forward: on this bar they are the values from 8, 5 and 3 bars ago',
+            'double jaw = smmaJaw[8], teeth = smmaTeeth[5], lips = smmaLips[3];', 'double jawPrev = smmaJaw[9], teethPrev = smmaTeeth[6], lipsPrev = smmaLips[4];',
+            'bool alUp = lips > teeth && teeth > jaw, alUpPrev = lipsPrev > teethPrev && teethPrev > jawPrev;',
+            'bool alDown = lips < teeth && teeth < jaw, alDownPrev = lipsPrev < teethPrev && teethPrev < jawPrev;',
+            'bool sigBuy = alUp && !alUpPrev;', 'bool sigSell = alDown && !alDownPrev;', 'int direction = alUp ? 1 : alDown ? -1 : 0;');
+          break;
+        case 'cl_ao':
+          intP('AoFastPeriod', 'Fast period', 'sig', s.aoFast, 1, BY.aoFast.tip); intP('AoSlowPeriod', 'Slow period', 'sig', s.aoSlow, 2, BY.aoSlow.tip);
+          fields.push('private ISeries<double> aoFastMa;', 'private ISeries<double> aoSlowMa;'); init.push('aoFastMa = SMA(Median, AoFastPeriod);', 'aoSlowMa = SMA(Median, AoSlowPeriod);'); ser('aoValue');
+          preBody.push('aoValue[0] = aoFastMa[0] - aoSlowMa[0];');
+          plot(1, 'AO', 'Bar'); plotVals.push('aoValue[0]'); level('0', 'Zero'); colorLines.push('PlotBrushes[0][0] = CurrentBar > 0 && aoValue[0] >= aoValue[1] ? BuyBrush : SellBrush;');
+          warm.push('AoSlowPeriod + 2');
+          body.push('bool sigBuy = CrossAbove(aoValue, 0, 1);', 'bool sigSell = CrossBelow(aoValue, 0, 1);', 'int direction = aoValue[0] > 0 ? 1 : aoValue[0] < 0 ? -1 : 0;');
+          break;
+        case 'cl_fractals':
+          intP('FractalBars', 'Bars each side', 'sig', s.frBars, 1, BY.frBars.tip);
+          fields.push('private double fractalUp = double.NaN;', 'private double fractalDown = double.NaN;');
+          preBody.push('if (CurrentBar >= 2 * FractalBars)   // a fractal is confirmed FractalBars bars after it forms, so it never repaints', '{',
+            '    bool frUp = true, frDown = true;', '    for (int k = 1; k <= FractalBars; k++)', '    {',
+            '        if (High[FractalBars] <= High[FractalBars - k] || High[FractalBars] <= High[FractalBars + k]) frUp = false;',
+            '        if (Low[FractalBars] >= Low[FractalBars - k] || Low[FractalBars] >= Low[FractalBars + k]) frDown = false;', '    }',
+            '    if (frUp) fractalUp = High[FractalBars];', '    if (frDown) fractalDown = Low[FractalBars];', '}');
+          plot(1, 'Up fractal', 'Dot'); plot(2, 'Down fractal', 'Dot');
+          colorLines.push('if (!double.IsNaN(fractalUp)) Values[0][0] = fractalUp;', 'if (!double.IsNaN(fractalDown)) Values[1][0] = fractalDown;');
+          warm.push('2 * FractalBars + 2');
+          body.push('bool sigBuy = !double.IsNaN(fractalUp) && Close[0] > fractalUp && Close[1] <= fractalUp;', 'bool sigSell = !double.IsNaN(fractalDown) && Close[0] < fractalDown && Close[1] >= fractalDown;',
+            'int direction = sigBuy ? 1 : sigSell ? -1 : 0;');
+          break;
+        case 'cl_er':
+          intP('ErPeriod', 'Period', 'sig', s.kerPeriod, 2, BY.kerPeriod.tip); dblP('ErThreshold', 'Trend threshold', 'sig', s.kerLevel, 0.01, BY.kerLevel.tip); ser('erValue');
+          preBody.push('if (CurrentBar >= ErPeriod)', '{', '    double erPath = 0;', '    for (int k = 0; k < ErPeriod; k++) erPath += Math.Abs(Close[k] - Close[k + 1]);',
+            '    erValue[0] = erPath > 0 ? Math.Abs(Close[0] - Close[ErPeriod]) / erPath : 0;', '}', 'else erValue[0] = 0;');
+          plot(1, 'Efficiency Ratio'); plotVals.push('erValue[0]'); level(dbl(s.kerLevel), 'Threshold'); lineInit.push('Lines[0].Value = ErThreshold;'); warm.push('ErPeriod + 2');
+          body.push('bool erCross = CrossAbove(erValue, ErThreshold, 1);', 'bool sigBuy = erCross && Close[0] > Close[ErPeriod];', 'bool sigSell = erCross && Close[0] < Close[ErPeriod];',
+            'int direction = Close[0] > Close[ErPeriod] ? 1 : Close[0] < Close[ErPeriod] ? -1 : 0;');
+          break;
+        case 'cl_alma':
+          intP('AlmaWindow', 'Window', 'sig', s.almaWin, 2, BY.almaWin.tip); dblP('AlmaOffset', 'Offset', 'sig', s.almaOff, 0, BY.almaOff.tip); dblP('AlmaSigma', 'Sigma', 'sig', s.almaSig, 0.1, BY.almaSig.tip);
+          ser('almaValue');
+          preBody.push('if (CurrentBar >= AlmaWindow - 1)', '{',
+            '    double almaM = AlmaOffset * (AlmaWindow - 1), almaS = AlmaWindow / AlmaSigma, almaSum = 0, almaNorm = 0;',
+            '    for (int k = 0; k < AlmaWindow; k++)', '    {', '        double almaW = Math.Exp(-((k - almaM) * (k - almaM)) / (2 * almaS * almaS));',
+            '        almaSum += almaW * Close[AlmaWindow - 1 - k];', '        almaNorm += almaW;', '    }', '    almaValue[0] = almaNorm > 0 ? almaSum / almaNorm : Close[0];', '}',
+            'else almaValue[0] = Close[0];');
+          plot(1, 'ALMA'); plotVals.push('almaValue[0]'); warm.push('AlmaWindow + 2'); priceCross('almaValue');
+          break;
+        case 'cl_mcginley':
+          intP('McGinleyPeriod', 'Period', 'sig', s.mcgPeriod, 1, BY.mcgPeriod.tip); dblP('McGinleyK', 'Constant k', 'sig', s.mcgK, 0.01, BY.mcgK.tip); ser('mdValue');
+          preBody.push('if (CurrentBar == 0 || mdValue[1] <= 0) mdValue[0] = Close[0];',
+            'else mdValue[0] = mdValue[1] + (Close[0] - mdValue[1]) / (McGinleyK * McGinleyPeriod * Math.Pow(Close[0] / mdValue[1], 4));');
+          plot(1, 'McGinley Dynamic'); plotVals.push('mdValue[0]'); warm.push('McGinleyPeriod + 2'); priceCross('mdValue');
+          break;
+        case 'cl_squeeze':
+          intP('SqueezeLength', 'Length', 'sig', s.sqLen, 2, BY.sqLen.tip); dblP('SqueezeBollinger', 'Bollinger width (std dev)', 'sig', s.sqBb, 0.1, BY.sqBb.tip); dblP('SqueezeKeltner', 'Keltner width', 'sig', s.sqKc, 0.1, BY.sqKc.tip);
+          fields.push('private Bollinger sqBands;', 'private KeltnerChannel sqChannel;', 'private ISeries<double> sqHigh;', 'private ISeries<double> sqLow;', 'private ISeries<double> sqMean;', 'private ISeries<double> sqMomentum;');
+          init.push('sqBands = Bollinger(SqueezeBollinger, SqueezeLength);', 'sqChannel = KeltnerChannel(SqueezeKeltner, SqueezeLength);', 'sqHigh = MAX(High, SqueezeLength);', 'sqLow = MIN(Low, SqueezeLength);', 'sqMean = SMA(Close, SqueezeLength);');
+          ser('sqSource', 'sqOn'); init.push('sqMomentum = LinReg(sqSource, SqueezeLength);');
+          preBody.push('sqSource[0] = Close[0] - ((sqHigh[0] + sqLow[0]) / 2.0 + sqMean[0]) / 2.0;',
+            'sqOn[0] = sqBands.Upper[0] < sqChannel.Upper[0] && sqBands.Lower[0] > sqChannel.Lower[0] ? 1 : 0;');
+          plot(1, 'Momentum', 'Bar'); plotVals.push('sqMomentum[0]'); level('0', 'Zero'); colorLines.push('PlotBrushes[0][0] = sqMomentum[0] >= 0 ? BuyBrush : SellBrush;');
+          warm.push('SqueezeLength * 2');
+          body.push('bool sqReleased = sqOn[1] > 0 && sqOn[0] < 0.5;', 'bool sigBuy = sqReleased && sqMomentum[0] > 0;', 'bool sigSell = sqReleased && sqMomentum[0] < 0;',
+            'int direction = sqMomentum[0] > 0 ? 1 : sqMomentum[0] < 0 ? -1 : 0;');
+          break;
+        default:   // cl_avwap
+          fields.push('private double avPv;', 'private double avVolume;'); ser('avwapValue');
+          var anchor = { session: 'Bars.IsFirstBarOfSession', week: 'CurrentBar > 0 && Time[0].DayOfWeek < Time[1].DayOfWeek', month: 'CurrentBar > 0 && Time[0].Month != Time[1].Month' }[s.avAnchor];
+          preBody.push('if (CurrentBar == 0 || ' + anchor + ') { avPv = 0; avVolume = 0; }   // anchor: ' + s.avAnchor + ' open',
+            'double avPrice = (High[0] + Low[0] + Close[0]) / 3.0;', 'avPv += avPrice * Volume[0];', 'avVolume += Volume[0];',
+            'avwapValue[0] = avVolume > 0 ? avPv / avVolume : avPrice;');
+          plot(1, 'Anchored VWAP'); plotVals.push('avwapValue[0]'); warm.push('2'); priceCross('avwapValue');
+      }
+    }
+
     // ---- signal
     var yPanel = 'Values[0][0]';
     switch (s.sig) {
@@ -798,6 +1101,11 @@
         break;
       case 'l2_book': case 'l2_wall':
         depthSignal();
+        break;
+      case 'cl_supertrend': case 'cl_chandelier': case 'cl_chandekroll': case 'cl_stc': case 'cl_crsi': case 'cl_kst': case 'cl_coppock': case 'cl_supersmoother':
+      case 'cl_itrend': case 'cl_laguerre': case 'cl_impulse': case 'cl_elderray': case 'cl_alligator': case 'cl_ao': case 'cl_fractals': case 'cl_er': case 'cl_alma':
+      case 'cl_mcginley': case 'cl_squeeze': case 'cl_avwap':
+        classicSignal();
         break;
       default:
         var cp = CANDLES[s.candle];
@@ -890,6 +1198,15 @@
       of_va: '"VAH " + ' + FP('vahSeries[0]') + ' + "   VAL " + ' + FP('valSeries[0]') + ' + "   POC " + ' + FP('pocSeries[0]'), of_vwap: '"VWAP " + ' + FP('vwapSeries[0]') + ' + "   delta " + barDelta[0].ToString("N0")',
       of_big: '"Largest print: buy " + flowBigBuy.ToString("N0") + "   sell " + flowBigSell.ToString("N0")',
       l2_book: '"Book: bids " + bookBid.ToString("N0") + "   asks " + bookAsk.ToString("N0")',
+      cl_supertrend: '"SuperTrend " + ' + FP('stLine[0]') + ' + (stTrend[0] > 0 ? " (up)" : " (down)")', cl_chandelier: '"Chandelier " + ' + FP('ceLine[0]') + ' + (ceDir[0] > 0 ? " (long)" : " (short)")',
+      cl_chandekroll: '"Stop short " + ' + FP('ckStopShort[0]') + ' + "   stop long " + ' + FP('ckStopLong[0]'), cl_stc: '"STC " + stcValue[0].ToString("0.0")',
+      cl_crsi: '"Connors RSI " + crsiValue[0].ToString("0.0")', cl_kst: '"KST " + kstValue[0].ToString("0.00") + "   signal " + kstSignalLine[0].ToString("0.00")',
+      cl_coppock: '"Coppock " + coppock[0].ToString("0.00")', cl_supersmoother: '"Super Smoother " + ' + FP('ssValue[0]'), cl_itrend: '"Trendline " + ' + FP('itValue[0]') + ' + "   trigger " + ' + FP('itTrigger[0]'),
+      cl_laguerre: '"Laguerre RSI " + lgValue[0].ToString("0.00")', cl_impulse: '"Impulse " + (impState[0] > 0 ? "green" : impState[0] < 0 ? "red" : "blue")',
+      cl_elderray: '"Bull " + bullPower[0].ToString("0.00") + "   Bear " + bearPower[0].ToString("0.00")', cl_alligator: '"Jaw " + ' + FP('smmaJaw[8]') + ' + "   Teeth " + ' + FP('smmaTeeth[5]') + ' + "   Lips " + ' + FP('smmaLips[3]'),
+      cl_ao: '"AO " + aoValue[0].ToString("0.00")', cl_fractals: '"Fractals: up " + (double.IsNaN(fractalUp) ? "none" : ' + FP('fractalUp') + ') + "   down " + (double.IsNaN(fractalDown) ? "none" : ' + FP('fractalDown') + ')',
+      cl_er: '"Efficiency " + erValue[0].ToString("0.00")', cl_alma: '"ALMA " + ' + FP('almaValue[0]'), cl_mcginley: '"McGinley " + ' + FP('mdValue[0]'),
+      cl_squeeze: '"Squeeze " + (sqOn[0] > 0 ? "ON" : "off") + "   momentum " + sqMomentum[0].ToString("0.00")', cl_avwap: '"Anchored VWAP " + ' + FP('avwapValue[0]'),
       l2_wall: '"Walls: ask " + (double.IsNaN(askWall) ? "none" : ' + FP('askWall') + ') + "   bid " + (double.IsNaN(bidWall) ? "none" : ' + FP('bidWall') + ')', psar: '"SAR " + ' + FP('sar[0]'), candle: '"Pattern: " + (sigBuy ? "bullish" : sigSell ? "bearish" : "none")' }[s.sig];
     // the info table: drawn only on the latest bar (or live), so it costs nothing while history loads
     function tableLines(stats) {
@@ -1299,14 +1616,22 @@
       ['Order flow: CVD trend', { sig: 'of_cvd', ofCvdLen: 20, ofCvdReset: true, table: true, name: 'CVD Trend' }],
       ['Order flow: value area breakout', { sig: 'of_va', ofVaPct: 70, ofVaMode: 'breakout', fpShow: true, fpMode: 'delta', name: 'Value Area Breakout' }],
       ['Order flow: big trade alerts', { sig: 'of_big', ofBig: 50, alerts: true, fpShow: true, fpMode: 'volume', name: 'Big Trade Alerts' }],
-      ['Level 2: order book imbalance', { sig: 'l2_book', l2Levels: 10, l2Ratio: 2, table: true, name: 'Book Imbalance' }]],
+      ['Level 2: order book imbalance', { sig: 'l2_book', l2Levels: 10, l2Ratio: 2, table: true, name: 'Book Imbalance' }],
+      ['Classic: SuperTrend', { sig: 'cl_supertrend', stPeriod: 10, stMult: 3, colorBars: true, name: 'SuperTrend' }],
+      ['Classic: squeeze release', { sig: 'cl_squeeze', sqLen: 20, sqBb: 2, sqKc: 1.5, table: true, name: 'Squeeze Release' }],
+      ['Classic: Connors RSI pullback', { sig: 'cl_crsi', fTrend: true, fTrendLen: 200, name: 'Connors RSI Pullback' }],
+      ['Classic: Williams Alligator', { sig: 'cl_alligator', name: 'Alligator' }],
+      ['Classic: Elder Impulse bars', { sig: 'cl_impulse', colorBars: true, name: 'Elder Impulse' }]],
     s: [['Trend follower', { sig: 'ma_cross', fast: 9, slow: 21, fTrend: true, fTrendLen: 200, stopMode: 'atr', stopAtr: 1.5, tgtMode: 'r', tgtR: 2, trailMode: 'atr', name: 'Trend Follower' }],
       ['Mean reversion', { sig: 'band', band: 'Bollinger', bandMode: 'reversal', fAdx: false, stopMode: 'swing', tgtMode: 'r', tgtR: 1.5, name: 'Band Reversion' }],
       ['Morning range breakout', { sig: 'nbar', nbarLen: 12, fSess: true, sessStart: '09:45', sessEnd: '11:30', stopMode: 'swing', tgtMode: 'r', tgtR: 2, beOn: true, name: 'Morning Breakout' }],
       ['MACD with trailing stop', { sig: 'macd', macdMode: 'signal', fAdx: true, fAdxMin: 20, stopMode: 'ticks', stopTicks: 16, tgtMode: 'none', trailMode: 'ticks', trailTicks: 14, name: 'MACD Trail' }],
       ['Order flow: imbalance with trend', { sig: 'of_imb', ofStack: 3, fTrend: true, fTrendLen: 50, stopMode: 'swing', tgtMode: 'r', tgtR: 2, table: true, name: 'Imbalance Trend' }],
       ['Order flow: value area fade', { sig: 'of_va', ofVaMode: 'reversal', stopMode: 'ticks', stopTicks: 12, tgtMode: 'r', tgtR: 1.5, fSess: true, sessStart: '09:45', sessEnd: '15:00', name: 'Value Area Fade' }],
-      ['Order flow: delta flip with ADX', { sig: 'of_delta', ofDeltaMode: 'flip', fAdx: true, fAdxMin: 20, stopMode: 'atr', tgtMode: 'r', tgtR: 2, name: 'Delta Flip' }]]
+      ['Order flow: delta flip with ADX', { sig: 'of_delta', ofDeltaMode: 'flip', fAdx: true, fAdxMin: 20, stopMode: 'atr', tgtMode: 'r', tgtR: 2, name: 'Delta Flip' }],
+      ['Classic: SuperTrend trend follower', { sig: 'cl_supertrend', stopMode: 'atr', stopAtr: 2, tgtMode: 'none', trailMode: 'atr', trailAtr: 3, reverse: true, name: 'SuperTrend Follower' }],
+      ['Classic: Chandelier Exit trend', { sig: 'cl_chandelier', stopMode: 'atr', stopAtr: 3, tgtMode: 'r', tgtR: 3, name: 'Chandelier Trend' }],
+      ['Classic: squeeze breakout', { sig: 'cl_squeeze', stopMode: 'swing', tgtMode: 'r', tgtR: 2, beOn: true, name: 'Squeeze Breakout' }]]
   };
 
   var api = { VERSION: VERSION, FIELDS: FIELDS, GROUPS: GROUPS, OSC: OSC, PRESETS: PRESETS, defaults: defaults, normalize: normalize, visible: visible, suggest: suggest,
