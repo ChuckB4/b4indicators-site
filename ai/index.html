@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
+<title>B4 Indicator AI | Build smarter. Learn faster. Research with AI.</title>
+<meta name="description" content="B4 Indicator AI brings AI-assisted indicator creation, technical-analysis education and research workflows to B4 Indicators, while B4's proprietary technology stays protected.">
+<link rel="canonical" href="https://www.b4indicators.com/ai/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--navy:#071421;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--max:1180px}
+*{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--teal2)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+code{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace;font-size:.88em;background:#eef4f6;padding:1px 6px;border-radius:5px}
+header{position:sticky;top:0;z-index:20;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#102738;font-weight:700;letter-spacing:.14em;font-size:14px}
+.brand small{display:block;font-size:9px;letter-spacing:.18em;color:#687c87;font-weight:600}
+.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
+.navlinks{display:flex;gap:20px;font-size:14px;font-weight:600}.navlinks a{color:#354a58;text-decoration:none}.navlinks a:hover,.navlinks a[aria-current]{color:var(--teal2)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:12px 20px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal)}
+.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.ghost{background:transparent;color:#fff;border-color:#5c7786}.btn.dark{background:var(--navy);border-color:var(--navy);color:#fff}
+.kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--teal2)}
+h1,h2,h3{font-weight:300;letter-spacing:-.01em;line-height:1.12}
+.hero{position:relative;overflow:hidden;color:#fff;padding:90px 0 74px;background:radial-gradient(ellipse at 80% 10%,#1c736e70,transparent 42%),radial-gradient(ellipse at 10% 90%,#0a353d,transparent 50%),linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d)}
+.hero .kicker{color:#61e5d1}.hero h1{font-size:clamp(38px,5vw,60px);font-weight:200;margin:14px 0 18px}.hero h1 em{font-style:normal;color:var(--glow);font-weight:300}
+.lead{font-size:20px;font-weight:300;color:#c2d3dc;max-width:720px;margin:0}.actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+section{padding:80px 0}.sectionhead{max-width:780px;margin-bottom:30px}.sectionhead h2{font-size:clamp(30px,3.6vw,44px);margin:10px 0 14px;color:#102638}.sectionhead p{color:var(--muted);margin:0}
+.flag{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.card{position:relative;background:#fff;border:1px solid var(--line);border-radius:18px;padding:26px;box-shadow:0 14px 36px #0b23300d;display:flex;flex-direction:column}
+.card h3{font-size:26px;margin:10px 0 8px}.card p{color:var(--muted);font-size:15.5px;margin:0 0 14px}.card ul{margin:0 0 18px;padding-left:18px;font-size:14.5px;color:#2c4150}.card li{margin:6px 0}
+.card .btn{margin-top:auto;align-self:flex-start}
+.status{display:inline-flex;align-self:flex-start;font-size:11.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.status.live{background:var(--mint);color:#07604f;border:1px solid #9ee3d6}.status.prev{background:#fff6dd;color:#8a5a00;border:1px solid #ecd38f}
+.dark{background:linear-gradient(180deg,#071421,#0a1c2a);color:#e8f3f6}.dark .sectionhead h2{color:#fff}.dark .sectionhead p{color:#b4c8d1}.dark .kicker{color:#61e5d1}
+.steps{counter-reset:s;display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+.step{background:#0c2232;border:1px solid #24475a;border-radius:16px;padding:22px 22px 20px 64px;position:relative;color:#cfe1e7;font-size:15.5px}
+.step:before{counter-increment:s;content:counter(s);position:absolute;left:20px;top:20px;width:30px;height:30px;border-radius:50%;background:#123a46;color:#61e5d1;display:grid;place-items:center;font-weight:700;font-size:14px}
+.step b{color:#fff;display:block;font-size:17px;margin-bottom:4px;font-weight:600}.step code{background:#123142;color:#9ee3d6}
+.ip{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.box{background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px}.box h3{font-size:22px;margin:0 0 10px}.box ul{margin:0;padding-left:20px;color:#2c4150;font-size:15px}.box li{margin:7px 0}
+.box.no{border-top:4px solid #d9534f}.box.yes{border-top:4px solid var(--teal)}
+.policy{margin-top:16px;background:#0c2232;color:#cfe1e7;border-radius:16px;padding:22px 24px;border:1px solid #24475a;font-size:15.5px}.policy b{color:#61e5d1}
+.table{background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.tr{display:grid;grid-template-columns:1fr 2.2fr .9fr;gap:14px;padding:14px 20px;border-top:1px solid var(--line);font-size:15px;align-items:center}
+.tr:first-child{border-top:0;background:#f4f9fa;font-size:12px;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.road{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}.road .box h3{font-size:20px}.road .box p{color:var(--muted);font-size:14px;margin:0 0 10px}
+.note{background:#fff8e8;border:1px solid #eadcb9;color:#6e5a30;border-radius:12px;padding:16px 18px;margin-top:22px;font-size:14px}
+footer{background:#06121d;color:#a6bbc5;padding:40px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:920px;line-height:1.7}
+@media(max-width:560px){header .nav>.btn{display:none}}
+:focus-visible{outline:3px solid var(--teal);outline-offset:3px}
+@media(max-width:900px){.flag,.road,.ip,.steps{grid-template-columns:1fr}.tr{grid-template-columns:1fr;gap:4px}.tr:first-child{display:none}.navlinks{display:none}}
+@media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>B4 INDICATOR AI</small></span></a>
+<nav class="navlinks" aria-label="Main"><a href="../#api">B4 Signal API</a><a href="../#demos">Demo indicators</a><a href="../#skills">Skill library</a><a href="../repository/">Repository</a><a href="./" aria-current="page">B4 Indicator AI</a></nav>
+<a class="btn" href="../repository/">Open the repository</a></div></header>
+<main>
+<section class="hero"><div class="wrap">
+<div class="kicker">B4 Indicators · B4 Indicator AI</div>
+<h1>Build smarter. Learn faster. <em>Research with AI.</em></h1>
+<p class="lead">AI-assisted indicator creation, technical-analysis education and research workflows for NinjaTrader 8, built on the public B4 Signal API. B4's proprietary trading technology stays protected.</p>
+<div class="actions"><a class="btn" href="#build">Start building with AI</a><a class="btn ghost" href="#ip">How we protect B4 technology</a></div>
+</div></section>
+
+<section id="flagships"><div class="wrap"><div class="sectionhead"><div class="kicker">Three flagship experiences</div><h2>Build, ask and test, with AI at your side.</h2>
+<p>What is available today is marked <b>Available now</b>. Everything else is marked <b>Preview</b>: designed and in development, not yet something you can use.</p></div>
+<div class="flag">
+<article class="card"><span class="status live">Available now</span><h3>Build with B4</h3><p>Describe an indicator in plain language and let your AI coding assistant build it with the B4 NT8 skill library and the public B4 Signal API.</p>
+<ul><li>Specification first, then code</li><li>Every value an adjustable setting</li><li>Compile and verify before it reaches a chart</li></ul><a class="btn dark" href="#build">See how</a></article>
+<article class="card"><span class="status prev">Preview</span><h3>Ask B4</h3><p>An assistant that explains technical-analysis concepts, troubleshoots indicators and reads the data you authorize, with timestamps and missing-data warnings instead of guesses.</p>
+<ul><li>Explains your own indicators and settings</li><li>Flags stale or unavailable data</li><li>Never reveals B4 proprietary logic</li></ul><a class="btn dark" href="mailto:info@b4signals.com?subject=B4%20Indicator%20AI%20preview%20interest">Join the preview list</a></article>
+<article class="card"><span class="status prev">Preview</span><h3>Test with B4</h3><p>Reproducible historical research on your own indicator ideas: out-of-sample checks, costs and slippage, parameter sensitivity and overfitting warnings.</p>
+<ul><li>Simulation and research only</li><li>No strategy ever activates itself</li><li>Sample sizes and failed cases shown</li></ul><a class="btn dark" href="mailto:info@b4signals.com?subject=B4%20Indicator%20AI%20preview%20interest">Join the preview list</a></article>
+</div></div></section>
+
+<section id="build" class="dark"><div class="wrap"><div class="sectionhead"><div class="kicker">Build with B4 · available now</div><h2>From an idea to a verified indicator.</h2>
+<p>Works with Claude Code and compatible AI coding tools on your own computer. You keep your code; B4 never needs to see it.</p></div>
+<div class="steps">
+<div class="step"><b>Load the skill library</b>Download the <a href="../repository/#/b4-nt8-skill-library" style="color:#9ee3d6">B4 NT8 skill library</a> and copy the skills into <code>%USERPROFILE%\.claude\skills\</code>.</div>
+<div class="step"><b>Describe your idea</b>For example: "Build a NinjaTrader 8 indicator that marks a failed breakout of the prior N-bar high, with N and the volume threshold as settings, and publish it through the B4 Signal API."</div>
+<div class="step"><b>Start from a demo</b>Ask the assistant to base it on a <a href="../repository/#/b4-api-demos" style="color:#9ee3d6">demo indicator</a>. Every signal-affecting value becomes an adjustable setting.</div>
+<div class="step"><b>Verify before you trade</b>The build-verification skill compiles, checks and reports honestly. Install only when flat, following the safe-deployment skill.</div>
+</div>
+<p class="note" style="background:#0c2232;border-color:#24475a;color:#cfe1e7">AI-generated code is your own work and your responsibility. Test it in simulation first. B4 does not review or support user-built indicators unless they are submitted and accepted into the official repository.</p>
+</div></section>
+
+<section id="ip"><div class="wrap"><div class="sectionhead"><div class="kicker">Intellectual property protection</div><h2>AI that extends B4 without exposing it.</h2>
+<p>B4 Indicator AI is built on public interfaces only. Protection does not rely on telling an AI to keep a secret: protected information is never made available to it in the first place.</p></div>
+<div class="ip">
+<div class="box no"><h3>Never accessible</h3><ul>
+<li>B4 Algo source code, calculations, formulas and algorithms</li>
+<li>B4 confirmation criteria, gates, weights and decision logic</li>
+<li>Internal signal-generation rules and implementation details</li>
+<li>Private DLL internals and protected development source</li>
+<li>Internal research records, training labels and confidential documentation</li>
+<li>Reconstruction of any of the above through repeated queries or collected outputs</li></ul></div>
+<div class="box yes"><h3>What AI can work with</h3><ul>
+<li>The public B4 Signal API contract and the official repository</li>
+<li>Your own indicators and your own NinjaScript code</li>
+<li>Public NinjaTrader 8 documentation and APIs</li>
+<li>General technical-analysis concepts and education</li>
+<li>Data you explicitly authorize, and only outputs B4 approves for customer use</li></ul></div>
+</div>
+<p class="policy"><b>Deny by default.</b> Every AI tool, data field and integration endpoint must be on the B4 Public Interface Allowlist before it is reachable. Unknown or new fields stay blocked until reviewed. The boundary is enforced on B4's side, every request is checked, bulk extraction is limited, and any confirmed leak blocks a release.</p>
+</div></section>
+
+<section id="mcp" style="padding-top:20px"><div class="wrap"><div class="sectionhead"><div class="kicker">B4 Indicator MCP · in development</div><h2>A safe way for AI clients to use B4 Indicators.</h2>
+<p>The Model Context Protocol lets compatible AI clients discover and use approved tools. The public B4 Indicator MCP server is in development and is not available yet. It will cover public material only.</p></div>
+<div class="table" role="table" aria-label="Planned MCP capability groups">
+<div class="tr" role="row"><span role="columnheader">Group</span><span role="columnheader">Planned scope (public material only)</span><span role="columnheader">Status</span></div>
+<div class="tr" role="row"><b role="cell">Discover</b><span role="cell">List the official repositories, read the B4 Signal API contract and documentation, version and compatibility info.</span><span role="cell" class="status prev">Planned</span></div>
+<div class="tr" role="row"><b role="cell">Explain</b><span role="cell">Explain technical-analysis concepts and your own indicators; troubleshooting with the error database.</span><span role="cell" class="status prev">Planned</span></div>
+<div class="tr" role="row"><b role="cell">Configure</b><span role="cell">Validate and preview settings for your own indicators; never silently overwrite saved workspaces.</span><span role="cell" class="status prev">Planned</span></div>
+<div class="tr" role="row"><b role="cell">Research</b><span role="cell">Historical analysis of your own indicator logic on data you authorize, with validation reports.</span><span role="cell" class="status prev">Planned</span></div>
+<div class="tr" role="row"><b role="cell">Inspect</b><span role="cell">Only outputs B4 explicitly approves for customer use. No B4 Algo internals or confirmation states.</span><span role="cell" class="status prev">Under review</span></div>
+</div>
+<p class="note">MCP access never grants trading authority. Research and simulation stay separate from live execution, and nothing places orders on its own.</p>
+</div></section>
+
+<section id="roadmap" class="dark"><div class="wrap"><div class="sectionhead"><div class="kicker">Roadmap</div><h2>Built in the open, released when verified.</h2>
+<p>A planning outline, not a promise of dates. Each step ships only after its checks pass.</p></div>
+<div class="road">
+<div class="box" style="background:#0c2232;border-color:#24475a;color:#cfe1e7"><h3 style="color:#fff">Foundation</h3><p style="color:#b4c8d1">Official repository, public API contract, skill library and the Public Interface Allowlist with security tests.</p><span class="status live">Available now: repository and skills</span></div>
+<div class="box" style="background:#0c2232;border-color:#24475a;color:#cfe1e7"><h3 style="color:#fff">AI assistance</h3><p style="color:#b4c8d1">Ask B4, configuration validation, research reports and the first B4 Indicator Academy lessons and recipes.</p><span class="status prev">Preview</span></div>
+<div class="box" style="background:#0c2232;border-color:#24475a;color:#cfe1e7"><h3 style="color:#fff">Community</h3><p style="color:#b4c8d1">Reviewed community indicators with author attribution, compatibility and honest test status, plus a limited beta.</p><span class="status prev">Preview</span></div>
+</div>
+<div class="actions"><a class="btn" href="../repository/">Browse the repository</a><a class="btn ghost" href="mailto:info@b4signals.com?subject=B4%20Indicator%20AI%20preview%20interest">Join the preview list</a></div>
+</div></section>
+</main>
+<footer><div class="wrap"><p><b style="color:#fff;letter-spacing:.14em">B4 INDICATORS</b> · part of the B4 Signals ecosystem · <a href="https://www.b4signals.com/">B4Signals.com</a> · <a href="mailto:info@b4signals.com">info@b4signals.com</a></p>
+<p>For educational and research purposes only. Not trading advice. Trading involves substantial risk and is not suitable for every participant. Past performance does not guarantee future results. Preview features are in development and are not available until announced. Existing B4 memberships, pricing and customer rights are unchanged. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
+<script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+</body></html>

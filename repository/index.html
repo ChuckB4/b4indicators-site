@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#071421">
+<title>B4 Indicator Repository | Browse, learn and build NinjaTrader 8 indicators</title>
+<meta name="description" content="Browse the public B4 Indicators repository: the free B4 Signal API, demo NinjaTrader 8 indicators and the NT8 skill library for AI-assisted development.">
+<link rel="canonical" href="https://www.b4indicators.com/repository/">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Raleway:wght@200..700&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{--navy:#071421;--ink:#102231;--muted:#5f7180;--paper:#f4f7f8;--line:#dce5e9;--teal:#13bba4;--teal2:#087d73;--mint:#e0f8f2;--glow:#5ee4cf;--max:1180px}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.6 "Raleway",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-variant-numeric:lining-nums;-webkit-font-smoothing:antialiased}
+a{color:var(--teal2)}.wrap{width:min(var(--max),calc(100% - 32px));margin:auto}
+code,pre,.mono{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
+header{position:sticky;top:0;z-index:20;background:#fffefdf0;backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.nav{height:64px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.brand{display:flex;align-items:center;gap:10px;text-decoration:none;color:#102738;font-weight:700;letter-spacing:.14em;font-size:14px}
+.brand small{display:block;font-size:9px;letter-spacing:.18em;color:#687c87;font-weight:600}
+.mark{width:38px;height:38px;display:grid;place-items:center;border-radius:11px;background:var(--navy);color:#59e2cd;border:1px solid #285a61}
+.navlinks{display:flex;gap:20px;font-size:14px;font-weight:600}.navlinks a{color:#354a58;text-decoration:none}.navlinks a:hover,.navlinks a[aria-current]{color:var(--teal2)}
+.btn{display:inline-flex;align-items:center;gap:8px;border-radius:980px;background:var(--teal);color:#06231f;padding:10px 18px;font-size:14px;font-weight:600;text-decoration:none;border:1px solid var(--teal);cursor:pointer}
+.btn:hover{background:#6ce8d4;border-color:#6ce8d4}.btn.line{background:#fff;color:#20394a;border-color:var(--line)}.btn.line:hover{border-color:var(--teal)}
+.top{background:linear-gradient(120deg,#06121f,#0a2537 70%,#0a353d);color:#fff;padding:44px 0 34px}
+.top .kicker{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#61e5d1}
+.top h1{font-weight:200;font-size:clamp(32px,4.4vw,50px);margin:10px 0 8px;line-height:1.1}.top h1 em{font-style:normal;color:var(--glow);font-weight:300}
+.top p{color:#c2d3dc;max-width:760px;margin:0;font-weight:300;font-size:18px}
+.search{margin-top:22px;display:flex;gap:10px;flex-wrap:wrap}
+.search input{flex:1;min-width:240px;max-width:520px;padding:12px 16px;border-radius:12px;border:1px solid #2a4a5c;background:#0b2232;color:#fff;font:inherit}
+.search input::placeholder{color:#8aa3ae}
+main{padding:28px 0 60px}
+.crumbs{font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}.crumbs a{text-decoration:none;font-weight:600}.crumbs span{color:var(--muted)}
+.repolist{display:grid;gap:12px}
+.repo{display:grid;grid-template-columns:1fr auto;gap:10px 20px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 20px;align-items:start}
+.repo h2{font-size:20px;font-weight:600;margin:0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}.repo h2 a{text-decoration:none}
+.repo p{margin:6px 0 10px;color:var(--muted);font-size:15px}
+.meta{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:#4c6070}
+.chip{display:inline-flex;align-items:center;font-size:11.5px;font-weight:600;letter-spacing:.04em;padding:2px 9px;border-radius:999px;border:1px solid}
+.chip.official{color:#087d73;border-color:#9ee3d6;background:var(--mint)}.chip.preview{color:#8a5a00;border-color:#ecd38f;background:#fff6dd}.chip.public{color:#36556a;border-color:#cdd9e0;background:#f4f8fa}
+.lang:before{content:"";display:inline-block;width:10px;height:10px;border-radius:50%;background:#178600;margin-right:6px;vertical-align:-1px}.lang.md:before{background:#083fa1}
+.layout{display:grid;grid-template-columns:280px 1fr;gap:18px;align-items:start}
+.tree,.viewer,.side{background:#fff;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.tree h3,.viewer .vh,.side h3{margin:0;padding:12px 16px;border-bottom:1px solid var(--line);background:#f6fafb;font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#4c6070}
+.tree ul{list-style:none;margin:0;padding:6px 0}.tree li a{display:flex;gap:8px;align-items:center;padding:7px 16px;text-decoration:none;color:#20394a;font-size:14px;word-break:break-all}
+.tree li a:hover{background:#f1f8f7}.tree li a[aria-current]{background:var(--mint);color:#07604f;font-weight:600}
+.tree .dir{padding:9px 16px 3px;font-size:12px;font-weight:600;color:var(--muted)}
+.viewer .vh{display:flex;justify-content:space-between;align-items:center;gap:10px;text-transform:none;letter-spacing:0;font-size:14px;color:#20394a}
+.viewer .vh .mono{font-size:13px}
+.viewer pre{margin:0;padding:16px 18px;font-size:12.8px;line-height:1.65;overflow:auto;max-height:72vh;background:#0b1b27;color:#d6e6eb;tab-size:4}
+.c{color:#6f8b97}.k{color:#5ee4cf}.s{color:#9fd3ff}.t{color:#e6c34a}
+.md{padding:6px 26px 26px;overflow-wrap:anywhere}.md h1,.md h2,.md h3{font-weight:500;color:#102638;line-height:1.25}.md h1{font-size:28px;border-bottom:1px solid var(--line);padding-bottom:8px}.md h2{font-size:22px;margin-top:28px;border-bottom:1px solid var(--line);padding-bottom:6px}.md h3{font-size:18px}
+.md code{background:#eef4f6;padding:1px 6px;border-radius:5px;font-size:13px}.md pre{border-radius:10px;max-height:none}.md pre code{background:none;padding:0;font-size:12.8px}
+.md table{border-collapse:collapse;width:100%;margin:12px 0;font-size:14px;display:block;overflow-x:auto}.md th,.md td{border:1px solid var(--line);padding:6px 10px;text-align:left}.md th{background:#f6fafb}
+.md blockquote{margin:12px 0;padding:8px 14px;border-left:4px solid var(--teal);background:#f4fbf9;color:#30505d}
+.side{padding-bottom:6px}.side .sb{padding:12px 16px;font-size:14px;color:#3b5060;border-bottom:1px solid var(--line)}.side .sb:last-child{border-bottom:0}.side .sb b{display:block;color:var(--ink);font-size:13px;letter-spacing:.04em;margin-bottom:4px}
+.empty{background:#fff;border:1px dashed #cfdce2;border-radius:14px;padding:28px;color:var(--muted)}
+.notice{background:#0c2232;color:#cfe1e7;border-radius:14px;padding:18px 20px;margin-top:22px;font-size:14px;border:1px solid #24475a}.notice b{color:#61e5d1}
+footer{background:#06121d;color:#a6bbc5;padding:36px 0;font-size:13px}footer a{color:#d3e6ea;margin-right:16px}footer p{max-width:920px;line-height:1.7}
+@media(max-width:560px){header .nav>.btn{display:none}}
+:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+@media(max-width:900px){.layout{grid-template-columns:1fr}.navlinks{display:none}.repo{grid-template-columns:1fr}.viewer pre{max-height:60vh}}
+</style>
+</head>
+<body>
+<header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>REPOSITORY</small></span></a>
+<nav class="navlinks" aria-label="Main"><a href="../#api">B4 Signal API</a><a href="../#demos">Demo indicators</a><a href="../#skills">Skill library</a><a href="./" aria-current="page">Repository</a><a href="../ai/">B4 Indicator AI</a></nav>
+<a class="btn" href="../developer-kit/downloads/B4-Developer-Kit.zip" download>Download kit</a></div></header>
+
+<section class="top"><div class="wrap">
+<div class="kicker">B4 Indicators · Repository</div>
+<h1>Explore. Build. <em>Validate.</em></h1>
+<p>Browse every public B4 Indicators project: read the documentation, inspect the source, and download what you need. Official projects are reviewed by B4; previews are clearly marked.</p>
+<div class="search"><input id="q" type="search" placeholder="Search repositories and files (e.g. RSI, Signal API, rendering)" aria-label="Search the repository"><a class="btn" href="../ai/#build">Build an indicator with AI</a></div>
+</div></section>
+
+<main><div class="wrap" id="app" aria-live="polite"></div>
+<div class="wrap"><p class="notice"><b>Public interfaces only.</b> This repository contains the free B4 Signal API contract, clean-room demo indicators and the NT8 skill library. It does not contain, and never will contain, B4 proprietary source code, B4 Algo calculations or B4 confirmation logic. <a href="../ai/#ip" style="color:#9ee3d6">How B4 protects its technology</a>.</p></div>
+</main>
+
+<footer><div class="wrap"><p><b style="color:#fff;letter-spacing:.14em">B4 INDICATORS</b> · part of the B4 Signals ecosystem · <a href="https://www.b4signals.com/">B4Signals.com</a> · <a href="mailto:info@b4signals.com">info@b4signals.com</a></p>
+<p>For educational and research purposes only. Not trading advice. Trading involves substantial risk and is not suitable for every participant. Community projects are third-party work unless B4 reviews and supports them. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
+<p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
+
+<script>
+document.getElementById('y').textContent=new Date().getFullYear();
+const KIT='../developer-kit/';
+const REPOS=[
+ {id:'b4-signal-api',name:'b4-signal-api',status:'official',desc:'The free B4 Signal API: five members that let any NinjaTrader 8 indicator publish entry signals and a confirmation direction that B4 tools can read. Signals only, never orders.',
+  lang:'C#',updated:'2026-10-10',zip:'downloads/B4-Developer-Kit.zip',readme:'skills/nt8-b4-signal-api/SKILL.md',
+  files:['skills/nt8-b4-signal-api/SKILL.md','skills/nt8-b4-signal-api/templates/B4SignalApiBlock.cs','LICENSE.txt'],tags:['api','signals','copilot']},
+ {id:'b4-api-demos',name:'b4-api-demos',status:'official',desc:'Three clean-room demo indicators with the B4 Signal API built in: EMA Cross, RSI Reversal and Donchian Breakout. Every signal-affecting value is an adjustable setting.',
+  lang:'C#',updated:'2026-10-10',zip:'downloads/B4-API-Demos.zip',readme:'README.md',
+  files:['demos/B4ApiDemoEmaCross.cs','demos/B4ApiDemoRsiReversal.cs','demos/B4ApiDemoDonchianBreakout.cs','README.md','LICENSE.txt'],tags:['ema','rsi','donchian','examples']},
+ {id:'b4-nt8-skill-library',name:'b4-nt8-skill-library',status:'official',desc:'Seven skills that teach Claude Code and compatible AI coding assistants to build NinjaTrader 8 indicators the right way: foundations, the B4 Signal API, parameters, verification, rendering, order flow and safe deployment.',
+  lang:'Markdown',updated:'2026-10-10',zip:'downloads/B4-NT8-Skill-Library.zip',readme:'skills/nt8-indicator-foundations/SKILL.md',
+  files:['skills/nt8-indicator-foundations/SKILL.md','skills/nt8-indicator-foundations/templates/IndicatorTemplate.cs','skills/nt8-b4-signal-api/SKILL.md','skills/nt8-adjustable-parameters/SKILL.md',
+   'skills/nt8-build-verification/SKILL.md','skills/nt8-build-verification/errors/NT8_ERROR_DATABASE.md','skills/nt8-drawing-and-rendering/SKILL.md','skills/nt8-order-flow-and-data/SKILL.md','skills/nt8-safe-deployment/SKILL.md'],
+  tags:['ai','skills','claude','rendering','order flow','verification']},
+ {id:'community-indicators',name:'community-indicators',status:'preview',desc:'Indicators built by the community on the public B4 Signal API. Submissions are reviewed for security, compatibility and intellectual property before they are listed. Opening soon.',
+  lang:'C#',updated:'',files:[],tags:['community'],
+  empty:'<p><b>No community projects are listed yet.</b> The community library opens after the review process is in place. Every listing will show its author, compatibility and an honest test status: <i>untested</i>, <i>compiles</i>, <i>historically tested</i> or <i>out-of-sample validated</i>. Popularity is never shown as proof of profitability.</p><p>Built something with the B4 Signal API? Send it to <a href="mailto:info@b4signals.com?subject=B4%20community%20indicator%20submission">info@b4signals.com</a> with a short description. Send source code you wrote yourself only.</p>'},
+ {id:'ai-indicator-lab',name:'ai-indicator-lab',status:'preview',desc:'Your AI-assisted indicator projects: describe an idea, generate a specification and code with the skill library, then compile and validate it. Hosted project space is in development.',
+  lang:'C#',updated:'',files:[],tags:['ai','lab'],
+  empty:'<p><b>Hosted projects are in development.</b> You can already do this on your own computer: load the <a href="#/b4-nt8-skill-library">skill library</a> into your AI coding assistant, start from a <a href="#/b4-api-demos">demo indicator</a>, and follow the build-verification skill before anything goes on a live chart. See <a href="../ai/#build">Build with B4</a>.</p>'}
+];
+const app=document.getElementById('app'), q=document.getElementById('q');
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const chip=s=>s==='official'?'<span class="chip official">Official · B4 reviewed</span>':'<span class="chip preview">Preview</span>';
+const cache={};
+async function get(path){ if(cache[path]!==undefined) return cache[path]; const r=await fetch(KIT+path,{cache:'no-cache'}); if(!r.ok) throw new Error(r.status); return cache[path]=await r.text(); }
+
+function hlCs(src){
+  const kw=/\b(public|private|protected|internal|class|namespace|using|override|void|bool|int|double|float|string|return|if|else|for|foreach|while|new|get|set|true|false|null|var|static|readonly|const|partial|this|base|enum|struct|switch|case|break|continue)\b/g;
+  return src.split('\n').map(line=>{
+    const i=line.indexOf('//'); let code=i>=0?line.slice(0,i):line, com=i>=0?line.slice(i):'';
+    code=esc(code).replace(/&quot;[^&]*?&quot;/g,m=>'<span class="s">'+m+'</span>').replace(kw,'<span class="k">$1</span>').replace(/\b(\d+(\.\d+)?)\b/g,'<span class="t">$1</span>');
+    return code+(com?'<span class="c">'+esc(com)+'</span>':'');
+  }).join('\n');
+}
+function inline(s){
+  return esc(s).replace(/`([^`]+)`/g,'<code>$1</code>').replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\[([^\]]+)\]\((https?:[^)\s]+)\)/g,'<a href="$2" rel="noopener">$1</a>');
+}
+function md(src){
+  const L=src.replace(/\r/g,'').split('\n'); let h='', i=0;
+  if(L[0]==='---'){ i=1; while(i<L.length&&L[i]!=='---') i++; i++; }   // skill front matter
+  while(i<L.length){
+    const l=L[i];
+    if(/^```/.test(l)){ const lang=l.slice(3).trim(); let b=[]; i++; while(i<L.length&&!/^```/.test(L[i])) b.push(L[i++]); i++; h+='<pre><code>'+(/c#|cs|csharp/i.test(lang)?hlCs(b.join('\n')):esc(b.join('\n')))+'</code></pre>'; continue; }
+    if(/^#{1,4} /.test(l)){ const n=l.match(/^#+/)[0].length; h+='<h'+Math.min(n,3)+'>'+inline(l.replace(/^#+ /,''))+'</h'+Math.min(n,3)+'>'; i++; continue; }
+    if(/^\|/.test(l)){ let rows=[]; while(i<L.length&&/^\|/.test(L[i])) rows.push(L[i++]); rows=rows.filter(r=>!/^\|[\s:|-]+\|$/.test(r));
+      h+='<table>'+rows.map((r,k)=>'<tr>'+r.replace(/^\||\|$/g,'').split('|').map(c=>(k?'<td>':'<th>')+inline(c.trim())+(k?'</td>':'</th>')).join('')+'</tr>').join('')+'</table>'; continue; }
+    if(/^\s*([-*]|\d+\.) /.test(l)){ const ord=/^\s*\d+\./.test(l); let it=[]; while(i<L.length&&/^\s*([-*]|\d+\.) /.test(L[i])) it.push(L[i++].replace(/^\s*([-*]|\d+\.) /,'')); h+=(ord?'<ol>':'<ul>')+it.map(x=>'<li>'+inline(x)+'</li>').join('')+(ord?'</ol>':'</ul>'); continue; }
+    if(/^> /.test(l)){ let b=[]; while(i<L.length&&/^> /.test(L[i])) b.push(L[i++].slice(2)); h+='<blockquote>'+inline(b.join(' '))+'</blockquote>'; continue; }
+    if(!l.trim()){ i++; continue; }
+    let p=[]; while(i<L.length&&L[i].trim()&&!/^(#|```|\||\s*([-*]|\d+\.) |> )/.test(L[i])) p.push(L[i++]); h+='<p>'+inline(p.join(' '))+'</p>';
+  }
+  return h;
+}
+function list(filter){
+  const f=(filter||'').toLowerCase().trim();
+  const rows=REPOS.filter(r=>!f||[r.name,r.desc,r.tags.join(' '),r.files.join(' ')].join(' ').toLowerCase().includes(f));
+  app.innerHTML='<div class="crumbs"><span>b4indicators</span> / <b>repositories</b> <span>('+rows.length+')</span></div><div class="repolist">'+
+   (rows.length?rows.map(r=>'<article class="repo"><div><h2><a href="#/'+r.id+'">'+r.name+'</a> '+chip(r.status)+'</h2><p>'+esc(r.desc)+'</p><div class="meta"><span class="lang'+(r.lang==='Markdown'?' md':'')+'">'+r.lang+'</span>'+
+     (r.files.length?'<span>'+r.files.length+' files</span>':'')+(r.updated?'<span>Updated '+r.updated+'</span>':'<span>Opening soon</span>')+'</div></div>'+
+     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+(r.zip?'<a class="btn line" href="'+KIT+r.zip+'" download>Download ZIP</a>':'')+'<a class="btn line" href="#/'+r.id+'">Open</a></div></article>').join('')
+   :'<div class="empty">No repository or file matches "'+esc(filter)+'".</div>')+'</div>';
+}
+async function repo(r, file){
+  const sel=file||r.readme||'';
+  let tree='', lastDir=null;
+  [...r.files].sort().forEach(p=>{ const d=p.includes('/')?p.slice(0,p.lastIndexOf('/')):''; if(d!==lastDir){ tree+=d?'<li class="dir">'+esc(d)+'/</li>':''; lastDir=d; }
+    tree+='<li><a href="#/'+r.id+'/'+p+'"'+(p===sel?' aria-current="true"':'')+'>'+(p.endsWith('.md')?'📄':'🧩')+' '+esc(p.split('/').pop())+'</a></li>'; });
+  app.innerHTML='<div class="crumbs"><a href="#/">repositories</a> / <b>'+r.name+'</b> '+chip(r.status)+'</div>'+
+   (r.files.length?'<div class="layout"><div><nav class="tree" aria-label="Files"><h3>Files</h3><ul>'+tree+'</ul></nav>'+
+    '<aside class="side" style="margin-top:14px"><h3>About</h3><div class="sb">'+esc(r.desc)+'</div><div class="sb"><b>Status</b>'+(r.status==='official'?'Official, reviewed by B4. Compile-checked against NinjaTrader 8 assemblies.':'Preview')+'</div>'+
+    '<div class="sb"><b>Release</b>Initial public release, '+r.updated+'</div><div class="sb"><b>License</b><a href="#/'+r.id+'/LICENSE.txt">See LICENSE</a> (kit license)</div>'+(r.zip?'<div class="sb"><a class="btn" href="'+KIT+r.zip+'" download>Download ZIP</a></div>':'')+'</aside></div>'+
+    '<div class="viewer"><div class="vh"><span class="mono">'+esc(sel)+'</span><a class="btn line" href="'+KIT+sel+'" download>Raw / download</a></div><div id="body"><p style="padding:20px">Loading…</p></div></div></div>'
+   :'<div class="empty">'+r.empty+'</div>');
+  if(!r.files.length||!sel) return;
+  const body=document.getElementById('body');
+  try{ const t=await get(sel); body.innerHTML=sel.endsWith('.md')?'<div class="md">'+md(t)+'</div>':'<pre>'+(sel.endsWith('.cs')?hlCs(t):esc(t))+'</pre>'; }
+  catch(e){ body.innerHTML='<p style="padding:20px">This file could not be loaded. <a href="'+KIT+sel+'">Open it directly</a>.</p>'; }
+}
+function route(){
+  const h=decodeURIComponent(location.hash.replace(/^#\/?/,''));
+  if(!h){ list(q.value); return; }
+  const [id,...rest]=h.split('/'); const r=REPOS.find(x=>x.id===id);
+  if(!r){ list(); return; }
+  const file=rest.join('/'); repo(r, r.files.includes(file)?file:null); scrollTo(0,0);
+}
+q.addEventListener('input',()=>{ if(location.hash&&location.hash!=='#/') location.hash='#/'; list(q.value); });
+addEventListener('hashchange',route); route();
+</script>
+</body></html>
