@@ -142,14 +142,18 @@ document.getElementById('y').textContent=new Date().getFullYear();
   function doCopy(){ navigator.clipboard.writeText($('code').textContent).then(function(){ $('copy').textContent='Copied ✓'; setTimeout(function(){ $('copy').textContent='Copy code'; },1800); }); }
   function doDownload(){ var b=new Blob([$('code').textContent],{type:'text/plain'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=fileName(); document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }
   function gated(fn){ if(unlocked()){ fn(); return; } pendingAction=fn; openGate(); }
-  function openGate(){ var d=$('gate'); var f=d.querySelector('form'); if(f) f.target='_blank'; d.showModal(); }
+  function openGate(){ save(); $('gate').showModal(); }   // the email form is left exactly as provided; the project is saved first
+  var SAVE='b4studio-project';
+  function save(){ try{ localStorage.setItem(SAVE, JSON.stringify({desc:$('desc').value, spec:getSpec()})); }catch(e){} }
+  function restore(){ try{ var j=JSON.parse(localStorage.getItem(SAVE)||'null'); if(j&&j.spec){ $('desc').value=j.desc||''; var s=j.spec; s.period = s.template==='band_break' ? s.period : s.period; setSpec(s); return true; } }catch(e){} return false; }
   // the email form submits in a new tab so your work stays on this page; submitting it unlocks copy and download in this browser
   $('gate').addEventListener('submit',function(){ try{ localStorage.setItem(KEY,'1'); }catch(e){} setTimeout(function(){ $('gate').close(); render(); if(pendingAction){ var f=pendingAction; pendingAction=null; f(); } },300); },true);
   $('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) $('gate').close(); });
   $('read').onclick=function(){ setSpec(S.suggest($('desc').value)); };
   $('copy').onclick=function(){ gated(doCopy); }; $('dl').onclick=function(){ gated(doDownload); }; $('unlock').onclick=function(){ gated(function(){}); };
   ['name','template','maType','fast','slow','osc','period','upper','lower','band','bandMode','bperiod','width','arrows','alerts','colorBars'].forEach(function(id){ $(id).addEventListener('input',render); $(id).addEventListener('change',render); });
-  setSpec(S.suggest($('desc').value));
+  ['desc','name','template','maType','fast','slow','osc','period','upper','lower','band','bandMode','bperiod','width','arrows','alerts','colorBars'].forEach(function(id){ $(id).addEventListener('change',save); });
+  if(!restore()) setSpec(S.suggest($('desc').value));
 })();
 </script>
 </body></html>
