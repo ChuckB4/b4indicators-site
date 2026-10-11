@@ -989,7 +989,8 @@
           break;
         case 'cl_mcginley':
           intP('McGinleyPeriod', 'Period', 'sig', s.mcgPeriod, 1, BY.mcgPeriod.tip); dblP('McGinleyK', 'Constant k', 'sig', s.mcgK, 0.01, BY.mcgK.tip); ser('mdValue');
-          preBody.push('if (CurrentBar == 0 || mdValue[1] <= 0) mdValue[0] = Close[0];',
+          // re-seed on the first bar and whenever the formula leaves its domain (a close or previous value at or below zero would divide by zero)
+          preBody.push('if (CurrentBar == 0 || mdValue[1] <= 0 || Close[0] <= 0) mdValue[0] = Close[0];',
             'else mdValue[0] = mdValue[1] + (Close[0] - mdValue[1]) / (McGinleyK * McGinleyPeriod * Math.Pow(Close[0] / mdValue[1], 4));');
           plot(1, 'McGinley Dynamic'); plotVals.push('mdValue[0]'); warm.push('McGinleyPeriod + 2'); priceCross('mdValue');
           break;
