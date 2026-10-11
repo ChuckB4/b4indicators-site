@@ -105,7 +105,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
 @media(max-width:560px){header .nav>.btn{display:none}.fields{grid-template-columns:1fr}.toolbar{padding:10px}.seg button{padding:6px 10px}select.proj{min-width:0;width:100%}.tgroup{width:100%}}
 </style>
 </head>
-<body>
+<body data-gate-custom>
 <header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>STUDIO</small></span></a>
 <nav class="navlinks" aria-label="Main"><a href="../">Developer kit</a><a href="../repository/">Repository</a><a href="../ai/">B4 Indicator AI</a><a href="./" aria-current="page">Studio</a></nav>
 <a class="btn" href="../repository/">Open the repository</a></div></header>
@@ -206,6 +206,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
 
 <script src="gen.js"></script>
 <script src="../share.js"></script>
+<script src="../gate.js"></script>
 <script>
 document.getElementById('y').textContent=new Date().getFullYear();
 (function(){
@@ -363,7 +364,7 @@ function renderShare(){
     h+='<p class="hint">'+(COMMUNITY_URL?'Paste the post into a new discussion in the right category (Indicators or Strategies). Others can comment, suggest changes and share improved revisions.':'The community forum is being set up. Your post is ready to copy now and to publish when the forum opens.')+'</p>';
   } else h+='<p class="msg">Complete the items above to publish this build to the community forum.</p>';
   $('shareBody').innerHTML=h+shareLinkBlock(s); wireShare();
-  var cp=$('copyPost'); if(cp) cp.onclick=function(){ gated(function(){ navigator.clipboard.writeText(postText(r)).then(function(){ $('postmsg').textContent='Post copied.'; }); }); };
+  var cp=$('copyPost'); if(cp) cp.onclick=function(){ if(unlocked()){ navigator.clipboard.writeText(postText(r)).then(function(){ $('postmsg').textContent='Post copied.'; }); } else gated('post'); };
 }
 function postText(r){
   var s=r.spec, L=['# '+s.name+' ('+(s.kind==='s'?'strategy':'indicator')+', NinjaTrader 8)', '', s.description||'', '', '**Author:** '+s.author+'  ', '**License:** '+s.license+'  ', '**Revision:** r'+r.n+' · spec '+r.hash+' · code sha256 '+r.sha, '', '## Specification'];
@@ -396,22 +397,34 @@ $('generate').onclick=function(){
 
 // ---------------------------------------------------------------- downloads (email-gated)
 function fileDl(name, text, type){ var b=new Blob([text],{type:type||'text/plain'}), a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download=name; document.body.appendChild(a); a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); },500); }
-var pending=null;
-function gated(fn){ if(unlocked()){ fn(); return; } pending=fn; persist(); $('gate').showModal(); }
-$('copy').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){ navigator.clipboard.writeText(r.code).then(function(){ $('copy').textContent='Copied ✓'; setTimeout(function(){ $('copy').textContent='Copy code'; },1600); }); }); };
-$('dl').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){ fileDl(r.spec.className+'.cs', r.code); }); };
-$('dlSpec').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){
-  fileDl(r.spec.className+'.r'+r.n+'.spec.json', JSON.stringify({generator:r.generator, revision:r.n, generatedAt:new Date(r.at).toISOString(), specHash:r.hash, codeSha256:r.sha, visibility:r.spec.visibility,
+// The email form posts away from this page. After the signup the visitor goes to /thanks/, which unlocks downloads and brings them
+// back here (?unlocked=1); the action they asked for is remembered by name and finished then.
+var ACTIONS={
+  download:{label:'Download the .cs file', run:function(r){ fileDl(r.spec.className+'.cs', r.code); }, auto:true},
+  spec:{label:'Download the specification', run:function(r){ fileDl(r.spec.className+'.r'+r.n+'.spec.json', specJson(r), 'application/json'); }, auto:true},
+  copy:{label:'Copy the code', run:function(r){ navigator.clipboard.writeText(r.code).then(function(){ $('copy').textContent='Copied ✓'; setTimeout(function(){ $('copy').textContent='Copy code'; },1600); }); }},
+  post:{label:'Copy the community post', run:function(r){ navigator.clipboard.writeText(postText(r)); }},
+  unlock:{label:'Show the code', run:function(){ showTab('code'); }}
+};
+function specJson(r){ return JSON.stringify({generator:r.generator, revision:r.n, generatedAt:new Date(r.at).toISOString(), specHash:r.hash, codeSha256:r.sha, visibility:r.spec.visibility,
     specification:r.spec, summary:S.specLines(r.spec), assumptions:assumptions(), confirmations:S.confirmations(r.spec), staticChecks:r.checks, testPlan:S.testPlan(r.spec),
-    status:{specificationComplete:true, codeGenerated:true, staticChecksPassed:r.checks.every(function(c){return c.pass;}), compilationPassed:'not run', behavioralTestsPassed:'not run', forwardSimulationPassed:'not run'}}, null, 2), 'application/json'); }); };
-$('unlock').onclick=function(){ gated(function(){}); };
-// unlock only when a valid email was entered; the form itself is left exactly as provided
-$('gate').addEventListener('submit',function(e){
-  var em=e.target.querySelector('input[type=email],input[name*=email i]'), v=em?String(em.value).trim():'';
-  if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)) return;
-  try{ localStorage.setItem(UNLOCK, String(Date.now())); }catch(x){}
-  setTimeout(function(){ $('gate').close(); refresh(false); if(pending){ var f=pending; pending=null; f(); } },300);
-},true);
+    status:{specificationComplete:true, codeGenerated:true, staticChecksPassed:r.checks.every(function(c){return c.pass;}), compilationPassed:'not run', behavioralTestsPassed:'not run', forwardSimulationPassed:'not run'}}, null, 2); }
+function gated(act){ var r=lastRev(); if(!r && act!=='unlock') return showTab('review');
+  if(unlocked()){ ACTIONS[act].run(r); return; }
+  persist(); B4Gate.remember({act:act, project:cur.id}); $('gate').showModal(); }
+function finishReturn(){   // called once on load
+  var p=B4Gate.pending(), back=B4Gate.justReturned(); B4Gate.cleanUrl();
+  if(!back || !p || !ACTIONS[p.act]) return;
+  B4Gate.clear();
+  if(p.project && st.projects[p.project] && cur.id!==p.project){ st.current=p.project; cur=st.projects[p.project]; persist(); $('desc').value=cur.desc; refresh(); }
+  var r=lastRev(), a=ACTIONS[p.act]; showTab('code');
+  B4Gate.banner('Thanks for signing up! Downloads are unlocked'+(r?' for '+r.spec.name:'')+'. Your Developer Kit links are in your email.', a.label, function(){ a.run(lastRev()); });
+  if(a.auto && r) setTimeout(function(){ a.run(r); }, 500);
+}
+$('copy').onclick=function(){ gated('copy'); };
+$('dl').onclick=function(){ gated('download'); };
+$('dlSpec').onclick=function(){ gated('spec'); };
+$('unlock').onclick=function(){ gated('unlock'); };
 $('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) $('gate').close(); });
 
 // ---------------------------------------------------------------- toolbar, tabs, description
@@ -453,6 +466,7 @@ cur = cur || (st.current && st.projects[st.current] ? st.projects[st.current] : 
 $('desc').value=cur.desc; refresh(); showTab('review');
 if(shared){ $('genmsg').className='msg ok'; $('genmsg').textContent='Opened a shared build'+(importedFrom?' by '+importedFrom:'')+'. This is your own private copy: review it and press "Confirm and generate".'; }
 B4Share.render($('footShare'), {url:location.origin+location.pathname, title:'B4 Studio - build NinjaTrader 8 indicators and strategies', text:'Build NinjaTrader 8 indicators and strategies with B4 Studio:', label:'Share B4 Studio', dark:true});
+finishReturn();
 })();
 </script>
 </body></html>

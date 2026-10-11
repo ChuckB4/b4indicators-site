@@ -186,11 +186,6 @@ q.addEventListener('input',()=>{ if(location.hash&&location.hash!=='#/') locatio
 addEventListener('hashchange',route); route();
 </script>
 <dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in"><div class="k">Free download</div><h2 id="gate-title">Get the B4 Developer Kit</h2><p>Enter your name and email and we will send the download links straight to your inbox: the full kit, the three demo indicators and the AI skill library.</p><div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div><small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small></div></dialog>
-<script>
-/* DOWNLOAD-GATE: any download opens the email form; the kit links arrive by email */
-(function(){var d=document.getElementById('gate');if(!d||!d.showModal)return;
-document.addEventListener('click',function(e){var a=e.target.closest('[data-gate]');if(a){e.preventDefault();d.showModal();return;}
-if(e.target.closest('[data-gate-close]')||e.target===d)d.close();});})();
-</script>
 <script src="../share.js"></script>
+<script src="../gate.js"></script>
 </body></html>
