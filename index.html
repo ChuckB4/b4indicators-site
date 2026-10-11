@@ -64,19 +64,29 @@ footer{background:#06121d;color:#a6bbc5;padding:44px 0;font-size:13px}footer a{c
 @media(max-width:900px){.hero-grid,.install{grid-template-columns:1fr}.demo-grid,.rules{grid-template-columns:1fr}.api-row{grid-template-columns:1fr;gap:4px}.api-row:first-child{display:none}.navlinks{display:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.hero-bg{transform:none!important}.skill,.btn{transition:none}}
 .announcement{background:#0e2c3c;color:#cce7e8;font-size:12px;text-align:center;padding:8px 16px}.announcement strong{color:#63e4ce}.announcement a{color:#cce7e8;text-decoration:underline;text-underline-offset:2px}.announcement a:hover{color:#63e4ce}
+
+/* DOWNLOAD-GATE:START */
+dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px #0008}
+dialog.gate::backdrop{background:#04101acc}
+.gate-in{padding:26px 26px 22px;font:16px/1.55 "Raleway",-apple-system,"Segoe UI",sans-serif;color:#102231}
+.gate-in h2{font-weight:300;font-size:28px;margin:6px 0 8px;line-height:1.15}.gate-in .k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#087d73}
+.gate-in p{margin:0 0 12px;color:#5f7180;font-size:15px}.gate-in small{display:block;color:#7a8c97;font-size:12px;margin-top:10px}
+.gate-x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:24px;line-height:1;color:#7a8c97;cursor:pointer}
+.gate .kajabi-form__title,.gate .kajabi-form__subtitle{display:none!important}.gate #kajabi-form{background:transparent!important;padding:0!important;max-width:none!important}
+/* DOWNLOAD-GATE:END */
 </style>
 </head>
 <body>
 <div class="announcement"><strong>BLACK FRIDAY 2026</strong> · <a href="https://b4signals.com/#black-friday">B4 memberships and B4 Quantum, the AI Automated Trade Desk, arriving this Black Friday.</a></div>
 <header><div class="wrap nav"><a class="brand" href="#top"><span class="mark">B4</span><span>B4 INDICATORS<small>DEVELOPER KIT</small></span></a>
 <nav class="navlinks" aria-label="Main"><a href="#api">B4 Signal API</a><a href="#demos">Demo indicators</a><a href="#skills">Skill library</a><a href="repository/">Repository</a><a href="ai/">B4 Indicator AI</a><a href="https://www.b4signals.com/">B4Signals.com</a></nav>
-<a class="btn" href="developer-kit/downloads/B4-Developer-Kit.zip" download>Download kit</a></div></header>
+<a data-gate class="btn" href="developer-kit/downloads/B4-Developer-Kit.zip">Download kit</a></div></header>
 <main id="top">
 <section class="hero" aria-labelledby="hero-title"><div class="hero-bg" aria-hidden="true"></div><div class="wrap hero-grid"><div>
 <div class="kicker">Free · B4 Signal API v1 · NinjaTrader 8</div>
 <h1 id="hero-title">Build indicators that <em>speak B4.</em></h1>
 <p class="lead">The free B4 Signal API, three ready-to-learn demo indicators and the B4 NinjaTrader 8 skill library for AI-assisted development. Everything you need to publish entry and confirmation signals the B4 way.</p>
-<div class="actions"><a class="btn" href="developer-kit/downloads/B4-Developer-Kit.zip" download>Download the free kit ↓</a><a class="btn ghost" href="repository/">Browse the repository</a></div></div>
+<div class="actions"><a data-gate class="btn" href="developer-kit/downloads/B4-Developer-Kit.zip">Download the free kit ↓</a><a class="btn ghost" href="repository/">Browse the repository</a></div></div>
 <div class="code-card" aria-label="Example: publishing a B4 signal"><div class="bar"><span class="dot"></span><span class="dot"></span><span class="dot"></span>&nbsp; OnBarUpdate()</div>
 <pre><span class="c">// reset, then publish for the current bar</span>
 b4BuySignal[<span class="t">0</span>]  = <span class="k">false</span>;
@@ -106,17 +116,17 @@ b4ConfirmationDirection[<span class="t">0</span>] = <span class="t">0</span>;
 <div class="rule"><h3>Exact names, exact attributes</h3><p>Tools match by name. Keep the types, the settings group "B4 CoPilot Pro Integration" and the empty setters.</p></div>
 <div class="rule"><h3>Signals, never orders</h3><p>API indicators publish information only. Execution stays with a strategy or tool the trader controls.</p></div>
 </div>
-<div class="actions"><a class="btn dark" href="developer-kit/skills/nt8-b4-signal-api/SKILL.md">Full API guide</a><a class="btn dark" href="developer-kit/skills/nt8-b4-signal-api/templates/B4SignalApiBlock.cs" download>Copy-paste API block (.cs)</a></div>
+<div class="actions"><a class="btn dark" href="developer-kit/skills/nt8-b4-signal-api/SKILL.md">Full API guide</a><a data-gate class="btn dark" href="developer-kit/skills/nt8-b4-signal-api/templates/B4SignalApiBlock.cs">Copy-paste API block (.cs)</a></div>
 </div></section>
 
 <section id="demos" class="dark" aria-labelledby="demos-title"><div class="wrap"><div class="sectionhead"><div class="kicker">Free demo projects</div><h2 id="demos-title">Three indicators to learn from.</h2>
 <p>Simple, readable NinjaScript written from scratch, each with the B4 Signal API built in. Every signal-affecting value is an adjustable setting.</p></div>
 <div class="demo-grid">
-<article class="demo"><span class="tag">B4ApiDemoEmaCross.cs</span><h3>EMA Cross</h3><p>A fast EMA crossing a slow EMA publishes buy and sell signals; the confirmation series reports the trend side.</p><ul><li>Settings: fast period, slow period</li><li>Confirmation: 1 while fast &gt; slow, -1 while below</li></ul><a class="btn" href="developer-kit/demos/B4ApiDemoEmaCross.cs" download>Download .cs</a></article>
-<article class="demo"><span class="tag">B4ApiDemoRsiReversal.cs</span><h3>RSI Reversal</h3><p>RSI climbing back out of oversold publishes a buy; falling back out of overbought publishes a sell.</p><ul><li>Settings: period, smoothing, oversold, overbought, midline</li><li>Confirmation: RSI above or below the midline</li></ul><a class="btn" href="developer-kit/demos/B4ApiDemoRsiReversal.cs" download>Download .cs</a></article>
-<article class="demo"><span class="tag">B4ApiDemoDonchianBreakout.cs</span><h3>Donchian Breakout</h3><p>A close beyond the previous N-bar channel publishes a breakout signal in that direction.</p><ul><li>Settings: channel period</li><li>Confirmation: direction of the most recent breakout</li></ul><a class="btn" href="developer-kit/demos/B4ApiDemoDonchianBreakout.cs" download>Download .cs</a></article>
+<article class="demo"><span class="tag">B4ApiDemoEmaCross.cs</span><h3>EMA Cross</h3><p>A fast EMA crossing a slow EMA publishes buy and sell signals; the confirmation series reports the trend side.</p><ul><li>Settings: fast period, slow period</li><li>Confirmation: 1 while fast &gt; slow, -1 while below</li></ul><a data-gate class="btn" href="developer-kit/demos/B4ApiDemoEmaCross.cs">Download .cs</a></article>
+<article class="demo"><span class="tag">B4ApiDemoRsiReversal.cs</span><h3>RSI Reversal</h3><p>RSI climbing back out of oversold publishes a buy; falling back out of overbought publishes a sell.</p><ul><li>Settings: period, smoothing, oversold, overbought, midline</li><li>Confirmation: RSI above or below the midline</li></ul><a data-gate class="btn" href="developer-kit/demos/B4ApiDemoRsiReversal.cs">Download .cs</a></article>
+<article class="demo"><span class="tag">B4ApiDemoDonchianBreakout.cs</span><h3>Donchian Breakout</h3><p>A close beyond the previous N-bar channel publishes a breakout signal in that direction.</p><ul><li>Settings: channel period</li><li>Confirmation: direction of the most recent breakout</li></ul><a data-gate class="btn" href="developer-kit/demos/B4ApiDemoDonchianBreakout.cs">Download .cs</a></article>
 </div>
-<div class="actions"><a class="btn ghost" href="developer-kit/downloads/B4-API-Demos.zip" download>Download all three demos (.zip)</a></div>
+<div class="actions"><a data-gate class="btn ghost" href="developer-kit/downloads/B4-API-Demos.zip">Download all three demos (.zip)</a></div>
 </div></section>
 
 <section id="skills" aria-labelledby="skills-title"><div class="wrap"><div class="sectionhead"><div class="kicker">B4 NinjaTrader 8 skill library</div><h2 id="skills-title">Teach your AI assistant to build NT8 the right way.</h2>
@@ -130,7 +140,7 @@ b4ConfirmationDirection[<span class="t">0</span>] = <span class="t">0</span>;
 <article class="skill"><span class="num">06</span><h3>Order Flow &amp; Data</h3><code>nt8-order-flow-and-data</code><p>OnMarketData trade classification, Tick Replay, Level II depth, multiple series and keeping real versus estimated order flow honest.</p><p class="use"><b>Use when:</b> building footprint, delta, CVD, profile or DOM tools.</p></article>
 <article class="skill"><span class="num">07</span><h3>Safe Deployment</h3><code>nt8-safe-deployment</code><p>Back up, deploy only when flat, understand the automatic compile, reload charts and keep a rollback path.</p><p class="use"><b>Use when:</b> installing or updating NinjaScript on a live platform.</p></article>
 </div>
-<div class="actions"><a class="btn dark" href="developer-kit/downloads/B4-NT8-Skill-Library.zip" download>Download the skill library (.zip)</a></div>
+<div class="actions"><a data-gate class="btn dark" href="developer-kit/downloads/B4-NT8-Skill-Library.zip">Download the skill library (.zip)</a></div>
 </div></section>
 
 <section id="ai" class="dark" aria-labelledby="ai-title"><div class="wrap"><div class="sectionhead"><div class="kicker">New · B4 Indicator AI</div><h2 id="ai-title">Build smarter. Learn faster. Research with AI.</h2><p>Browse the B4 Indicators repository, build your own indicators with an AI coding assistant, and follow what is coming next. B4 proprietary technology stays protected.</p></div><div class="demo-grid"><article class="demo"><span class="tag">Available now</span><h3>Repository</h3><p>A GitHub-style browser for every public project: the B4 Signal API, the demo indicators and the skill library, with source, documentation and downloads.</p><a class="btn" href="repository/">Open the repository</a></article><article class="demo"><span class="tag">Available now</span><h3>Build with B4</h3><p>Describe an indicator in plain language; your AI coding assistant builds and verifies it with the skill library and the public API.</p><a class="btn" href="ai/#build">See how</a></article><article class="demo"><span class="tag">Preview</span><h3>Ask and Test with B4</h3><p>An assistant grounded in data you authorize, and reproducible research on your own ideas. In development; not yet available.</p><a class="btn" href="ai/">Learn more</a></article></div></div></section>
@@ -151,5 +161,12 @@ document.getElementById('y').textContent=new Date().getFullYear();
 (()=>{const bg=document.querySelector('.hero-bg');const rm=matchMedia('(prefers-reduced-motion: reduce)');let t=false;
 function u(){t=false;if(rm.matches||innerWidth<650){bg.style.setProperty('--py','0px');return}bg.style.setProperty('--py',Math.min(80,scrollY*0.3).toFixed(1)+'px')}
 addEventListener('scroll',()=>{if(!t){t=true;requestAnimationFrame(u)}},{passive:true});u();})();
+</script>
+<dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in"><div class="k">Free download</div><h2 id="gate-title">Get the B4 Developer Kit</h2><p>Enter your name and email and we will send the download links straight to your inbox: the full kit, the three demo indicators and the AI skill library.</p><div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div><small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small></div></dialog>
+<script>
+/* DOWNLOAD-GATE: any download opens the email form; the kit links arrive by email */
+(function(){var d=document.getElementById('gate');if(!d||!d.showModal)return;
+document.addEventListener('click',function(e){var a=e.target.closest('[data-gate]');if(a){e.preventDefault();d.showModal();return;}
+if(e.target.closest('[data-gate-close]')||e.target===d)d.close();});})();
 </script>
 </body></html>

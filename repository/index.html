@@ -59,12 +59,22 @@ footer{background:#06121d;color:#a6bbc5;padding:36px 0;font-size:13px}footer a{c
 @media(max-width:560px){header .nav>.btn{display:none}}
 :focus-visible{outline:3px solid var(--teal);outline-offset:2px}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.navlinks{display:none}.repo{grid-template-columns:1fr}.viewer pre{max-height:60vh}}
+
+/* DOWNLOAD-GATE:START */
+dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px #0008}
+dialog.gate::backdrop{background:#04101acc}
+.gate-in{padding:26px 26px 22px;font:16px/1.55 "Raleway",-apple-system,"Segoe UI",sans-serif;color:#102231}
+.gate-in h2{font-weight:300;font-size:28px;margin:6px 0 8px;line-height:1.15}.gate-in .k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#087d73}
+.gate-in p{margin:0 0 12px;color:#5f7180;font-size:15px}.gate-in small{display:block;color:#7a8c97;font-size:12px;margin-top:10px}
+.gate-x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:24px;line-height:1;color:#7a8c97;cursor:pointer}
+.gate .kajabi-form__title,.gate .kajabi-form__subtitle{display:none!important}.gate #kajabi-form{background:transparent!important;padding:0!important;max-width:none!important}
+/* DOWNLOAD-GATE:END */
 </style>
 </head>
 <body>
 <header><div class="wrap nav"><a class="brand" href="../"><span class="mark">B4</span><span>B4 INDICATORS<small>REPOSITORY</small></span></a>
 <nav class="navlinks" aria-label="Main"><a href="../#api">B4 Signal API</a><a href="../#demos">Demo indicators</a><a href="../#skills">Skill library</a><a href="./" aria-current="page">Repository</a><a href="../ai/">B4 Indicator AI</a></nav>
-<a class="btn" href="../developer-kit/downloads/B4-Developer-Kit.zip" download>Download kit</a></div></header>
+<a data-gate class="btn" href="../developer-kit/downloads/B4-Developer-Kit.zip">Download kit</a></div></header>
 
 <section class="top"><div class="wrap">
 <div class="kicker">B4 Indicators · Repository</div>
@@ -142,7 +152,7 @@ function list(filter){
   app.innerHTML='<div class="crumbs"><span>b4indicators</span> / <b>repositories</b> <span>('+rows.length+')</span></div><div class="repolist">'+
    (rows.length?rows.map(r=>'<article class="repo"><div><h2><a href="#/'+r.id+'">'+r.name+'</a> '+chip(r.status)+'</h2><p>'+esc(r.desc)+'</p><div class="meta"><span class="lang'+(r.lang==='Markdown'?' md':'')+'">'+r.lang+'</span>'+
      (r.files.length?'<span>'+r.files.length+' files</span>':'')+(r.updated?'<span>Updated '+r.updated+'</span>':'<span>Opening soon</span>')+'</div></div>'+
-     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+(r.zip?'<a class="btn line" href="'+KIT+r.zip+'" download>Download ZIP</a>':'')+'<a class="btn line" href="#/'+r.id+'">Open</a></div></article>').join('')
+     '<div style="display:flex;gap:8px;flex-wrap:wrap">'+(r.zip?'<a data-gate class="btn line" href="'+KIT+r.zip+'">Download ZIP</a>':'')+'<a class="btn line" href="#/'+r.id+'">Open</a></div></article>').join('')
    :'<div class="empty">No repository or file matches "'+esc(filter)+'".</div>')+'</div>';
 }
 async function repo(r, file){
@@ -153,8 +163,8 @@ async function repo(r, file){
   app.innerHTML='<div class="crumbs"><a href="#/">repositories</a> / <b>'+r.name+'</b> '+chip(r.status)+'</div>'+
    (r.files.length?'<div class="layout"><div><nav class="tree" aria-label="Files"><h3>Files</h3><ul>'+tree+'</ul></nav>'+
     '<aside class="side" style="margin-top:14px"><h3>About</h3><div class="sb">'+esc(r.desc)+'</div><div class="sb"><b>Status</b>'+(r.status==='official'?'Official, reviewed by B4. Compile-checked against NinjaTrader 8 assemblies.':'Preview')+'</div>'+
-    '<div class="sb"><b>Release</b>Initial public release, '+r.updated+'</div><div class="sb"><b>License</b><a href="#/'+r.id+'/LICENSE.txt">See LICENSE</a> (kit license)</div>'+(r.zip?'<div class="sb"><a class="btn" href="'+KIT+r.zip+'" download>Download ZIP</a></div>':'')+'</aside></div>'+
-    '<div class="viewer"><div class="vh"><span class="mono">'+esc(sel)+'</span><a class="btn line" href="'+KIT+sel+'" download>Raw / download</a></div><div id="body"><p style="padding:20px">Loading…</p></div></div></div>'
+    '<div class="sb"><b>Release</b>Initial public release, '+r.updated+'</div><div class="sb"><b>License</b><a href="#/'+r.id+'/LICENSE.txt">See LICENSE</a> (kit license)</div>'+(r.zip?'<div class="sb"><a data-gate class="btn" href="'+KIT+r.zip+'">Download ZIP</a></div>':'')+'</aside></div>'+
+    '<div class="viewer"><div class="vh"><span class="mono">'+esc(sel)+'</span><a data-gate class="btn line" href="'+KIT+sel+'">Download file</a></div><div id="body"><p style="padding:20px">Loading…</p></div></div></div>'
    :'<div class="empty">'+r.empty+'</div>');
   if(!r.files.length||!sel) return;
   const body=document.getElementById('body');
@@ -170,5 +180,12 @@ function route(){
 }
 q.addEventListener('input',()=>{ if(location.hash&&location.hash!=='#/') location.hash='#/'; list(q.value); });
 addEventListener('hashchange',route); route();
+</script>
+<dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in"><div class="k">Free download</div><h2 id="gate-title">Get the B4 Developer Kit</h2><p>Enter your name and email and we will send the download links straight to your inbox: the full kit, the three demo indicators and the AI skill library.</p><div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div><small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small></div></dialog>
+<script>
+/* DOWNLOAD-GATE: any download opens the email form; the kit links arrive by email */
+(function(){var d=document.getElementById('gate');if(!d||!d.showModal)return;
+document.addEventListener('click',function(e){var a=e.target.closest('[data-gate]');if(a){e.preventDefault();d.showModal();return;}
+if(e.target.closest('[data-gate-close]')||e.target===d)d.close();});})();
 </script>
 </body></html>

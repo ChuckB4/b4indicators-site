@@ -52,6 +52,16 @@ footer{background:#06121d;color:#a6bbc5;padding:40px 0;font-size:13px}footer a{c
 :focus-visible{outline:3px solid var(--teal);outline-offset:3px}
 @media(max-width:900px){.flag,.road,.ip,.steps{grid-template-columns:1fr}.tr{grid-template-columns:1fr;gap:4px}.tr:first-child{display:none}.navlinks{display:none}}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+/* DOWNLOAD-GATE:START */
+dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 32px));box-shadow:0 30px 80px #0008}
+dialog.gate::backdrop{background:#04101acc}
+.gate-in{padding:26px 26px 22px;font:16px/1.55 "Raleway",-apple-system,"Segoe UI",sans-serif;color:#102231}
+.gate-in h2{font-weight:300;font-size:28px;margin:6px 0 8px;line-height:1.15}.gate-in .k{font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#087d73}
+.gate-in p{margin:0 0 12px;color:#5f7180;font-size:15px}.gate-in small{display:block;color:#7a8c97;font-size:12px;margin-top:10px}
+.gate-x{position:absolute;top:10px;right:12px;border:0;background:none;font-size:24px;line-height:1;color:#7a8c97;cursor:pointer}
+.gate .kajabi-form__title,.gate .kajabi-form__subtitle{display:none!important}.gate #kajabi-form{background:transparent!important;padding:0!important;max-width:none!important}
+/* DOWNLOAD-GATE:END */
 </style>
 </head>
 <body>
@@ -135,4 +145,11 @@ footer{background:#06121d;color:#a6bbc5;padding:40px 0;font-size:13px}footer a{c
 <p>For educational and research purposes only. Not trading advice. Trading involves substantial risk and is not suitable for every participant. Past performance does not guarantee future results. Preview features are in development and are not available until announced. Existing B4 memberships, pricing and customer rights are unchanged. NinjaTrader® is a registered trademark of NinjaTrader Group, LLC; no affiliation or endorsement is implied.</p>
 <p>© <span id="y"></span> TopTech Digital LLC. All Rights Reserved.</p></div></footer>
 <script>document.getElementById('y').textContent=new Date().getFullYear();</script>
+<dialog class="gate" id="gate" aria-labelledby="gate-title"><button class="gate-x" type="button" aria-label="Close" data-gate-close>&times;</button><div class="gate-in"><div class="k">Free download</div><h2 id="gate-title">Get the B4 Developer Kit</h2><p>Enter your name and email and we will send the download links straight to your inbox: the full kit, the three demo indicators and the AI skill library.</p><div class="kjb-embed"><script src="https://b4signals.mykajabi.com/forms/2149749720/embed.js"></script></div><small>You will also receive occasional B4 Indicators updates. Unsubscribe any time. We do not sell or share your information.</small></div></dialog>
+<script>
+/* DOWNLOAD-GATE: any download opens the email form; the kit links arrive by email */
+(function(){var d=document.getElementById('gate');if(!d||!d.showModal)return;
+document.addEventListener('click',function(e){var a=e.target.closest('[data-gate]');if(a){e.preventDefault();d.showModal();return;}
+if(e.target.closest('[data-gate-close]')||e.target===d)d.close();});})();
+</script>
 </body></html>
