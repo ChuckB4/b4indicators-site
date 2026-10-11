@@ -5,7 +5,7 @@ description: Build NinjaTrader 8 (NinjaScript C#) indicators correctly from the 
 
 # NT8 Indicator Foundations
 
-The rules every NinjaTrader 8 indicator must follow. Each rule is tied to documented NT8 behaviour; when in doubt, open the
+The rules every NinjaTrader 8 indicator must follow. Each rule is tied to documented NT8 behavior; when in doubt, open the
 official NinjaScript Language Reference (ninjatrader.com/support/helpGuides/nt8) before writing code - never guess a signature.
 
 ## 1. Lifecycle: put each thing in its state
@@ -34,11 +34,11 @@ protected override void OnBarUpdate()
 - Guard every `[n]` lookback: reading `Close[n]` needs `CurrentBar >= n`.
 - Cache indicators in DataLoaded; calling `EMA(Close, 9)[0]` inside OnBarUpdate is legal but wasteful and hides intent.
 
-## 3. Calculate modes change behaviour
+## 3. Calculate modes change behavior
 - `Calculate.OnBarClose` - one call per closed bar. Simplest; signals cannot repaint within the bar.
 - `Calculate.OnPriceChange` / `OnEachTick` - many calls per bar. Use `IsFirstTickOfBar` for once-per-bar work, and
   decide whether a signal is final at the close (`Bars.IsLastBarOfSession`, or check the previous bar) to avoid flicker.
-- Historical bars run as OnBarClose unless Tick Replay is enabled - test both historical and real-time behaviour.
+- Historical bars run as OnBarClose unless Tick Replay is enabled - test both historical and real-time behavior.
 
 ## 4. Plots, lines and values
 ```csharp

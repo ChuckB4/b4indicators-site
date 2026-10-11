@@ -175,7 +175,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
     <div class="step">5 · Validation</div><h2>Build status - each step is earned separately</h2>
     <ol class="ladder" id="ladder"></ol>
     <div class="sec"><h3>Static checks on this revision</h3><table class="checks" id="checks"></table></div>
-    <p class="hint">A compiled file is not proof of correct trading behaviour, and a simulation result is not proof of future results.</p>
+    <p class="hint">A compiled file is not proof of correct trading behavior, and a simulation result is not proof of future results.</p>
   </section>
 
   <section role="tabpanel" id="p-hist" aria-labelledby="t-hist" hidden>
@@ -214,7 +214,8 @@ var $=function(id){return document.getElementById(id)}, S=window.B4Studio, STORE
 var COMMUNITY_URL=null;   // set to the community discussions URL once the community repository is live
 var ESSENTIAL={visibility:1,author:1,license:1,name:1,sig:1,maType:1,fast:1,slow:1,maLen:1,osc:1,oscLen:1,oscMode:1,upper:1,lower:1,macdMode:1,band:1,bandLen:1,width:1,bandMode:1,nbarLen:1,dmiLen:1,candle:1,
   side:1,fTrend:1,fTrendLen:1,fSess:1,sessStart:1,sessEnd:1,alerts:1,alertSound:1,marker:1,buyColor:1,sellColor:1,entryType:1,qtyMode:1,qty:1,riskUsd:1,maxQty:1,exitOpp:1,reverse:1,
-  stopMode:1,stopTicks:1,stopAtr:1,stopPct:1,swingLen:1,tgtMode:1,tgtR:1,tgtTicks:1,tgtAtr:1,beOn:1,trailMode:1,trailTicks:1,trailAtr:1,dailyLoss:1,maxTrades:1,flatOn:1,flatTime:1,accounts:1};
+  stopMode:1,stopTicks:1,stopAtr:1,stopPct:1,swingLen:1,tgtMode:1,tgtR:1,tgtTicks:1,tgtAtr:1,beOn:1,trailMode:1,trailTicks:1,trailAtr:1,dailyLoss:1,maxTrades:1,flatOn:1,flatTime:1,accounts:1,
+  labels:1,palette:1,fontSize:1,labelText:1,table:1,tablePos:1,alertMode:1,alertSoundSell:1,plotColor1:1,plotColor2:1};
 var st=load(), cur=null, tab='review', diffOpen=null;
 
 // ---------------------------------------------------------------- storage
@@ -249,6 +250,7 @@ function writeFields(sp){ S.FIELDS.forEach(function(f){ var el=$('f_'+f.id); if(
 function onField(f){
   var raw=readFields();
   if(f.id==='osc'){ raw.upper=S.OSC[raw.osc].up; raw.lower=S.OSC[raw.osc].lo; $('f_upper').value=raw.upper; $('f_lower').value=raw.lower; }
+  if(f.id==='buyColor'||f.id==='sellColor'){ raw.palette='custom'; cur.touched.palette=1; }   // picking a color by hand means custom colors
   cur.touched[f.id]=1; cur.spec=S.normalize(raw); cur.confirmed={}; persist(); refresh(f.t==='sel'||f.t==='chk');
 }
 
@@ -303,7 +305,7 @@ function renderValid(){
     ['Code generated', r?'Revision '+r.n+' created '+new Date(r.at).toLocaleString()+'. Not compiled.':'Not generated yet.', r?'ok':'no'],
     ['Static checks passed', r?(allPass?checks.length+' structural, safety, API and IP checks passed in your browser.':'Some checks failed - see below.'):'Runs on each revision.', r?(allPass?'ok':'bad'):'no'],
     ['Compilation passed', 'Not run for this file. The generator\'s templates (72 variants) compiled with 0 errors and 0 warnings against NinjaTrader 8 on 2026-10-10. Compile this file yourself (F5).', 'no'],
-    ['Behavioural tests passed', 'Not run. Follow the test plan on the Review tab and record your results.', 'no'],
+    ['Behavioral tests passed', 'Not run. Follow the test plan on the Review tab and record your results.', 'no'],
     ['Forward simulation passed', r&&r.spec.kind==='s'?'Not run. At least 20 sessions on a simulation account before any live use.':'Not run.', 'no']];
   $('ladder').innerHTML=L.map(function(x,i){ var lab=x[2]==='ok'?'<span class="status ok">Earned</span>':x[2]==='bad'?'<span class="status bad">Failed</span>':'<span class="status no">Not earned</span>'; return '<li class="'+x[2]+'"><span class="n">'+(i+1)+'</span><span><b>'+x[0]+'</b><small>'+esc(x[1])+'</small></span>'+lab+'</li>'; }).join('');
   $('checks').innerHTML = r ? checks.map(function(c){ return '<tr><td class="'+(c.pass?'p':'f')+'">'+(c.pass?'PASS':'FAIL')+'</td><td>'+esc(c.name)+(c.detail?' <span style="color:#7a8c97">('+esc(c.detail)+')</span>':'')+'</td></tr>'; }).join('') : '<tr><td></td><td>No revision yet.</td></tr>';
@@ -366,7 +368,7 @@ function renderShare(){
 function postText(r){
   var s=r.spec, L=['# '+s.name+' ('+(s.kind==='s'?'strategy':'indicator')+', NinjaTrader 8)', '', s.description||'', '', '**Author:** '+s.author+'  ', '**License:** '+s.license+'  ', '**Revision:** r'+r.n+' · spec '+r.hash+' · code sha256 '+r.sha, '', '## Specification'];
   S.specLines(s).forEach(function(l){ L.push('- **'+l[0]+':** '+l[1]); });
-  L.push('', '## Status', '- Static checks: '+r.checks.filter(function(c){return c.pass;}).length+'/'+r.checks.length+' passed', '- Compiled by the author: not yet reported', '- Behavioural tests: not yet reported', '', '## Test plan');
+  L.push('', '## Status', '- Static checks: '+r.checks.filter(function(c){return c.pass;}).length+'/'+r.checks.length+' passed', '- Compiled by the author: not yet reported', '- Behavioral tests: not yet reported', '', '## Test plan');
   S.testPlan(s).forEach(function(t){ L.push('- **'+t.name+':** '+t.how); });
   L.push('', '## Source', '```csharp', r.code.replace(/\r\n/g,'\n'), '```', '', '_Built with B4 Studio. Educational and research use only. Not trading advice. Not a B4 release; not reviewed for profitability or live-trading safety._');
   return L.join('\n');
@@ -401,7 +403,7 @@ $('dl').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); ga
 $('dlSpec').onclick=function(){ var r=lastRev(); if(!r) return showTab('review'); gated(function(){
   fileDl(r.spec.className+'.r'+r.n+'.spec.json', JSON.stringify({generator:r.generator, revision:r.n, generatedAt:new Date(r.at).toISOString(), specHash:r.hash, codeSha256:r.sha, visibility:r.spec.visibility,
     specification:r.spec, summary:S.specLines(r.spec), assumptions:assumptions(), confirmations:S.confirmations(r.spec), staticChecks:r.checks, testPlan:S.testPlan(r.spec),
-    status:{specificationComplete:true, codeGenerated:true, staticChecksPassed:r.checks.every(function(c){return c.pass;}), compilationPassed:'not run', behaviouralTestsPassed:'not run', forwardSimulationPassed:'not run'}}, null, 2), 'application/json'); }); };
+    status:{specificationComplete:true, codeGenerated:true, staticChecksPassed:r.checks.every(function(c){return c.pass;}), compilationPassed:'not run', behavioralTestsPassed:'not run', forwardSimulationPassed:'not run'}}, null, 2), 'application/json'); }); };
 $('unlock').onclick=function(){ gated(function(){}); };
 // unlock only when a valid email was entered; the form itself is left exactly as provided
 $('gate').addEventListener('submit',function(e){
@@ -441,7 +443,7 @@ buildGroups();
 if(!st.mode) st.mode='guided';
 Object.keys(st.projects).forEach(function(id){ st.projects[id].spec=S.normalize(st.projects[id].spec); });   // stored projects are re-validated by the current generator on every load
 var shared=readLink(), importedFrom=null;
-if(shared){   // a shared build: validate through the same normaliser as every other input, open it as the visitor's own private copy
+if(shared){   // a shared build: validate through the same normalizer as every other input, open it as the visitor's own private copy
   var sp=S.normalize(Object.assign(S.defaults(shared.kind==='s'?'s':'i'), shared, {visibility:'private'}));
   importedFrom=sp.author; cur=newProject(sp.kind, sp, 'Opened from a shared link: '+sp.name+(sp.author?' by '+sp.author:'')+'.');
   Object.keys(shared).forEach(function(k){ cur.touched[k]=1; }); persist();

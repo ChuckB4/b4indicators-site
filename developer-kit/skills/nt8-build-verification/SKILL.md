@@ -11,7 +11,7 @@ never imply it passed. "Looks correct" and "should work" are not results.
 | Gate | Pass means |
 |---|---|
 | 1. Requirement | The exact change, files, classes and the features that must NOT change are written down. Ambiguous request = stop and ask. |
-| 2. NT8 API | Every NinjaScript call used was checked in the official Language Reference (signature, lifecycle state, historical vs real-time behaviour). No API borrowed from another platform. |
+| 2. NT8 API | Every NinjaScript call used was checked in the official Language Reference (signature, lifecycle state, historical vs real-time behavior). No API borrowed from another platform. |
 | 3. Existing code | You read the code you are changing and what depends on it. You extend what exists rather than building a parallel copy. |
 | 4. Compile | Compiled for real, 0 errors. Warnings read and explained. |
 | 5. Functional | Loaded on a chart (or run in Strategy Analyzer / Playback) and the feature behaves as specified on historical and real-time bars. |

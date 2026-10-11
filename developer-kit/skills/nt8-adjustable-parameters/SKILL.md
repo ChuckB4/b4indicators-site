@@ -1,6 +1,6 @@
 ---
 name: nt8-adjustable-parameters
-description: Make every trading-relevant value in a NinjaTrader 8 indicator or strategy a visible, adjustable setting with a sensible default - no hard-wired thresholds, periods, offsets or risk values. Use when writing new NinjaScript, reviewing code for "magic numbers", or converting an existing script's constants into settings without changing its behaviour.
+description: Make every trading-relevant value in a NinjaTrader 8 indicator or strategy a visible, adjustable setting with a sensible default - no hard-wired thresholds, periods, offsets or risk values. Use when writing new NinjaScript, reviewing code for "magic numbers", or converting an existing script's constants into settings without changing its behavior.
 ---
 
 # NT8 Adjustable Parameters (no hard-wired trading values)
@@ -16,7 +16,7 @@ Periods, lookbacks and smoothing; thresholds, levels and score bands; confirmati
 stop, target and trailing distances; position size and risk limits; session and time windows; regime cut-offs; the
 settings of any indicator you host inside your script.
 
-Display-only values (colours, widths, fonts) should be settings too where practical, but trading values are mandatory.
+Display-only values (colors, widths, fonts) should be settings too where practical, but trading values are mandatory.
 
 ## Pattern
 ```csharp
@@ -30,11 +30,11 @@ public double Oversold { get; set; }          // default set in SetDefaults: Ove
 - Name settings in trader language, with units: "Stop distance (ticks)", "Session start (HHmm)".
 - Brushes as settings need `[XmlIgnore]` plus a serializable string twin:
   ```csharp
-  [XmlIgnore] [Display(Name = "Up colour", GroupName = "2. Display")] public Brush UpBrush { get; set; }
+  [XmlIgnore] [Display(Name = "Up color", GroupName = "2. Display")] public Brush UpBrush { get; set; }
   [Browsable(false)] public string UpBrushSerializable { get { return Serialize.BrushToString(UpBrush); } set { UpBrush = Serialize.StringToBrush(value); } }
   ```
 
-## Converting an existing script (behaviour must not change)
+## Converting an existing script (behavior must not change)
 1. Inventory every literal that affects trading, with file and line.
 2. Add one property per value; default = the literal it replaces.
 3. Replace the literal with the property. Nothing else changes - no renames, no cleanup.
@@ -46,4 +46,4 @@ public double Oversold { get; set; }          // default set in SetDefaults: Ove
 ## Review checklist
 - [ ] Search the code for numeric literals inside OnBarUpdate / signal methods: each is a setting or justified.
 - [ ] Every setting has a unit, a range and a default.
-- [ ] Defaults reproduce the documented behaviour.
+- [ ] Defaults reproduce the documented behavior.

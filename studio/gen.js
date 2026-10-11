@@ -6,7 +6,7 @@
 
   var VERSION = 'B4 Studio template generator 2.0 (2026-10-10)';
 
-  // ---------------------------------------------------------------- catalogues
+  // ---------------------------------------------------------------- catalogs
   var MA = [['EMA', 'EMA - exponential'], ['SMA', 'SMA - simple'], ['WMA', 'WMA - weighted'], ['HMA', 'HMA - Hull'],
     ['DEMA', 'DEMA - double exponential'], ['TEMA', 'TEMA - triple exponential'], ['TMA', 'TMA - triangular'],
     ['ZLEMA', 'ZLEMA - zero lag'], ['VWMA', 'VWMA - volume weighted'], ['KAMA', 'KAMA - Kaufman adaptive'],
@@ -30,17 +30,24 @@
     hammer: ['Hammer / Shooting star', 'Hammer', 'ShootingStar'], piercing: ['Piercing line / Dark cloud cover', 'PiercingLine', 'DarkCloudCover'],
     methods: ['Rising / Falling three methods', 'RisingThreeMethods', 'FallingThreeMethods']
   };
-  var COLORS = ['LimeGreen', 'Lime', 'SpringGreen', 'MediumSeaGreen', 'DodgerBlue', 'DeepSkyBlue', 'Cyan', 'Gold', 'Orange', 'OrangeRed', 'Red', 'Crimson', 'Magenta', 'Violet', 'White', 'Silver', 'Gray'];
+  var COLORS = ['LimeGreen', 'Lime', 'SpringGreen', 'MediumSeaGreen', 'Teal', 'DodgerBlue', 'DeepSkyBlue', 'SteelBlue', 'Navy', 'Cyan', 'Gold', 'Goldenrod', 'Yellow', 'Orange', 'OrangeRed',
+    'Red', 'Crimson', 'Magenta', 'Violet', 'White', 'Silver', 'Gray', 'DimGray', 'DarkSlateGray', 'Black'];
+  var PALETTES = { standard: ['LimeGreen', 'Red'], colorblind: ['DodgerBlue', 'Orange'], highcontrast: ['Lime', 'Magenta'], mono: ['White', 'Gray'] };
+  var LABEL_WORDS = { buysell: ['BUY', 'SELL'], longshort: ['LONG', 'SHORT'], arrows: ['\\u25B2', '\\u25BC'] };   // arrows are C# unicode escapes (ASCII-safe source)
   var SOUNDS = [['Alert1.wav', 'Alert 1'], ['Alert2.wav', 'Alert 2'], ['Alert3.wav', 'Alert 3'], ['Alert4.wav', 'Alert 4'], ['Announcement.wav', 'Announcement'], ['', 'No sound']];
   var RESERVED = /^(Indicator|Strategy|Close|Open|High|Low|Volume|Time|Input|Values|Alert|Draw|Print|SMA|EMA|WMA|HMA|DEMA|TEMA|TMA|ZLEMA|VWMA|KAMA|T3|LinReg|RSI|CCI|Stochastics|StochRSI|WilliamsR|MFI|CMO|ROC|Momentum|UltimateOscillator|MACD|DM|ADX|ATR|MAX|MIN|Bollinger|KeltnerChannel|DonchianChannel|ParabolicSAR|CandlestickPattern|Swing|VMA|B4SignalApi)$/;
-  var GROUPS = [['proj', 'Project'], ['sig', 'Signal'], ['flt', 'Filters'], ['disp', 'Display'], ['alr', 'Alerts'], ['ord', 'Entries and sizing'], ['exit', 'Exits'], ['risk', 'Risk limits and safety']];
-  var GN = { sig: '1. Signal', flt: '2. Filters', disp: '3. Display', alr: '4. Alerts', ord: '5. Entries and sizing', exit: '6. Exits', risk: '7. Risk limits' };
+  var GROUPS = [['proj', 'Project'], ['sig', 'Signal'], ['flt', 'Filters'], ['disp', 'Display and styling'], ['read', 'Readability'], ['tbl', 'On-chart table'], ['alr', 'Alerts'],
+    ['ord', 'Entries and sizing'], ['exit', 'Exits'], ['risk', 'Risk limits and safety']];
+  var GN = { sig: '1. Signal', flt: '2. Filters', disp: '3. Display and styling', read: '4. Readability', tbl: '5. On-chart table', alr: '6. Alerts', ord: '7. Entries and sizing', exit: '8. Exits', risk: '9. Risk limits' };
+  function twoLines(s) { return s.sig === 'ma_cross' || s.sig === 'macd' || s.sig === 'band' || s.sig === 'nbar' || s.sig === 'dmi'; }
+  function hasLevels(s) { return s.sig === 'osc' || s.sig === 'macd'; }
+  var TEXT_MAX = { name: 60, buyWord: 20, sellWord: 20, alertBuyText: 40, alertSellText: 40 };
 
   function opts(list) { return list.map(function (x) { return Array.isArray(x) ? x : [x, x]; }); }
   function isMa(s) { return s.sig === 'ma_cross' || s.sig === 'price_ma' || s.sig === 'ma_slope'; }
   function anyAtr(s) { return s.stopMode === 'atr' || s.tgtMode === 'atr' || s.trailMode === 'atr'; }
 
-  // ---------------------------------------------------------------- field schema (drives the page, normalisation and tooltips)
+  // ---------------------------------------------------------------- field schema (drives the page, normalization and tooltips)
   var FIELDS = [
     { id: 'visibility', t: 'sel', g: 'proj', l: 'Visibility', d: 'private', o: [['private', 'Private - only in this browser'], ['public', 'Public - share with the community']], tip: 'Private builds stay in your browser. Public builds are shared as open source for the community to discuss and improve, and must pass stricter requirements.' },
     { id: 'author', t: 'text', g: 'proj', l: 'Author (attribution)', d: '', tip: 'Your name or handle, written into the file header. Required for public builds.' },
@@ -100,20 +107,53 @@
     { id: 'cooldown', t: 'num', g: 'flt', l: 'Cool-down bars', d: 0, min: 0, max: 1000, tip: 'Minimum bars between two signals. 0 = no cool-down.' },
 
     { id: 'marker', t: 'sel', g: 'disp', l: 'Marker', d: 'arrow', k: 'i', o: [['arrow', 'Arrows'], ['triangle', 'Triangles'], ['dot', 'Dots'], ['diamond', 'Diamonds'], ['square', 'Squares'], ['none', 'No markers']], tip: 'Shape drawn on each signal bar.' },
-    { id: 'buyColor', t: 'sel', g: 'disp', l: 'Buy colour', d: 'LimeGreen', k: 'i', o: COLORS, tip: 'Colour of buy markers, labels, bars and shading. Can be changed later in NinjaTrader.' },
-    { id: 'sellColor', t: 'sel', g: 'disp', l: 'Sell colour', d: 'Red', k: 'i', o: COLORS, tip: 'Colour of sell markers, labels, bars and shading.' },
+    { id: 'buyColor', t: 'sel', g: 'disp', l: 'Buy color', d: 'LimeGreen', k: 'i', o: COLORS, tip: 'Color of buy markers, labels, bars and shading. Can be changed later in NinjaTrader.' },
+    { id: 'sellColor', t: 'sel', g: 'disp', l: 'Sell color', d: 'Red', k: 'i', o: COLORS, tip: 'Color of sell markers, labels, bars and shading.' },
     { id: 'markerOffset', t: 'num', g: 'disp', l: 'Marker offset (ticks)', d: 2, min: 0, max: 200, k: 'i', tip: 'Distance between the bar and the marker.' },
-    { id: 'labels', t: 'chk', g: 'disp', l: 'BUY / SELL text', d: false, k: 'i', tip: 'Writes BUY or SELL next to each marker.' },
-    { id: 'colorBars', t: 'chk', g: 'disp', l: 'Colour signal bars', d: false, k: 'i', tip: 'Paints the signal bar in the buy or sell colour.' },
+    { id: 'labels', t: 'chk', g: 'disp', l: 'Text labels on signals', d: false, k: 'i', tip: 'Writes a label (BUY / SELL or your own words) next to each marker. Words, font and box are under Readability.' },
+    { id: 'colorBars', t: 'chk', g: 'disp', l: 'Color signal bars', d: false, k: 'i', tip: 'Paints the signal bar in the buy or sell color.' },
     { id: 'shade', t: 'chk', g: 'disp', l: 'Shade background', d: false, k: 'i', tip: 'Tints the chart background behind signal bars.' },
     { id: 'shadeOpacity', t: 'num', g: 'disp', l: 'Shade opacity (%)', d: 20, min: 1, max: 100, k: 'i', show: function (s) { return s.shade; }, tip: 'Strength of the background tint.' },
     { id: 'showPlots', t: 'chk', g: 'disp', l: 'Draw indicator lines', d: true, k: 'i', tip: 'Draws the averages, bands or SAR on the price panel. Oscillators, MACD and DMI always draw in their own panel.' },
     { id: 'plotWidth', t: 'num', g: 'disp', l: 'Line width', d: 2, min: 1, max: 6, k: 'i', tip: 'Thickness of the plotted lines.' },
+    { id: 'plotStyle', t: 'sel', g: 'disp', l: 'Plot style', d: 'Line', k: 'i', o: [['Line', 'Line'], ['Dot', 'Dots'], ['Square', 'Squares'], ['Hash', 'Hash marks'], ['Bar', 'Histogram bars'], ['Cross', 'Crosses']], tip: 'How the main lines are drawn. Histogram bars suit oscillators and MACD. (The SAR always draws as dots.)' },
+    { id: 'dash', t: 'sel', g: 'disp', l: 'Line dash', d: 'Solid', k: 'i', o: [['Solid', 'Solid'], ['Dash', 'Dashed'], ['Dot', 'Dotted'], ['DashDot', 'Dash-dot']], show: function (s) { return s.plotStyle === 'Line'; }, tip: 'Solid, dashed or dotted lines.' },
+    { id: 'plotColor1', t: 'sel', g: 'disp', l: 'Main line color', d: 'DeepSkyBlue', k: 'i', o: COLORS, show: function (s) { return s.sig !== 'candle' && s.sig !== 'psar'; }, tip: 'Color of the first plotted line (fast average, oscillator, MACD, upper band, DI+...).' },
+    { id: 'plotColor2', t: 'sel', g: 'disp', l: 'Second line color', d: 'Goldenrod', k: 'i', o: COLORS, show: twoLines, tip: 'Color of the second line (slow average, signal line, lower band, DI-...).' },
+    { id: 'levelColor', t: 'sel', g: 'disp', l: 'Level line color', d: 'DimGray', k: 'i', o: COLORS, show: hasLevels, tip: 'Color of the horizontal level lines (high / low levels, MACD zero line).' },
+    { id: 'levelDash', t: 'sel', g: 'disp', l: 'Level line dash', d: 'Dash', k: 'i', o: [['Solid', 'Solid'], ['Dash', 'Dashed'], ['Dot', 'Dotted']], show: hasLevels, tip: 'Style of the horizontal level lines.' },
     { id: 'showOnChart', t: 'chk', g: 'disp', l: 'Show the signal indicators on the chart', d: true, k: 's', tip: 'Adds the averages, bands or oscillator the strategy uses to the chart so you can see why it traded.' },
+
+    { id: 'palette', t: 'sel', g: 'read', l: 'Color preset', d: 'standard', k: 'i', o: [['standard', 'Standard - green / red'], ['colorblind', 'Color-blind safe - blue / orange'], ['highcontrast', 'High contrast - lime / magenta'], ['mono', 'Monochrome - white / gray'], ['custom', 'Custom - my own colors']],
+      tip: 'Sets the buy and sell colors in one step. Color-blind safe avoids the red/green pair that about 1 in 12 men cannot tell apart. Picking your own colors switches this to Custom.' },
+    { id: 'fontFamily', t: 'sel', g: 'read', l: 'Font', d: 'Arial', o: ['Arial', 'Segoe UI', 'Verdana', 'Tahoma', 'Consolas'], tip: 'Font for labels and the on-chart table. Verdana and Tahoma are the easiest to read at small sizes; Consolas lines numbers up in columns.' },
+    { id: 'fontSize', t: 'num', g: 'read', l: 'Text size', d: 11, min: 7, max: 28, tip: 'Size of labels and the on-chart table, in points.' },
+    { id: 'labelText', t: 'sel', g: 'read', l: 'Label words', d: 'buysell', k: 'i', o: [['buysell', 'BUY / SELL'], ['longshort', 'LONG / SHORT'], ['arrows', 'Arrows only (up / down)'], ['custom', 'My own words']], show: function (s) { return s.labels; }, tip: 'Text written on signal bars when labels are on.' },
+    { id: 'buyWord', t: 'text', g: 'read', l: 'Buy label', d: 'BUY', k: 'i', show: function (s) { return s.labels && s.labelText === 'custom'; }, tip: 'Your own word for buy signals (up to 20 characters).' },
+    { id: 'sellWord', t: 'text', g: 'read', l: 'Sell label', d: 'SELL', k: 'i', show: function (s) { return s.labels && s.labelText === 'custom'; }, tip: 'Your own word for sell signals (up to 20 characters).' },
+    { id: 'labelPrice', t: 'chk', g: 'read', l: 'Show the price on labels', d: false, k: 'i', show: function (s) { return s.labels; }, tip: 'Adds the signal bar\'s close to the label, formatted for the instrument.' },
+    { id: 'labelBox', t: 'chk', g: 'read', l: 'Dark box behind labels', d: true, k: 'i', show: function (s) { return s.labels; }, tip: 'Keeps labels readable on busy charts and light backgrounds.' },
+    { id: 'labelBoxOpacity', t: 'num', g: 'read', l: 'Label box opacity (%)', d: 60, min: 1, max: 100, k: 'i', show: function (s) { return s.labels && s.labelBox; }, tip: 'How solid the box behind labels is.' },
+
+    { id: 'table', t: 'chk', g: 'tbl', l: 'Show an info table on the chart', d: false, tip: 'A small panel in a corner of the chart with live values: bias, last signal, indicator values, filter status' + ' and, for strategies, position, session P&L, entries and status. Updated on the latest bar only, so it costs nothing on history.' },
+    { id: 'tablePos', t: 'sel', g: 'tbl', l: 'Table position', d: 'TopRight', o: [['TopLeft', 'Top left'], ['TopRight', 'Top right'], ['BottomLeft', 'Bottom left'], ['BottomRight', 'Bottom right']], show: function (s) { return s.table; }, tip: 'Corner of the chart panel.' },
+    { id: 'tblBias', t: 'chk', g: 'tbl', l: 'Row: current bias', d: true, show: function (s) { return s.table; }, tip: 'Bullish, bearish or neutral, from the confirmation direction.' },
+    { id: 'tblLast', t: 'chk', g: 'tbl', l: 'Row: last signal', d: true, show: function (s) { return s.table; }, tip: 'Direction of the last signal and how many bars ago it was.' },
+    { id: 'tblValues', t: 'chk', g: 'tbl', l: 'Row: indicator values', d: true, show: function (s) { return s.table; }, tip: 'Current values of the averages, oscillator, bands or other signal indicator.' },
+    { id: 'tblFilters', t: 'chk', g: 'tbl', l: 'Row: filter status', d: true, show: function (s) { return s.table; }, tip: 'Whether the filters currently allow long and short signals.' },
+    { id: 'tblStats', t: 'chk', g: 'tbl', l: 'Rows: position, session P&L, entries, status', d: true, k: 's', show: function (s) { return s.table; }, tip: 'Live strategy state, including whether a risk limit has stopped it for the session.' },
+    { id: 'tableText', t: 'sel', g: 'tbl', l: 'Text color', d: 'White', o: COLORS, show: function (s) { return s.table; }, tip: 'Color of the table text.' },
+    { id: 'tableBg', t: 'sel', g: 'tbl', l: 'Background color', d: 'Black', o: COLORS, show: function (s) { return s.table; }, tip: 'Color of the table background.' },
+    { id: 'tableOpacity', t: 'num', g: 'tbl', l: 'Background opacity (%)', d: 70, min: 0, max: 100, show: function (s) { return s.table; }, tip: '0 = no background; 100 = solid.' },
 
     { id: 'alerts', t: 'chk', g: 'alr', l: 'Alerts', d: false, tip: 'Real-time alerts in NinjaTrader\'s Alerts Log, with sound. Never fire on historical bars.' },
     { id: 'alertSide', t: 'sel', g: 'alr', l: 'Alert on', d: 'both', o: [['both', 'Buy and sell'], ['buy', 'Buy only'], ['sell', 'Sell only']], show: function (s) { return s.alerts; }, tip: 'Indicators: which signals alert. Strategies: which entries alert (risk-limit stops always alert).' },
-    { id: 'alertSound', t: 'sel', g: 'alr', l: 'Sound', d: 'Alert2.wav', o: SOUNDS, show: function (s) { return s.alerts; }, tip: 'A sound from NinjaTrader\'s own sounds folder. You can type any .wav file name there later in the properties.' },
+    { id: 'alertMode', t: 'sel', g: 'alr', l: 'Alert type', d: 'log', o: [['log', 'Alerts window + sound'], ['sound', 'Sound only']], show: function (s) { return s.alerts; }, tip: 'Alerts window: a line in NinjaTrader\'s Alerts Log with the sound, priority and re-arm time. Sound only: just plays the sound.' },
+    { id: 'alertSound', t: 'sel', g: 'alr', l: 'Buy sound', d: 'Alert2.wav', o: SOUNDS, show: function (s) { return s.alerts; }, tip: 'Sound for buy signals (long entries). From NinjaTrader\'s own sounds folder; any .wav name can be typed later in the properties.' },
+    { id: 'alertSoundSell', t: 'sel', g: 'alr', l: 'Sell sound', d: 'Alert4.wav', o: SOUNDS, show: function (s) { return s.alerts; }, tip: 'A different sound for sell signals (short entries) lets you hear the direction without looking.' },
+    { id: 'alertBuyText', t: 'text', g: 'alr', l: 'Buy alert text', d: 'BUY signal', k: 'i', show: function (s) { return s.alerts; }, tip: 'Words used in buy alerts (up to 40 characters).' },
+    { id: 'alertSellText', t: 'text', g: 'alr', l: 'Sell alert text', d: 'SELL signal', k: 'i', show: function (s) { return s.alerts; }, tip: 'Words used in sell alerts (up to 40 characters).' },
+    { id: 'alertMax', t: 'num', g: 'alr', l: 'Max alerts per session (0 = no limit)', d: 0, min: 0, max: 1000, show: function (s) { return s.alerts; }, tip: 'Stops alerting after this many in one session. Risk-limit alerts from strategies are always sent.' },
     { id: 'alertPriority', t: 'sel', g: 'alr', l: 'Priority', d: 'Medium', o: ['Low', 'Medium', 'High'], show: function (s) { return s.alerts; }, tip: 'Priority shown in the Alerts Log.' },
     { id: 'alertRearm', t: 'num', g: 'alr', l: 'Re-arm (seconds)', d: 60, min: 0, max: 86400, show: function (s) { return s.alerts; }, tip: 'Minimum seconds before the same alert can fire again.' },
     { id: 'alertMsg', t: 'text', g: 'alr', l: 'Message prefix', d: '', show: function (s) { return s.alerts; }, tip: 'Optional text added in front of every alert message, for example your setup name.' },
@@ -194,23 +234,26 @@
     var kind = sp.kind === 's' ? 's' : 'i', d = defaults(kind), o = { kind: kind };
     FIELDS.forEach(function (f) {
       var v = sp[f.id];
-      if (v === undefined || v === null || v === '') v = f.t === 'text' && f.id !== 'name' ? '' : d[f.id];
+      if (v === undefined || v === null || v === '') v = d[f.id];
       if (f.t === 'sel') { var ok = opts(f.o).some(function (x) { return String(x[0]) === String(v); }); o[f.id] = ok ? String(v) : f.d; }
       else if (f.t === 'num') o[f.id] = clamp(v, f.d, f.min, f.max);
       else if (f.t === 'chk') o[f.id] = v === true || v === 'true' || v === 1 || v === 'on';
       else if (f.t === 'time') o[f.id] = hhmm(v, f.d);
-      else o[f.id] = String(v).replace(/[<>"`\\{}\r\n\t]/g, '').replace(/\s+/g, ' ').slice(0, f.id === 'name' ? 60 : 80);   // text fields: no markup, quotes, braces or control characters
+      else o[f.id] = String(v).replace(/[<>"`\\{}\r\n\t]/g, '').replace(/\s+/g, ' ').slice(0, TEXT_MAX[f.id] || 80).trim();   // text fields: no markup, quotes, braces or control characters
+      if (f.t === 'text' && !o[f.id] && f.d) o[f.id] = f.d;
     });
     if (!String(o.name).trim()) o.name = d.name;
     ['fast', 'slow', 'maLen', 'oscLen', 'macdFast', 'macdSlow', 'macdSmooth', 'bandLen', 'nbarLen', 'dmiLen', 'trendStrength', 'fTrendLen', 'fHtfLen', 'fAdxLen',
       'fVolLen', 'fAtrLen', 'cooldown', 'markerOffset', 'shadeOpacity', 'plotWidth', 'alertRearm', 'entryOffset', 'qty', 'maxQty', 'stopTicks', 'swingLen',
-      'swingPad', 'tgtTicks', 'exitAtrLen', 'beTrigger', 'beOffset', 'trailTicks', 'timeStop', 'maxTrades', 'maxConsec', 'barsReq', 'fAtrMin', 'fAtrMax']
+      'swingPad', 'tgtTicks', 'exitAtrLen', 'beTrigger', 'beOffset', 'trailTicks', 'timeStop', 'maxTrades', 'maxConsec', 'barsReq', 'fAtrMin', 'fAtrMax',
+      'fontSize', 'labelBoxOpacity', 'tableOpacity', 'alertMax']
       .forEach(function (k) { o[k] = Math.round(o[k]); });
     if (o.slow <= o.fast) o.slow = o.fast + 1;
     if (o.macdSlow <= o.macdFast) o.macdSlow = o.macdFast + 1;
     var lv = OSC[o.osc];
     if (o.lower >= o.upper) { o.upper = lv.up; o.lower = lv.lo; }
     if (o.sarMax < o.sarAcc) o.sarMax = o.sarAcc;
+    if (PALETTES[o.palette]) { o.buyColor = PALETTES[o.palette][0]; o.sellColor = PALETTES[o.palette][1]; }   // a preset decides both colors; 'custom' keeps the user's
     if (o.entryType === 'stop' && o.entryOffset < 1) o.entryOffset = 1;
     // exits that need a stop distance
     if (o.stopMode === 'none') { o.beOn = false; o.trailMode = 'none'; if (o.tgtMode === 'r') o.tgtMode = 'ticks'; if (o.qtyMode === 'risk') o.qtyMode = 'fixed'; }
@@ -335,6 +378,12 @@
     if (s.side !== 'both') f.push(s.side === 'long' ? 'long side only' : 'short side only');
     return f.length ? f.join('; ') : 'none';
   }
+  function alertText(s) {
+    if (!s.alerts) return 'off';
+    var snd = function (f) { return f ? f.replace('.wav', '') : 'no sound'; };
+    return (s.alertMode === 'sound' ? 'sound only' : 'Alerts window + sound') + ', ' + s.alertSide + ', sounds ' + snd(s.alertSound) + ' / ' + snd(s.alertSoundSell) +
+      (s.alertMode === 'log' ? ', priority ' + s.alertPriority + ', re-arm ' + s.alertRearm + ' s' : '') + (s.alertMax > 0 ? ', max ' + s.alertMax + ' per session' : '');
+  }
   function stopText(s) {
     return { ticks: s.stopTicks + ' ticks', atr: s.stopAtr + ' x ATR(' + s.exitAtrLen + ')', percent: s.stopPct + '% of price', swing: 'beyond the ' + s.swingLen + '-bar swing + ' + s.swingPad + ' ticks', none: 'none' }[s.stopMode];
   }
@@ -347,8 +396,13 @@
     L.push(['Filters', filterText(s)]);
     if (s.kind === 'i') {
       L.push(['Confirmation', x[2]]);
-      L.push(['Display', (s.marker === 'none' ? 'no markers' : s.marker + ' markers ' + s.buyColor + ' / ' + s.sellColor) + (s.labels ? ', BUY/SELL text' : '') + (s.colorBars ? ', coloured bars' : '') + (s.shade ? ', background shading ' + s.shadeOpacity + '%' : '')]);
-      L.push(['Alerts', s.alerts ? 'real-time, ' + s.alertSide + ', ' + (s.alertSound || 'no sound') + ', priority ' + s.alertPriority + ', re-arm ' + s.alertRearm + ' s' : 'off']);
+      var lw = s.labelText === 'custom' ? s.buyWord + ' / ' + s.sellWord : { buysell: 'BUY / SELL', longshort: 'LONG / SHORT', arrows: 'up / down arrows' }[s.labelText];
+      L.push(['Display', (s.marker === 'none' ? 'no markers' : s.marker + ' markers ' + s.buyColor + ' / ' + s.sellColor) + (s.labels ? ', labels "' + lw + '"' + (s.labelPrice ? ' with price' : '') : '') +
+        (s.colorBars ? ', colored bars' : '') + (s.shade ? ', background shading ' + s.shadeOpacity + '%' : '')]);
+      if (s.sig !== 'candle') L.push(['Styling', (s.overlay && !s.showPlots ? 'indicator lines hidden' : s.plotStyle.toLowerCase() + (s.plotStyle === 'Line' ? ' (' + s.dash.toLowerCase() + ')' : '') + ', width ' + s.plotWidth + ', ' + s.plotColor1 + (twoLines(s) ? ' / ' + s.plotColor2 : '')) +
+        (hasLevels(s) ? '; levels ' + s.levelColor + ' ' + s.levelDash.toLowerCase() : '')]);
+      L.push(['Readability', s.fontFamily + ' ' + s.fontSize + ' pt' + (s.labels && s.labelBox ? ', label box ' + s.labelBoxOpacity + '%' : '') + (s.palette !== 'custom' ? ', ' + { standard: 'standard', colorblind: 'color-blind safe', highcontrast: 'high-contrast', mono: 'monochrome' }[s.palette] + ' colors' : '')]);
+      L.push(['Alerts', alertText(s)]);
       L.push(['Signals', 'B4 Signal API v1 (pulses on the signal bar); works with B4 CoPilot Dev as a signal, filter or exit tool']);
       L.push(['Orders', 'None. Indicators publish information only.']);
     } else {
@@ -359,8 +413,10 @@
       L.push(['Risk limits', [s.maxTrades > 0 ? s.maxTrades + ' entries/day' : '', s.dailyLoss > 0 ? 'daily loss $' + s.dailyLoss : '', s.dailyProfit > 0 ? 'daily target $' + s.dailyProfit : '',
         s.maxConsec > 0 ? s.maxConsec + ' losses in a row' : '', s.flatOn ? 'flat at ' + s.flatTime : '', s.exitOnClose ? 'exit at session close' : ''].filter(Boolean).join(', ') || 'none']);
       L.push(['Accounts', s.accounts === 'sim' ? 'Simulation and Playback only (refuses other accounts)' : 'Any account, including live']);
-      L.push(['Alerts', s.alerts ? 'entries (' + s.alertSide + ') and risk-limit stops, ' + (s.alertSound || 'no sound') : 'off']);
+      L.push(['Alerts', s.alerts ? 'entries (' + s.alertSide + ') and risk-limit stops; ' + alertText(s) : 'off']);
     }
+    L.push(['Info table', s.table ? s.tablePos.replace(/([a-z])([A-Z])/, '$1 $2').toLowerCase() + ': ' + [s.tblBias ? 'bias' : '', s.tblLast ? 'last signal' : '', s.tblValues ? 'values' : '', s.tblFilters ? 'filters' : '',
+      s.kind === 's' && s.tblStats ? 'position, P&L, entries, status' : ''].filter(Boolean).join(', ') + '; ' + s.fontFamily + ' ' + s.fontSize + ' pt, ' + s.tableText + ' on ' + s.tableBg + ' ' + s.tableOpacity + '%' : 'off']);
     return L;
   }
   function review(sp) {
@@ -396,18 +452,24 @@
 
     function P(type, name, label, grp, def, tip, extra) {
       extra = extra || {};
-      props.push({ type: type, name: name, label: label, grp: GN[grp], def: def, tip: tip, order: ++order, range: extra.range, nsp: S && extra.nsp !== false && /^(int|double|bool|DateTime)$/.test(type), editor: extra.editor });
+      props.push({ type: type, name: name, label: label, grp: GN[grp], def: def, tip: tip, order: ++order, range: extra.range, editor: extra.editor,
+        nsp: S && extra.nsp !== false && /^(sig|flt|ord|exit|risk)$/.test(grp) && /^(int|double|bool|DateTime)$/.test(type) });
       if (def !== null && def !== undefined) defs.push(name + ' = ' + def + ';');
     }
     function intP(name, label, grp, v, min, tip) { P('int', name, label, grp, String(v), tip, { range: '[Range(' + min + ', int.MaxValue)]' }); }
     function dblP(name, label, grp, v, min, tip) { P('double', name, label, grp, dbl(v), tip, { range: '[Range(' + dbl(min) + ', double.MaxValue)]' }); }
     function boolP(name, label, grp, v, tip) { P('bool', name, label, grp, v ? 'true' : 'false', tip); }
+    function brushP(name, label, grp, color, tip) { P('Brush', name, label, grp, 'Brushes.' + color, tip, { nsp: false }); }
+    function strP(name, label, grp, v, tip) { P('string', name, label, grp, '"' + v + '"', tip, { nsp: false }); }
     function timeP(name, label, grp, v, tip) { P('DateTime', name, label, grp, 'DateTime.Parse("' + v + '", System.Globalization.CultureInfo.InvariantCulture)', tip, { editor: '[PropertyEditor("NinjaTrader.Gui.Tools.TimeEditorKey")]' }); }
-    function plot(color, name, style) {
-      var w = S ? 2 : s.plotWidth;
-      plots.push(style === 'Dash' ? 'AddPlot(new Stroke(Brushes.' + color + ', DashStyleHelper.Dash, ' + w + '), PlotStyle.Line, "' + name + '");'
-        : 'AddPlot(new Stroke(Brushes.' + color + ', ' + w + '), PlotStyle.' + (style || 'Line') + ', "' + name + '");');
+    // color: 1 / 2 = the user's main / second line color, otherwise a fixed brush; fixed: a style this plot always keeps (SAR dots, dashed band middle)
+    function plot(color, name, fixed) {
+      var w = S ? 2 : s.plotWidth, col = color === 1 ? s.plotColor1 : color === 2 ? s.plotColor2 : color;
+      var style = fixed === 'Dash' ? 'Line' : fixed || s.plotStyle;
+      var dash = fixed === 'Dash' ? 'Dash' : fixed ? 'Solid' : (s.plotStyle === 'Line' ? s.dash : 'Solid');
+      plots.push('AddPlot(new Stroke(Brushes.' + col + ', DashStyleHelper.' + dash + ', ' + w + '), PlotStyle.' + style + ', "' + name + '");');
     }
+    function level(value, name) { lines.push('AddLine(new Stroke(Brushes.' + s.levelColor + ', DashStyleHelper.' + s.levelDash + ', 1), ' + value + ', "' + name + '");'); }
     var drawPlots = !S && (!s.overlay || s.showPlots);
 
     // ---- signal
@@ -417,7 +479,7 @@
         fields.push('private ISeries<double> fastMa;', 'private ISeries<double> slowMa;');
         intP('FastPeriod', 'Fast ' + s.maType + ' period', 'sig', s.fast, 1, BY.fast.tip); intP('SlowPeriod', 'Slow ' + s.maType + ' period', 'sig', s.slow, 2, BY.slow.tip);
         init.push('var fastInd = ' + maX(s.maType, 'Close', 'FastPeriod') + ';', 'var slowInd = ' + maX(s.maType, 'Close', 'SlowPeriod') + ';', 'fastMa = fastInd;', 'slowMa = slowInd;'); chart.push('fastInd', 'slowInd');
-        plot('DeepSkyBlue', 'Fast'); plot('Goldenrod', 'Slow'); plotVals.push('fastMa[0]', 'slowMa[0]');
+        plot(1, 'Fast'); plot(2, 'Slow'); plotVals.push('fastMa[0]', 'slowMa[0]');
         warm.push('SlowPeriod + 2', 'FastPeriod + 2');
         body.push('bool sigBuy = CrossAbove(fastMa, slowMa, 1);', 'bool sigSell = CrossBelow(fastMa, slowMa, 1);', 'int direction = fastMa[0] > slowMa[0] ? 1 : fastMa[0] < slowMa[0] ? -1 : 0;');
         break;
@@ -425,7 +487,7 @@
         fields.push('private ISeries<double> ma;');
         intP('MaPeriod', s.maType + ' period', 'sig', s.maLen, 2, BY.maLen.tip);
         init.push('var maInd = ' + maX(s.maType, 'Close', 'MaPeriod') + ';', 'ma = maInd;'); chart.push('maInd');
-        plot('Goldenrod', s.maType); plotVals.push('ma[0]'); warm.push('MaPeriod + 3');
+        plot(1, s.maType); plotVals.push('ma[0]'); warm.push('MaPeriod + 3');
         if (s.sig === 'price_ma') body.push('bool sigBuy = CrossAbove(Close, ma, 1);', 'bool sigSell = CrossBelow(Close, ma, 1);', 'int direction = Close[0] > ma[0] ? 1 : Close[0] < ma[0] ? -1 : 0;');
         else body.push('bool sigBuy = ma[0] > ma[1] && ma[1] <= ma[2];', 'bool sigSell = ma[0] < ma[1] && ma[1] >= ma[2];', 'int direction = ma[0] > ma[1] ? 1 : ma[0] < ma[1] ? -1 : 0;');
         break;
@@ -435,8 +497,8 @@
         intP('OscPeriod', od.l + ' period', 'sig', s.oscLen, 2, BY.oscLen.tip);
         P('double', 'UpperLevel', 'High level', 'sig', dbl(s.upper), BY.upper.tip); P('double', 'LowerLevel', 'Low level', 'sig', dbl(s.lower), BY.lower.tip);
         init.push('var oscInd = ' + od.ind + ';', 'osc = oscInd' + (od.ser || '') + ';'); chart.push('oscInd');
-        plot('DeepSkyBlue', s.osc); plotVals.push('osc[0]'); warm.push('OscPeriod * 2 + 3');
-        lines.push('AddLine(Brushes.DimGray, ' + dbl(s.upper) + ', "High level");', 'AddLine(Brushes.DimGray, ' + dbl(s.lower) + ', "Low level");');
+        plot(1, s.osc); plotVals.push('osc[0]'); warm.push('OscPeriod * 2 + 3');
+        level(dbl(s.upper), 'High level'); level(dbl(s.lower), 'Low level');
         lineInit.push('Lines[0].Value = UpperLevel;', 'Lines[1].Value = LowerLevel;');
         body.push('double mid = (UpperLevel + LowerLevel) / 2.0;');
         if (s.oscMode === 'exit') body.push('bool sigBuy = CrossAbove(osc, LowerLevel, 1);', 'bool sigSell = CrossBelow(osc, UpperLevel, 1);');
@@ -448,7 +510,7 @@
         fields.push('private ISeries<double> macdLine;', 'private ISeries<double> macdSignal;');
         intP('MacdFast', 'MACD fast', 'sig', s.macdFast, 1, BY.macdFast.tip); intP('MacdSlow', 'MACD slow', 'sig', s.macdSlow, 2, BY.macdSlow.tip); intP('MacdSmooth', 'Signal line', 'sig', s.macdSmooth, 1, BY.macdSmooth.tip);
         init.push('var macdInd = MACD(Close, MacdFast, MacdSlow, MacdSmooth);', 'macdLine = macdInd;', 'macdSignal = macdInd.Avg;'); chart.push('macdInd');
-        plot('DeepSkyBlue', 'MACD'); plot('Goldenrod', 'Signal'); plotVals.push('macdLine[0]', 'macdSignal[0]'); lines.push('AddLine(Brushes.DimGray, 0, "Zero");');
+        plot(1, 'MACD'); plot(2, 'Signal'); plotVals.push('macdLine[0]', 'macdSignal[0]'); level('0', 'Zero');
         warm.push('MacdSlow + MacdSmooth + 2');
         if (s.macdMode === 'signal') body.push('bool sigBuy = CrossAbove(macdLine, macdSignal, 1);', 'bool sigSell = CrossBelow(macdLine, macdSignal, 1);', 'int direction = macdLine[0] > macdSignal[0] ? 1 : macdLine[0] < macdSignal[0] ? -1 : 0;');
         else body.push('bool sigBuy = CrossAbove(macdLine, 0, 1);', 'bool sigSell = CrossBelow(macdLine, 0, 1);', 'int direction = macdLine[0] > 0 ? 1 : macdLine[0] < 0 ? -1 : 0;');
@@ -461,7 +523,7 @@
         else if (s.band === 'Keltner') init.push('var bandInd = KeltnerChannel(Close, BandWidth, BandPeriod);', 'upperBand = bandInd.Upper;', 'lowerBand = bandInd.Lower;', 'middleBand = bandInd.Midline;');
         else init.push('var bandInd = DonchianChannel(Close, BandPeriod);', 'upperBand = bandInd.Upper;', 'lowerBand = bandInd.Lower;', 'middleBand = bandInd.Mean;');
         chart.push('bandInd');
-        plot('SteelBlue', 'Upper'); plot('SteelBlue', 'Lower'); plot('SlateGray', 'Middle', 'Dash'); plotVals.push('upperBand[0]', 'lowerBand[0]', 'middleBand[0]');
+        plot(1, 'Upper'); plot(2, 'Lower'); plot('SlateGray', 'Middle', 'Dash'); plotVals.push('upperBand[0]', 'lowerBand[0]', 'middleBand[0]');
         warm.push('BandPeriod + 2');
         var r0 = s.band === 'Donchian' ? 1 : 0;   // Donchian: compare with the previous bar's channel (the current bar is inside it by definition)
         if (s.bandMode === 'breakout') body.push('bool sigBuy = Close[0] > upperBand[' + r0 + '] && Close[1] <= upperBand[' + (r0 + 1) + '];', 'bool sigSell = Close[0] < lowerBand[' + r0 + '] && Close[1] >= lowerBand[' + (r0 + 1) + '];');
@@ -472,7 +534,7 @@
         fields.push('private ISeries<double> rangeHigh;', 'private ISeries<double> rangeLow;');
         intP('LookbackBars', 'Look-back bars', 'sig', s.nbarLen, 2, BY.nbarLen.tip);
         init.push('rangeHigh = MAX(High, LookbackBars);', 'rangeLow = MIN(Low, LookbackBars);');
-        plot('SteelBlue', 'Range high'); plot('SteelBlue', 'Range low'); plotVals.push('rangeHigh[1]', 'rangeLow[1]');
+        plot(1, 'Range high'); plot(2, 'Range low'); plotVals.push('rangeHigh[1]', 'rangeLow[1]');
         warm.push('LookbackBars + 3');
         body.push('bool sigBuy = Close[0] > rangeHigh[1] && Close[1] <= rangeHigh[2];', 'bool sigSell = Close[0] < rangeLow[1] && Close[1] >= rangeLow[2];',
           'double rangeMid = (rangeHigh[1] + rangeLow[1]) / 2.0;', 'int direction = Close[0] > rangeMid ? 1 : Close[0] < rangeMid ? -1 : 0;');
@@ -481,7 +543,7 @@
         fields.push('private ISeries<double> diPlus;', 'private ISeries<double> diMinus;');
         intP('DmiPeriod', 'DMI period', 'sig', s.dmiLen, 2, BY.dmiLen.tip);
         init.push('var dmInd = DM(Close, DmiPeriod);', 'diPlus = dmInd.DiPlus;', 'diMinus = dmInd.DiMinus;'); chart.push('dmInd');
-        plot('LimeGreen', 'DI+'); plot('Red', 'DI-'); plotVals.push('diPlus[0]', 'diMinus[0]'); warm.push('DmiPeriod * 2 + 2');
+        plot(1, 'DI+'); plot(2, 'DI-'); plotVals.push('diPlus[0]', 'diMinus[0]'); warm.push('DmiPeriod * 2 + 2');
         body.push('bool sigBuy = CrossAbove(diPlus, diMinus, 1);', 'bool sigSell = CrossAbove(diMinus, diPlus, 1);', 'int direction = diPlus[0] > diMinus[0] ? 1 : diPlus[0] < diMinus[0] ? -1 : 0;');
         break;
       case 'psar':
@@ -546,12 +608,52 @@
       boolP('UseAlerts', 'Alerts (real-time)', 'alr', true, BY.alerts.tip);
       boolP('AlertOnBuy', S ? 'Alert on long entries' : 'Alert on buy signals', 'alr', s.alertSide !== 'sell', BY.alertSide.tip);
       boolP('AlertOnSell', S ? 'Alert on short entries' : 'Alert on sell signals', 'alr', s.alertSide !== 'buy', BY.alertSide.tip);
-      P('string', 'AlertSound', 'Sound file (in NinjaTrader\\\\sounds)', 'alr', '"' + s.alertSound + '"', BY.alertSound.tip, { nsp: false });
+      boolP('SoundOnly', 'Sound only (no Alerts window line)', 'alr', s.alertMode === 'sound', BY.alertMode.tip);
+      strP('AlertSound', (S ? 'Long entry sound' : 'Buy sound') + ' (file in the sounds folder)', 'alr', s.alertSound, BY.alertSound.tip);
+      strP('AlertSoundSell', (S ? 'Short entry sound' : 'Sell sound') + ' (file in the sounds folder)', 'alr', s.alertSoundSell, BY.alertSoundSell.tip);
+      if (!S) { strP('BuyAlertText', 'Buy alert text', 'alr', esc(s.alertBuyText), BY.alertBuyText.tip); strP('SellAlertText', 'Sell alert text', 'alr', esc(s.alertSellText), BY.alertSellText.tip); }
       P('Priority', 'AlertPriority', 'Priority', 'alr', 'Priority.' + s.alertPriority, BY.alertPriority.tip, { nsp: false });
       intP('AlertRearmSeconds', 'Re-arm (seconds)', 'alr', s.alertRearm, 0, BY.alertRearm.tip);
-      P('string', 'AlertMessage', 'Message prefix', 'alr', '"' + esc(s.alertMsg) + '"', BY.alertMsg.tip, { nsp: false });
+      intP('MaxAlertsPerSession', 'Max alerts per session (0 = no limit)', 'alr', s.alertMax, 0, BY.alertMax.tip);
+      strP('AlertMessage', 'Message prefix', 'alr', esc(s.alertMsg), BY.alertMsg.tip);
+      fields.push('private int alertsThisSession;');
     }
     boolP('LogToOutput', 'Log to the Output window', 'alr', s.logSignals, BY.logSignals.tip);
+    if (!S || s.table) { strP('FontFamilyName', 'Font', 'read', s.fontFamily, BY.fontFamily.tip); intP('TextSize', 'Text size', 'read', s.fontSize, 6, BY.fontSize.tip); }
+    if (s.table) {
+      boolP('ShowTable', 'Show the info table', 'tbl', true, BY.table.tip);
+      P('TextPosition', 'TablePosition', 'Table position', 'tbl', 'TextPosition.' + s.tablePos, BY.tablePos.tip, { nsp: false });
+      boolP('TableShowBias', 'Row: current bias', 'tbl', s.tblBias, BY.tblBias.tip);
+      boolP('TableShowLast', 'Row: last signal', 'tbl', s.tblLast, BY.tblLast.tip);
+      boolP('TableShowValues', 'Row: indicator values', 'tbl', s.tblValues, BY.tblValues.tip);
+      boolP('TableShowFilters', 'Row: filter status', 'tbl', s.tblFilters, BY.tblFilters.tip);
+      if (S) boolP('TableShowStats', 'Rows: position, session P&L, entries, status', 'tbl', s.tblStats, BY.tblStats.tip);
+      brushP('TableTextBrush', 'Table text color', 'tbl', s.tableText, BY.tableText.tip);
+      brushP('TableBackBrush', 'Table background color', 'tbl', s.tableBg, BY.tableBg.tip);
+      intP('TableOpacity', 'Table background opacity (%)', 'tbl', s.tableOpacity, 0, BY.tableOpacity.tip);
+      fields.push('private bool lastSignalWasBuy;');
+    }
+    var FP = function (x) { return 'Instrument.MasterInstrument.FormatPrice(' + x + ')'; };
+    var valuesExpr = {
+      ma_cross: '"Fast " + ' + FP('fastMa[0]') + ' + "   Slow " + ' + FP('slowMa[0]'), price_ma: '"' + s.maType + ' " + ' + FP('ma[0]'), ma_slope: '"' + s.maType + ' " + ' + FP('ma[0]'),
+      osc: '"' + s.osc + ' " + osc[0].ToString("0.00")', macd: '"MACD " + macdLine[0].ToString("0.000") + "   Signal " + macdSignal[0].ToString("0.000")',
+      band: '"Upper " + ' + FP('upperBand[0]') + ' + "   Lower " + ' + FP('lowerBand[0]'), nbar: '"Range " + ' + FP('rangeLow[1]') + ' + " to " + ' + FP('rangeHigh[1]'),
+      dmi: '"DI+ " + diPlus[0].ToString("0.0") + "   DI- " + diMinus[0].ToString("0.0")', psar: '"SAR " + ' + FP('sar[0]'), candle: '"Pattern: " + (sigBuy ? "bullish" : sigSell ? "bearish" : "none")' }[s.sig];
+    // the info table: drawn only on the latest bar (or live), so it costs nothing while history loads
+    function tableLines(stats) {
+      if (!s.table) return [];
+      var L = [II + 'if (ShowTable && (State == State.Realtime || CurrentBar >= Bars.Count - 2))', II + '{',
+        III + 'var table = new System.Text.StringBuilder(Name);',
+        III + 'if (TableShowBias) table.Append("\\nBias: " + (direction > 0 ? "bullish" : direction < 0 ? "bearish" : "neutral"));',
+        III + 'if (TableShowLast) table.Append("\\nLast signal: " + (lastSignalBar < 0 ? "none yet" : (lastSignalWasBuy ? "buy, " : "sell, ") + (CurrentBar - lastSignalBar) + " bars ago"));',
+        III + 'if (TableShowValues) table.Append("\\n" + ' + valuesExpr + ');',
+        III + 'if (TableShowFilters) table.Append("\\nFilters: long " + (longOk ? "open" : "blocked") + ", short " + (shortOk ? "open" : "blocked"));'];
+      if (stats) L.push(III + 'if (TableShowStats) table.Append("\\nPosition: " + Position.MarketPosition + (Position.Quantity > 0 ? " " + Position.Quantity : "") + "\\nSession P&L: " + sessionPnl.ToString("C0")'
+        + ' + "\\nEntries today: " + entriesToday + (MaxEntriesPerDay > 0 ? " of " + MaxEntriesPerDay : "") + "\\nStatus: " + (haltedToday ? "stopped for the session" : pastFlattenTime ? "past the flatten time" : "active"));');
+      L.push(III + 'Draw.TextFixed(this, "B4StudioTable", table.ToString(), TablePosition, TableTextBrush, new SimpleFont(FontFamilyName, TextSize), Brushes.Transparent, TableBackBrush, Math.Max(0, Math.Min(100, TableOpacity)));', II + '}');
+      return L;
+    }
+    var lastSig = s.table ? 'if (goLong || goShort) { lastSignalBar = CurrentBar; lastSignalWasBuy = goLong; }' : 'if (goLong || goShort) lastSignalBar = CurrentBar;';
 
     var out = [];
     var tag = S ? 'strategy' : 'indicator';
@@ -574,10 +676,15 @@
     function genIndicator() {
       var mk = { arrow: ['ArrowUp', 'ArrowDown'], triangle: ['TriangleUp', 'TriangleDown'], dot: ['Dot', 'Dot'], diamond: ['Diamond', 'Diamond'], square: ['Square', 'Square'] }[s.marker];
       if (mk) intP('MarkerOffsetTicks', 'Marker offset (ticks)', 'disp', s.markerOffset, 0, BY.markerOffset.tip);
-      P('Brush', 'BuyBrush', 'Buy colour', 'disp', 'Brushes.' + s.buyColor, BY.buyColor.tip, { nsp: false });
-      P('Brush', 'SellBrush', 'Sell colour', 'disp', 'Brushes.' + s.sellColor, BY.sellColor.tip, { nsp: false });
-      boolP('ShowLabels', 'BUY / SELL text', 'disp', s.labels, BY.labels.tip);
-      boolP('ColorSignalBars', 'Colour signal bars', 'disp', s.colorBars, BY.colorBars.tip);
+      brushP('BuyBrush', 'Buy color', 'disp', s.buyColor, BY.buyColor.tip);
+      brushP('SellBrush', 'Sell color', 'disp', s.sellColor, BY.sellColor.tip);
+      boolP('ShowLabels', 'Text labels on signals', 'disp', s.labels, BY.labels.tip);
+      var words = s.labelText === 'custom' ? [esc(s.buyWord), esc(s.sellWord)] : LABEL_WORDS[s.labelText];
+      strP('BuyLabelText', 'Buy label', 'read', words[0], BY.buyWord.tip); strP('SellLabelText', 'Sell label', 'read', words[1], BY.sellWord.tip);
+      boolP('ShowLabelPrice', 'Show the price on labels', 'read', s.labelPrice, BY.labelPrice.tip);
+      boolP('LabelBox', 'Dark box behind labels', 'read', s.labelBox, BY.labelBox.tip);
+      intP('LabelBoxOpacity', 'Label box opacity (%)', 'read', s.labelBoxOpacity, 1, BY.labelBoxOpacity.tip);
+      boolP('ColorSignalBars', 'Color signal bars', 'disp', s.colorBars, BY.colorBars.tip);
       boolP('ShadeBackground', 'Shade background', 'disp', s.shade, BY.shade.tip);
       intP('ShadeOpacity', 'Shade opacity (%)', 'disp', s.shadeOpacity, 1, BY.shadeOpacity.tip);
       defs.push('B4UseEntrySignals = true;', 'B4UseConfirmations = true;');
@@ -602,23 +709,30 @@
         III + 'b4ConfirmationDirection = new Series<int>(this, MaximumBarsLookBack.Infinite);', II + '}', I + '}', '');
       out.push(I + 'protected override void OnBarUpdate()', I + '{');
       if (configure.length) out.push(II + 'if (BarsInProgress != 0) return;');
+      if (s.alerts) out.push(II + 'if (Bars.IsFirstBarOfSession && IsFirstTickOfBar) alertsThisSession = 0;');
       out.push(II + 'b4BuySignal[0] = false;      // B4 Signal API: pulse, then reset every bar', II + 'b4SellSignal[0] = false;', II + 'b4ConfirmationDirection[0] = 0;');
       if (s.calc === 'tick') out.push(II + 'ClearMarks();   // each tick: a signal that is no longer true on this bar is removed');
       out.push(II + 'if (CurrentBar < ' + warmExpr + ') return;', '');
       body.forEach(function (b) { out.push(II + b); });
       flt.forEach(function (b) { out.push(II + b); });
       if (plots.length) plotVals.forEach(function (v, i) { out.push(II + 'Values[' + i + '][0] = ' + v + ';'); });
-      out.push('', II + 'if (goLong || goShort) lastSignalBar = CurrentBar;',
+      out.push('', II + lastSig,
         II + 'if (B4UseEntrySignals) { b4BuySignal[0] = goLong; b4SellSignal[0] = goShort; }', II + 'if (B4UseConfirmations) b4ConfirmationDirection[0] = direction;');
       var yb = s.overlay ? 'Low[0] - ' + (mk ? 'MarkerOffsetTicks' : '2') + ' * TickSize' : yPanel, ys = s.overlay ? 'High[0] + ' + (mk ? 'MarkerOffsetTicks' : '2') + ' * TickSize' : yPanel;
-      out.push(II + 'if (goLong) Mark(true, ' + yb + ');', II + 'if (goShort) Mark(false, ' + ys + ');', I + '}', '');
+      out.push(II + 'if (goLong) Mark(true, ' + yb + ');', II + 'if (goShort) Mark(false, ' + ys + ');');
+      tableLines(false).forEach(function (x) { out.push(x); });
+      out.push(I + '}', '');
       // Mark
       out.push(I + 'private void Mark(bool isBuy, double y)', I + '{', II + 'Brush b = isBuy ? BuyBrush : SellBrush;', II + 'string tag = (isBuy ? "B4StudioBuy" : "B4StudioSell") + CurrentBar;');
       if (mk) out.push(II + 'if (isBuy) Draw.' + mk[0] + '(this, tag, false, 0, y, b); else Draw.' + mk[1] + '(this, tag, false, 0, y, b);');
-      out.push(II + 'if (ShowLabels) Draw.Text(this, tag + "T", false, isBuy ? "BUY" : "SELL", 0, y, isBuy ? -16 : 16, b, new SimpleFont("Arial", 10), System.Windows.TextAlignment.Center, Brushes.Transparent, Brushes.Transparent, 0);',
+      out.push(II + 'if (ShowLabels) Draw.Text(this, tag + "T", false, (isBuy ? BuyLabelText : SellLabelText) + (ShowLabelPrice ? " " + Instrument.MasterInstrument.FormatPrice(Close[0]) : ""), 0, y, isBuy ? -(TextSize + 10) : TextSize + 10, b,',
+        III + 'new SimpleFont(FontFamilyName, TextSize), System.Windows.TextAlignment.Center, Brushes.Transparent, LabelBox ? Brushes.Black : Brushes.Transparent, LabelBox ? Math.Max(1, Math.Min(100, LabelBoxOpacity)) : 0);',
         II + 'if (ColorSignalBars) BarBrush = b;', II + 'if (ShadeBackground) BackBrush = isBuy ? buyShade : sellShade;');
-      if (s.alerts) out.push(II + 'if (UseAlerts && State == State.Realtime && (isBuy ? AlertOnBuy : AlertOnSell))',
-        III + 'Alert("B4Studio" + (isBuy ? "Buy" : "Sell"), AlertPriority, Prefix() + Name + " " + Instrument.FullName + (isBuy ? " BUY signal" : " SELL signal") + " @ " + Instrument.MasterInstrument.FormatPrice(Close[0]), SoundPath(), AlertRearmSeconds, Brushes.Black, b);');
+      if (s.alerts) out.push(II + 'if (UseAlerts && State == State.Realtime && (isBuy ? AlertOnBuy : AlertOnSell) && (MaxAlertsPerSession <= 0 || alertsThisSession < MaxAlertsPerSession))', II + '{',
+        III + 'alertsThisSession++;',
+        III + 'string message = Prefix() + Name + " " + Instrument.FullName + " " + (isBuy ? BuyAlertText : SellAlertText) + " @ " + Instrument.MasterInstrument.FormatPrice(Close[0]);',
+        III + 'if (SoundOnly) { string sound = SoundPath(isBuy); if (sound.Length > 0) PlaySound(sound); }',
+        III + 'else Alert("B4Studio" + (isBuy ? "Buy" : "Sell"), AlertPriority, message, SoundPath(isBuy), AlertRearmSeconds, Brushes.Black, b);', II + '}');
       out.push(II + 'if (LogToOutput) Print(string.Format("{0} {1} {2} {3} @ {4}", Time[0], Name, Instrument.FullName, isBuy ? "BUY" : "SELL", Instrument.MasterInstrument.FormatPrice(Close[0])));', I + '}', '');
       if (s.calc === 'tick') out.push(I + 'private void ClearMarks()', I + '{', II + 'RemoveDrawObject("B4StudioBuy" + CurrentBar); RemoveDrawObject("B4StudioBuy" + CurrentBar + "T");',
         II + 'RemoveDrawObject("B4StudioSell" + CurrentBar); RemoveDrawObject("B4StudioSell" + CurrentBar + "T");', II + 'BarBrush = null; BackBrush = null;', I + '}', '');
@@ -626,8 +740,6 @@
       helpers();
       out.push(I + '#region Settings (normal properties, so B4 CoPilot Dev can load this indicator)');
       emitProps();
-      out.push(I + '[Browsable(false)]', I + 'public string BuyBrushSerializable { get { return Serialize.BrushToString(BuyBrush); } set { BuyBrush = Serialize.StringToBrush(value); } }', '',
-        I + '[Browsable(false)]', I + 'public string SellBrushSerializable { get { return Serialize.BrushToString(SellBrush); } set { SellBrush = Serialize.StringToBrush(value); } }');
       out.push(I + '#endregion', '', I + '#region B4 Signal API v1 (public contract - keep names and attributes exactly)',
         I + '[NinjaScriptProperty][Display(Name = "B4 Entry Signals Enabled", Order = 41, GroupName = "B4 CoPilot Pro Integration")]', I + 'public bool B4UseEntrySignals { get; set; }', '',
         I + '[NinjaScriptProperty][Display(Name = "B4 Confirmation Signals Enabled", Order = 42, GroupName = "B4 CoPilot Pro Integration")]', I + 'public bool B4UseConfirmations { get; set; }', '',
@@ -700,11 +812,12 @@
         II + 'if (Bars.IsFirstBarOfSession) ResetDay();', II + 'CountClosedTrades();', '');
       body.forEach(function (b) { out.push(II + b); });
       flt.forEach(function (b) { out.push(II + b); });
-      out.push(II + 'if (goLong || goShort) lastSignalBar = CurrentBar;', '');
+      out.push(II + lastSig, '');
       out.push(II + '// ---- session risk limits (checked at bar close)',
         II + 'double sessionPnl = SystemPerformance.AllTrades.TradesPerformance.Currency.CumProfit - dayStartProfit + Position.GetUnrealizedProfitLoss(PerformanceUnit.Currency, Close[0]);',
         II + 'if (!haltedToday)', II + '{', III + 'string breach = RiskBreach(sessionPnl);', III + 'if (breach != null) { haltedToday = true; FlattenAll(breach); Notify(breach + " - no more entries this session", true); }', II + '}',
         II + 'if (FlattenAtTime && !pastFlattenTime && ToTime(Time[0]) >= ToTime(FlattenTime)) { pastFlattenTime = true; FlattenAll("Flatten time"); }');
+      tableLines(true).forEach(function (x) { out.push(x); });
       if (s.accounts === 'sim') out.push(II + 'if (State == State.Realtime && accountBlocked) return;');
       out.push('', II + '// ---- manage an open position', II + 'ManagePosition();', '');
       out.push(II + '// ---- opposite signals', II + 'bool canEnter = !haltedToday && !pastFlattenTime && (MaxEntriesPerDay <= 0 || entriesToday < MaxEntriesPerDay);',
@@ -767,13 +880,15 @@
       out.push(I + 'private void FlattenAll(string reason)', I + '{', II + 'if (Position.MarketPosition == MarketPosition.Long) ExitLong(reason, LongName);',
         II + 'else if (Position.MarketPosition == MarketPosition.Short) ExitShort(reason, ShortName);', I + '}', '');
       out.push(I + 'private void ResetDay()', I + '{', II + 'dayStartProfit = SystemPerformance != null ? SystemPerformance.AllTrades.TradesPerformance.Currency.CumProfit : 0;',
-        II + 'entriesToday = 0;', II + 'lossStreak = 0;', II + 'haltedToday = false;', II + 'pastFlattenTime = false;', I + '}', '');
+        II + 'entriesToday = 0;', II + 'lossStreak = 0;', II + 'haltedToday = false;', II + 'pastFlattenTime = false;', s.alerts ? II + 'alertsThisSession = 0;' : II + '// (no alerts configured)', I + '}', '');
       out.push(I + 'private void CountClosedTrades()', I + '{', II + 'int count = SystemPerformance.AllTrades.Count;', II + 'while (tradesSeen < count)', II + '{',
         III + 'Trade trade = SystemPerformance.AllTrades[tradesSeen++];', III + 'lossStreak = trade.ProfitCurrency < 0 ? lossStreak + 1 : 0;', II + '}', I + '}', '');
       out.push(I + 'private void Notify(string text, bool riskEvent, bool isLong = true)', I + '{',
         II + 'if (LogToOutput) Print(string.Format("{0} {1}: {2}", Time[0], Name, text));');
-      if (s.alerts) out.push(II + 'if (UseAlerts && State == State.Realtime && (riskEvent || (isLong ? AlertOnBuy : AlertOnSell)))',
-        III + 'Alert("B4Studio" + (riskEvent ? "Risk" : isLong ? "Long" : "Short"), riskEvent ? Priority.High : AlertPriority, Prefix() + Name + ": " + text, SoundPath(), AlertRearmSeconds, Brushes.Black, riskEvent ? Brushes.OrangeRed : isLong ? Brushes.LimeGreen : Brushes.Red);');
+      if (s.alerts) out.push(II + 'if (UseAlerts && State == State.Realtime && (riskEvent || ((isLong ? AlertOnBuy : AlertOnSell) && (MaxAlertsPerSession <= 0 || alertsThisSession < MaxAlertsPerSession))))', II + '{',
+        III + 'if (!riskEvent) alertsThisSession++;',
+        III + 'if (SoundOnly) { string sound = SoundPath(isLong); if (sound.Length > 0) PlaySound(sound); }',
+        III + 'else Alert("B4Studio" + (riskEvent ? "Risk" : isLong ? "Long" : "Short"), riskEvent ? Priority.High : AlertPriority, Prefix() + Name + ": " + text, SoundPath(isLong), AlertRearmSeconds, Brushes.Black, riskEvent ? Brushes.OrangeRed : isLong ? Brushes.LimeGreen : Brushes.Red);', II + '}');
       out.push(I + '}', '');
       if (s.accounts === 'sim') out.push(I + 'public static bool IsSimulationAccount(Account a)', I + '{', II + 'if (a == null || string.IsNullOrEmpty(a.Name)) return false;',
         II + 'string n = a.Name;', II + 'return n == "Playback101" || n == "Backtest" || n.StartsWith("Sim", StringComparison.OrdinalIgnoreCase);', I + '}', '');
@@ -786,7 +901,8 @@
     function helpers() {
       if (s.fSess) out.push(I + 'private static bool InWindow(int t, int start, int end)', I + '{', II + 'return start <= end ? t >= start && t <= end : t >= start || t <= end;   // windows across midnight work', I + '}', '');
       if (s.alerts) {
-        out.push(I + 'private string SoundPath()', I + '{', II + 'return string.IsNullOrWhiteSpace(AlertSound) ? "" : System.IO.Path.Combine(NinjaTrader.Core.Globals.InstallDir, "sounds", AlertSound.Trim());', I + '}', '');
+        out.push(I + 'private string SoundPath(bool isBuy)', I + '{', II + 'string file = isBuy ? AlertSound : AlertSoundSell;',
+          II + 'return string.IsNullOrWhiteSpace(file) ? "" : System.IO.Path.Combine(NinjaTrader.Core.Globals.InstallDir, "sounds", file.Trim());', I + '}', '');
         out.push(I + 'private string Prefix()', I + '{', II + 'return string.IsNullOrWhiteSpace(AlertMessage) ? "" : AlertMessage.Trim() + " ";', I + '}', '');
       }
     }
@@ -796,13 +912,14 @@
         out.push(I + (p.nsp ? '[NinjaScriptProperty]' : '') + (p.range || '') + (p.editor || '') + (p.type === 'Brush' ? '[XmlIgnore]' : ''));
         out.push(I + '[Display(Name = "' + p.label + '", Description = "' + esc(p.tip || '') + '", Order = ' + p.order + ', GroupName = "' + p.grp + '")]');
         out.push(I + 'public ' + p.type + ' ' + p.name + ' { get; set; }', '');
+        if (p.type === 'Brush') out.push(I + '[Browsable(false)]', I + 'public string ' + p.name + 'Serializable { get { return Serialize.BrushToString(' + p.name + '); } set { ' + p.name + ' = Serialize.StringToBrush(value); } }', '');
       });
       // remove empty attribute lines
       for (var i = out.length - 1; i >= 0; i--) if (out[i] === I) out.splice(i, 1);
     }
   }
 
-  // ---------------------------------------------------------------- supported-feature check (never silently invent behaviour)
+  // ---------------------------------------------------------------- supported-feature check (never silently invent behavior)
   var UNSUPPORTED = [
     [/\bvwap\b/, 'VWAP', 'NinjaTrader 8 has no built-in VWAP without the Order Flow+ add-on. Use a moving average or bands instead.'],
     [/order.?flow|footprint|\bdelta\b|bid.?ask|imbalance|absorption/, 'Order flow / footprint / delta', 'Needs tick-level order-flow data and Tick Replay. Not generated by this prototype.'],
@@ -848,7 +965,7 @@
       if (s.alerts) T.push(['Alerts', 'In Playback (real-time mode), a signal writes one alert to the Alerts Log with the chosen sound; not again within the re-arm time.']);
     } else {
       T.push(['Backtest', 'Strategy Analyzer, 3+ months: every trade has a stop' + (s.tgtMode !== 'none' ? ' and a target' : '') + ' in the Executions tab.']);
-      T.push(['Order lifecycle', 'Playback on Sim101: entry, stop and target appear together; the stop ' + (s.beOn || s.trailMode !== 'none' ? 'moves only in your favour' : 'stays where it was placed') + '.']);
+      T.push(['Order lifecycle', 'Playback on Sim101: entry, stop and target appear together; the stop ' + (s.beOn || s.trailMode !== 'none' ? 'moves only in your favor' : 'stays where it was placed') + '.']);
       T.push(['Daily limits', 'Lower the daily loss limit to a small value in Playback: the position closes and no new entries are made until the next session.']);
       if (s.flatOn) T.push(['Flatten time', 'In Playback across ' + s.flatTime + ': flat at that time, no entries after it.']);
       if (s.accounts === 'sim') T.push(['Account guard', 'Enable on a non-simulation account (if you have one connected): it must refuse to trade and show the warning.']);
@@ -871,7 +988,7 @@
     chk('Balanced braces and brackets', bal('{', '}') && bal('(', ')') && bal('[', ']'));
     chk('Namespace and class', new RegExp('namespace NinjaTrader\\.NinjaScript\\.' + (s.kind === 's' ? 'Strategies' : 'Indicators') + '\\.B4Studio[\\s\\S]*public class ' + s.className + ' : ' + (s.kind === 's' ? 'Strategy' : 'Indicator')).test(code));
     chk('Warm-up guard before any signal', /if \(CurrentBar < .+\) return;/.test(code));
-    var missing = []; (code.match(/public (?:int|double|bool|DateTime|string|Brush|Priority) (\w+) \{ get; set; \}/g) || []).forEach(function (m) {
+    var missing = []; (code.match(/public (?:int|double|bool|DateTime|string|Brush|Priority|TextPosition) (\w+) \{ get; set; \}/g) || []).forEach(function (m) {
       var n = m.split(' ')[2]; if (!new RegExp('\\b' + n + ' = ').test(code)) missing.push(n); });
     chk('Every setting has a default', missing.length === 0, missing.join(', '));
     var bad = FORBIDDEN.filter(function (f) { return f[0].test(bare); }).map(function (f) { return f[1]; });
