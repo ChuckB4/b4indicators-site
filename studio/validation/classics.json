@@ -1,0 +1,1164 @@
+{
+ "version": 1,
+ "generatedAt": "2026-10-11T16:11:51",
+ "generatorSha256": "a46f26d2d46cd8ccead8361f2316ced2993d11c008fb3c04ce99f7f50496d744",
+ "scope": "Indicator output with Studio default display options and the listed settings, on fixed test bars outside NinjaTrader; compiled against real NinjaTrader 8 assemblies. Not a measure of profitability. \"NinjaTrader runtime verified\" requires a run inside NinjaTrader.",
+ "formulas": {
+  "cl_alligator": {
+   "name": "Williams Alligator",
+   "signal": "cl_alligator",
+   "anchor": null,
+   "codeSha256": "2cb11b857c094b8423f8458a95915fda9c7b3f034d04a8c3f3c9cf43592cd6d6",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "AlligatorJaw 21, AlligatorLips 8, AlligatorTeeth 13",
+    "AlligatorJaw 8, AlligatorLips 3, AlligatorTeeth 5",
+    "defaults"
+   ]
+  },
+  "cl_alma": {
+   "name": "ALMA",
+   "signal": "cl_alma",
+   "anchor": null,
+   "codeSha256": "cee8cabb5e3a2f8273e925bc9f9ac8519871efdc7eb5fd7eede226010a72ef33",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "10 of 10",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "8 of 10 caught (2 reviewed as unable to change output)",
+   "settingsTested": [
+    "AlmaOffset 0.5, AlmaSigma 4, AlmaWindow 21",
+    "AlmaOffset 1.0, AlmaSigma 3, AlmaWindow 5",
+    "defaults"
+   ]
+  },
+  "cl_ao": {
+   "name": "Awesome Oscillator",
+   "signal": "cl_ao",
+   "anchor": null,
+   "codeSha256": "a3e88d0477b4168e61f52fa66c534c5e1d3e95eb4c6259d0b3d900772aac8231",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "5 of 5 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "AoFastPeriod 1, AoSlowPeriod 2",
+    "AoFastPeriod 3, AoSlowPeriod 10",
+    "AoFastPeriod 8, AoSlowPeriod 21",
+    "defaults"
+   ]
+  },
+  "cl_avwap": {
+   "name": "Anchored VWAP (session)",
+   "signal": "cl_avwap",
+   "anchor": "session",
+   "codeSha256": "26ee24bdaee0986e0c772a974648f0d9b30b2174157f0a1608f42446a7e3768b",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "10 of 10",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "defaults"
+   ]
+  },
+  "cl_avwap_month": {
+   "name": "Anchored VWAP (month)",
+   "signal": "cl_avwap",
+   "anchor": "month",
+   "codeSha256": "cf47240457965d741b97592bd8f28a59b09fb49e9b84e300e8b235a4d345c717",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "9 of 9",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "defaults"
+   ]
+  },
+  "cl_avwap_week": {
+   "name": "Anchored VWAP (week)",
+   "signal": "cl_avwap",
+   "anchor": "week",
+   "codeSha256": "b2a9b47d1aa4b252a92078633cb0b3ace01ebba8e26ab1ef70283d92416bd941",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "9 of 9",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "defaults"
+   ]
+  },
+  "cl_chandekroll": {
+   "name": "Chande Kroll Stop",
+   "signal": "cl_chandekroll",
+   "anchor": null,
+   "codeSha256": "a9c367cb0ed42447776d3be63210ca6b57e2e08a8ade2a7f2d997c041b793a68",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "CkMultiplier 0.5, CkPeriod 5, CkSmooth 3",
+    "CkMultiplier 2.0, CkPeriod 20, CkSmooth 5",
+    "CkPeriod 3, CkSmooth 2",
+    "defaults"
+   ]
+  },
+  "cl_chandelier": {
+   "name": "Chandelier Exit",
+   "signal": "cl_chandelier",
+   "anchor": null,
+   "codeSha256": "b3797cae4f8bf26d1f72123870f9b72c83422a9b9938a9446460510e0d057a64",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "ChandelierMultiplier 0.5, ChandelierPeriod 30",
+    "ChandelierMultiplier 1.0, ChandelierPeriod 5",
+    "ChandelierMultiplier 1.5, ChandelierPeriod 10",
+    "ChandelierPeriod 10",
+    "ChandelierPeriod 5",
+    "defaults"
+   ]
+  },
+  "cl_coppock": {
+   "name": "Coppock Curve",
+   "signal": "cl_coppock",
+   "anchor": null,
+   "codeSha256": "66cb3012e8c51d031d487c2197e492a414a961fd05d6f04bb50235fb0d6b36a8",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "11 of 11",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "9 of 9 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "CoppockLongRoc 10, CoppockShortRoc 5, CoppockWma 4",
+    "CoppockLongRoc 20, CoppockShortRoc 15, CoppockWma 12",
+    "CoppockLongRoc 5, CoppockShortRoc 3, CoppockWma 4",
+    "CoppockLongRoc 6, CoppockShortRoc 9, CoppockWma 5",
+    "defaults"
+   ]
+  },
+  "cl_crsi": {
+   "name": "Connors RSI",
+   "signal": "cl_crsi",
+   "anchor": null,
+   "codeSha256": "f61f682aabf528e65f2684a9eeaa5feb5e334e75bf422675df2e87a114f294f1",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "CANNOT VERIFY"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "10 of 11",
+   "failedCases": [],
+   "cannotVerify": [
+    "single1_default"
+   ],
+   "mutation": "9 of 10 caught (1 reviewed as unable to change output)",
+   "settingsTested": [
+    "CrsiHigh 80, CrsiLow 20, CrsiRankPeriod 20",
+    "CrsiRankPeriod 10",
+    "CrsiRankPeriod 20",
+    "CrsiRankPeriod 30, CrsiRsiPeriod 14, CrsiStreakPeriod 1",
+    "CrsiRankPeriod 50, CrsiRsiPeriod 2, CrsiStreakPeriod 3",
+    "defaults"
+   ]
+  },
+  "cl_elderray": {
+   "name": "Elder-Ray",
+   "signal": "cl_elderray",
+   "anchor": null,
+   "codeSha256": "556bf38e53282ecbec3aa1e2c22bf003887084dc106310076ecde5984869ec2b",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "ElderRayEma 21",
+    "ElderRayEma 30",
+    "ElderRayEma 8",
+    "defaults"
+   ]
+  },
+  "cl_er": {
+   "name": "Kaufman Efficiency Ratio",
+   "signal": "cl_er",
+   "anchor": null,
+   "codeSha256": "8b2aff74e07e548dffa747f43236d353bfd4b5f20da0b1c57d239016758ab932",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "ErPeriod 14, ErThreshold 0.4",
+    "ErPeriod 1",
+    "ErPeriod 20, ErThreshold 0.5",
+    "ErPeriod 5, ErThreshold 0.2",
+    "defaults"
+   ]
+  },
+  "cl_fractals": {
+   "name": "Williams Fractals",
+   "signal": "cl_fractals",
+   "anchor": null,
+   "codeSha256": "6236c24aa545355df9616ddee406e4318dee58b1b4d989cc534576967d7239c8",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "18 of 18",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "FractalBars 1",
+    "FractalBars 3",
+    "FractalBars 5",
+    "defaults"
+   ]
+  },
+  "cl_impulse": {
+   "name": "Elder Impulse",
+   "signal": "cl_impulse",
+   "anchor": null,
+   "codeSha256": "7f34eecbc6930e8eead56214c7872eb2858a1a24b7893fa3b08796f7db1f5b88",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "ImpulseEma 21",
+    "ImpulseEma 50",
+    "ImpulseEma 8",
+    "defaults"
+   ]
+  },
+  "cl_itrend": {
+   "name": "Ehlers Instantaneous Trendline",
+   "signal": "cl_itrend",
+   "anchor": null,
+   "codeSha256": "43e31ed07ef0d7c40d20bcb842f3a3709422c5129a81b73998868705a021c910",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "10 of 10",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "9 of 10 caught (1 reviewed as unable to change output)",
+   "settingsTested": [
+    "TrendAlpha 0.03",
+    "TrendAlpha 0.2",
+    "defaults"
+   ]
+  },
+  "cl_kst": {
+   "name": "Know Sure Thing (KST)",
+   "signal": "cl_kst",
+   "anchor": null,
+   "codeSha256": "5c20c80dc642d0e6145ecff536fa04130442f95310099b4e9ead2ceb0e17373a",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "11 of 11",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "7 of 7 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "KstSignalPeriod 1",
+    "KstSignalPeriod 20",
+    "KstSignalPeriod 5",
+    "defaults"
+   ]
+  },
+  "cl_laguerre": {
+   "name": "Laguerre RSI",
+   "signal": "cl_laguerre",
+   "anchor": null,
+   "codeSha256": "fcf2fcc7ce932d3bf14685565cd70a3b651f3c8cb5f70f869a4b37ed4c94cad4",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "11 of 11",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "LaguerreGamma 0.2",
+    "LaguerreGamma 0.8, LaguerreHigh 0.85, LaguerreLow 0.15",
+    "LaguerreGamma 1.5",
+    "defaults"
+   ]
+  },
+  "cl_mcginley": {
+   "name": "McGinley Dynamic",
+   "signal": "cl_mcginley",
+   "anchor": null,
+   "codeSha256": "0f206abc8a066302c942d5e7ae9d9a516ccdf7d0a4b44f5435f3a21c83c24195",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "21 of 21",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "McGinleyK 1.0, McGinleyPeriod 10",
+    "McGinleyK 5.0",
+    "McGinleyPeriod 200",
+    "McGinleyPeriod 2",
+    "McGinleyPeriod 500",
+    "McGinleyPeriod 50",
+    "McGinleyPeriod 8",
+    "defaults"
+   ]
+  },
+  "cl_mcginley_domain": {
+   "name": "cl_mcginley_domain",
+   "signal": "cl_mcginley",
+   "anchor": null,
+   "codeSha256": "0f206abc8a066302c942d5e7ae9d9a516ccdf7d0a4b44f5435f3a21c83c24195",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "19 of 19",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "McGinleyK 0.01",
+    "McGinleyK 0.05",
+    "McGinleyK 1.0, McGinleyPeriod 30",
+    "McGinleyPeriod 1",
+    "McGinleyPeriod 5",
+    "defaults"
+   ]
+  },
+  "cl_squeeze": {
+   "name": "Bollinger / Keltner squeeze",
+   "signal": "cl_squeeze",
+   "anchor": null,
+   "codeSha256": "508040787c0d6d10debedeeedc9b8fd0fb296f4f41356b89f2b93eb04ddc7e17",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "15 of 15",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "SqueezeBollinger 1.0, SqueezeKeltner 1.5, SqueezeLength 14",
+    "SqueezeBollinger 1.0, SqueezeKeltner 2.0, SqueezeLength 20",
+    "SqueezeBollinger 1.5, SqueezeKeltner 2.0, SqueezeLength 10",
+    "SqueezeBollinger 2.5, SqueezeKeltner 1.0, SqueezeLength 30",
+    "SqueezeLength 10",
+    "SqueezeLength 5",
+    "SqueezeLength 8",
+    "defaults"
+   ]
+  },
+  "cl_stc": {
+   "name": "Schaff Trend Cycle",
+   "signal": "cl_stc",
+   "anchor": null,
+   "codeSha256": "c2e9224427b61ec960f2e17098928d1590242b37035da555220592f87342528c",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "10 of 10",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "StcCycle 10, StcFast 12, StcSlow 26",
+    "StcCycle 3, StcFast 3, StcSlow 6",
+    "StcCycle 5, StcFast 5, StcSlow 10",
+    "StcCycle 5, StcHigh 80, StcLow 20",
+    "defaults"
+   ]
+  },
+  "cl_supersmoother": {
+   "name": "Ehlers Super Smoother",
+   "signal": "cl_supersmoother",
+   "anchor": null,
+   "codeSha256": "057856544c9d64f3ce2889255564615b49c255875c82dd3aadb57185a278b04d",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "10 of 10",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "10 of 10 caught (0 reviewed as unable to change output)",
+   "settingsTested": [
+    "SmootherPeriod 20",
+    "SmootherPeriod 5",
+    "defaults"
+   ]
+  },
+  "cl_supertrend": {
+   "name": "SuperTrend",
+   "signal": "cl_supertrend",
+   "anchor": null,
+   "codeSha256": "5058c2c043477866a4b153cfde3bf23f86ceadef3149f8aeafdab522050c2947",
+   "stages": [
+    {
+     "stage": "Generated",
+     "result": "PASS"
+    },
+    {
+     "stage": "Specification reviewed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mathematical tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Mutation tests passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "Static checks passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader compilation passed",
+     "result": "PASS"
+    },
+    {
+     "stage": "NinjaTrader runtime verified",
+     "result": "NOT RUN"
+    },
+    {
+     "stage": "Approved for release",
+     "result": "NOT APPROVED"
+    }
+   ],
+   "cases": "12 of 12",
+   "failedCases": [],
+   "cannotVerify": [],
+   "mutation": "9 of 10 caught (1 reviewed as unable to change output)",
+   "settingsTested": [
+    "StMultiplier 1.5, StPeriod 5",
+    "StMultiplier 2.0, StPeriod 3",
+    "StMultiplier 4.0, StPeriod 20",
+    "defaults"
+   ]
+  }
+ }
+}

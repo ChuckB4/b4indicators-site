@@ -158,7 +158,7 @@
     { id: 'almaOff', t: 'num', g: 'sig', l: 'Offset', d: 0.85, min: 0, max: 1, step: 0.01, show: function (s) { return s.sig === 'cl_alma'; }, tip: 'Where the weight peaks: 0.85 favours recent bars (smoother 0 ... responsive 1).' },
     { id: 'almaSig', t: 'num', g: 'sig', l: 'Sigma', d: 6, min: 0.1, max: 50, step: 0.1, show: function (s) { return s.sig === 'cl_alma'; }, tip: 'Width of the Gaussian: higher = flatter weights.' },
     { id: 'mcgPeriod', t: 'num', g: 'sig', l: 'Period', d: 14, min: 1, max: 500, show: function (s) { return s.sig === 'cl_mcginley'; }, tip: 'Comparable to the length of a moving average.' },
-    { id: 'mcgK', t: 'num', g: 'sig', l: 'Constant k', d: 0.6, min: 0.01, max: 5, step: 0.01, show: function (s) { return s.sig === 'cl_mcginley'; }, tip: 'McGinley\'s adjustment constant (0.6 is standard).' },
+    { id: 'mcgK', t: 'num', g: 'sig', l: 'Constant k', d: 0.6, min: 0.01, max: 5, step: 0.01, show: function (s) { return s.sig === 'cl_mcginley'; }, tip: 'McGinley\'s adjustment constant (0.6 is standard). k x period is kept at 1 or more.' },
     { id: 'sqLen', t: 'num', g: 'sig', l: 'Length', d: 20, min: 2, max: 500, show: function (s) { return s.sig === 'cl_squeeze'; }, tip: 'Period of the Bollinger Bands, Keltner Channel and momentum.' },
     { id: 'sqBb', t: 'num', g: 'sig', l: 'Bollinger width (std dev)', d: 2, min: 0.1, max: 10, step: 0.1, show: function (s) { return s.sig === 'cl_squeeze'; }, tip: 'Bollinger Band standard deviations.' },
     { id: 'sqKc', t: 'num', g: 'sig', l: 'Keltner width', d: 1.5, min: 0.1, max: 10, step: 0.1, show: function (s) { return s.sig === 'cl_squeeze'; }, tip: 'Keltner Channel multiplier. A squeeze is on while the Bollinger Bands sit inside the Keltner Channel.' },
@@ -354,6 +354,9 @@
     if (o.lgHigh <= o.lgLow) { o.lgLow = 0.2; o.lgHigh = 0.8; }
     if (o.stcSlow <= o.stcFast) o.stcSlow = o.stcFast + 1;
     if (o.aoSlow <= o.aoFast) o.aoSlow = o.aoFast + 1;
+    // McGinley: k x period must be at least 1 (below 1 the published formula overshoots the price on every move and becomes
+    // numerically unstable); raise k to the smallest 0.01 step that satisfies it
+    if (o.mcgK * o.mcgPeriod < 1) o.mcgK = Math.min(5, Math.ceil(100 / o.mcgPeriod - 1e-9) / 100);
     if (/^(of|l2)_/.test(o.sig)) o.calc = 'bar';   // order flow and depth are evaluated at bar close
     return o;
   }
@@ -588,6 +591,11 @@
     }
     if (s.sig === 'cl_fractals') add('info', 'A fractal is confirmed ' + s.frBars + ' bars after its high or low, so breakouts are signalled on confirmed levels only (no repainting).');
     if (s.sig === 'cl_alligator') add('info', 'The Alligator lines are drawn forward in the original; here each bar shows the values the original would draw on it, so nothing looks ahead.');
+    if (s.sig === 'cl_mcginley') {
+      var mcgRawK = Number(sp && sp.mcgK), mcgRawN = Math.round(Number(sp && sp.mcgPeriod));
+      if (isFinite(mcgRawK) && isFinite(mcgRawN) && mcgRawK * mcgRawN < 1) add('warn', 'Constant k was raised to ' + s.mcgK + ' so that k x period is at least 1. Below 1 the McGinley formula jumps past the price on every move and becomes unstable.');
+      add('info', 'McGinley: bars with a price at or below zero are treated as missing (the line holds and no signal is given), and the line never moves past the close on a very large one-bar move.');
+    }
     if (s.sig === 'cl_squeeze') add('info', 'NinjaTrader\'s Keltner Channel uses the average bar range, which can differ slightly from ATR-based versions on other platforms.');
     if (/^l2_/.test(s.sig)) add(s.kind === 's' ? 'high' : 'warn', 'Level 2 has no history: signals appear only in real time or in Playback of Market Replay data that includes depth. The Strategy Analyzer and historical bars show no signals.');
     if (s.fHtf) add('info', 'The higher-timeframe filter needs enough history: load at least a few days for minute timeframes, a year for daily.');
@@ -811,7 +819,8 @@
         case 'cl_supertrend':
           intP('StPeriod', 'ATR period', 'sig', s.stPeriod, 1, BY.stPeriod.tip); dblP('StMultiplier', 'ATR multiplier', 'sig', s.stMult, 0.1, BY.stMult.tip);
           fields.push('private ISeries<double> stAtr;'); init.push('stAtr = ATR(StPeriod);'); ser('stUpper', 'stLower', 'stTrend', 'stLine');
-          preBody.push('if (CurrentBar == 0) { stUpper[0] = Median[0]; stLower[0] = Median[0]; stTrend[0] = 1; stLine[0] = Median[0]; }', 'else', '{',
+          // first bar: the published definition starts both final bands at the basic bands (median +/- multiplier x ATR), not at the median
+          preBody.push('if (CurrentBar == 0) { stUpper[0] = Median[0] + StMultiplier * stAtr[0]; stLower[0] = Median[0] - StMultiplier * stAtr[0]; stTrend[0] = 1; stLine[0] = stLower[0]; }', 'else', '{',
             '    double stBand = StMultiplier * stAtr[0];', '    double stUp = Median[0] + stBand, stDown = Median[0] - stBand;',
             '    stUpper[0] = stUp < stUpper[1] || Close[1] > stUpper[1] ? stUp : stUpper[1];', '    stLower[0] = stDown > stLower[1] || Close[1] < stLower[1] ? stDown : stLower[1];',
             '    stTrend[0] = stTrend[1] > 0 ? (Close[0] < stLower[0] ? -1 : 1) : (Close[0] > stUpper[0] ? 1 : -1);', '    stLine[0] = stTrend[0] > 0 ? stLower[0] : stUpper[0];', '}');
@@ -989,10 +998,16 @@
           break;
         case 'cl_mcginley':
           intP('McGinleyPeriod', 'Period', 'sig', s.mcgPeriod, 1, BY.mcgPeriod.tip); dblP('McGinleyK', 'Constant k', 'sig', s.mcgK, 0.01, BY.mcgK.tip); ser('mdValue');
-          // re-seed on the first bar and whenever the formula leaves its domain (a close or previous value at or below zero would divide by zero)
-          preBody.push('if (CurrentBar == 0 || mdValue[1] <= 0 || Close[0] <= 0) mdValue[0] = Close[0];',
-            'else mdValue[0] = mdValue[1] + (Close[0] - mdValue[1]) / (McGinleyK * McGinleyPeriod * Math.Pow(Close[0] / mdValue[1], 4));');
+          // the formula is defined only for a close and a previous line above zero: a bar outside that domain is treated as missing
+          // data (the line holds), and the step weight 1 / (k * period * (close / line)^4) is limited to 1 so the line never moves past
+          // the close (above 1 it overshoots, and with k * period < 1 it becomes unstable). Validated: known_answer defects KA-001 / KA-003.
+          preBody.push('if (CurrentBar == 0) mdValue[0] = Close[0];',
+            'else if (Close[0] <= 0) mdValue[0] = mdValue[1];',
+            'else if (mdValue[1] <= 0) mdValue[0] = Close[0];',
+            'else { double mdDen = McGinleyK * McGinleyPeriod * Math.Pow(Close[0] / mdValue[1], 4); mdValue[0] = mdDen >= 1.0 ? mdValue[1] + (Close[0] - mdValue[1]) / mdDen : Close[0]; }');
           plot(1, 'McGinley Dynamic'); plotVals.push('mdValue[0]'); warm.push('McGinleyPeriod + 2'); priceCross('mdValue');
+          // no signal or direction while the close or the line is outside the formula's domain (now or on the previous bar)
+          body.push('if (!(Close[0] > 0 && Close[1] > 0 && mdValue[0] > 0 && mdValue[1] > 0)) { sigBuy = false; sigSell = false; direction = 0; }');
           break;
         case 'cl_squeeze':
           intP('SqueezeLength', 'Length', 'sig', s.sqLen, 2, BY.sqLen.tip); dblP('SqueezeBollinger', 'Bollinger width (std dev)', 'sig', s.sqBb, 0.1, BY.sqBb.tip); dblP('SqueezeKeltner', 'Keltner width', 'sig', s.sqKc, 0.1, BY.sqKc.tip);

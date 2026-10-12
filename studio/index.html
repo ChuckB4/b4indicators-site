@@ -140,6 +140,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
   <p class="hint">Reads keywords such as EMA, RSI, MACD, Bollinger, breakout, stop 12 ticks, 2R target, daily loss 500, long only. It is not AI: check every choice below.</p>
   <div id="unsup"></div>
   <div class="step" style="margin-top:16px">2 · Settings</div>
+  <div class="banner" id="fieldAdjust" role="status" hidden></div>
   <div id="groups"></div>
 </div>
 
@@ -176,6 +177,7 @@ dialog.gate{border:0;border-radius:18px;padding:0;width:min(460px,calc(100vw - 3
     <div class="step">5 · Validation</div><h2>Build status - each step is earned separately</h2>
     <ol class="ladder" id="ladder"></ol>
     <div class="sec"><h3>Static checks on this revision</h3><table class="checks" id="checks"></table></div>
+    <div class="sec" id="formulaVal" hidden></div>
     <p class="hint">A compiled file is not proof of correct trading behavior, and a simulation result is not proof of future results.</p>
   </section>
 
@@ -258,6 +260,10 @@ function onField(f){
   if(f.id==='osc'){ raw.upper=S.OSC[raw.osc].up; raw.lower=S.OSC[raw.osc].lo; $('f_upper').value=raw.upper; $('f_lower').value=raw.lower; }
   if(f.id==='buyColor'||f.id==='sellColor'){ raw.palette='custom'; cur.touched.palette=1; }   // picking a color by hand means custom colors
   cur.touched[f.id]=1; cur.spec=S.normalize(raw); cur.confirmed={}; persist(); refresh(f.t==='sel'||f.t==='chk');
+  // a number the generator corrected (range, or a rule such as McGinley k x period >= 1) is shown as corrected, with the reason
+  var adj=[]; S.FIELDS.forEach(function(g){ if(g.t!=='num') return; var el=$('f_'+g.id); if(!el||el.value==='') return;
+    if(Number(el.value)!==Number(cur.spec[g.id])){ adj.push(g.l+' was set to '+cur.spec[g.id]+(g.id==='mcgK'?' so that k x period is at least 1 (below 1 the McGinley formula jumps past the price and becomes unstable).':' (allowed range or a rule between settings).')); el.value=cur.spec[g.id]; } });
+  var box=$('fieldAdjust'); if(box){ box.textContent=adj.join(' '); box.hidden=!adj.length; }
 }
 
 // ---------------------------------------------------------------- render
@@ -311,11 +317,46 @@ function renderValid(){
   var L=[['Specification complete', r?'Reviewed and confirmed for revision '+r.n+'.':'Confirm your choices on the Review tab.', r?'ok':'no'],
     ['Code generated', r?'Revision '+r.n+' created '+new Date(r.at).toLocaleString()+'. Not compiled.':'Not generated yet.', r?'ok':'no'],
     ['Static checks passed', r?(allPass?checks.length+' structural, safety, API and IP checks passed in your browser.':'Some checks failed - see below.'):'Runs on each revision.', r?(allPass?'ok':'bad'):'no'],
-    ['Compilation passed', 'Not run for this file. The generator\'s templates (72 variants) compiled with 0 errors and 0 warnings against NinjaTrader 8 on 2026-10-10. Compile this file yourself (F5).', 'no'],
+    ['Compilation passed', 'Not run for this file. The generator\'s templates (210 variants) compiled with 0 errors and 0 warnings against NinjaTrader 8 on 2026-10-11. Compile this file yourself (F5).', 'no'],
     ['Behavioral tests passed', 'Not run. Follow the test plan on the Review tab and record your results.', 'no'],
     ['Forward simulation passed', r&&r.spec.kind==='s'?'Not run. At least 20 sessions on a simulation account before any live use.':'Not run.', 'no']];
   $('ladder').innerHTML=L.map(function(x,i){ var lab=x[2]==='ok'?'<span class="status ok">Earned</span>':x[2]==='bad'?'<span class="status bad">Failed</span>':'<span class="status no">Not earned</span>'; return '<li class="'+x[2]+'"><span class="n">'+(i+1)+'</span><span><b>'+x[0]+'</b><small>'+esc(x[1])+'</small></span>'+lab+'</li>'; }).join('');
   $('checks').innerHTML = r ? checks.map(function(c){ return '<tr><td class="'+(c.pass?'p':'f')+'">'+(c.pass?'PASS':'FAIL')+'</td><td>'+esc(c.name)+(c.detail?' <span style="color:#7a8c97">('+esc(c.detail)+')</span>':'')+'</td></tr>'; }).join('') : '<tr><td></td><td>No revision yet.</td></tr>';
+  renderFormulaVal(r);
+}
+// Formula validation: evidence from the B4 known-answer suite for the 20 classic formulas (validation/classics.json, produced by
+// the offline validation gates - nothing runs on this site). Shown only as recorded; failed and unrun stages stay visible.
+var FV={data:null,genSha:null,state:'idle'};
+function loadFormulaVal(){
+  if(FV.state!=='idle') return; FV.state='loading';
+  var hex=function(buf){ return Array.prototype.map.call(new Uint8Array(buf),function(b){return ('0'+b.toString(16)).slice(-2);}).join(''); };
+  Promise.all([
+    fetch('validation/classics.json',{cache:'no-cache'}).then(function(x){ if(!x.ok) throw 0; return x.json(); }),
+    fetch('gen.js',{cache:'no-cache'}).then(function(x){ return x.arrayBuffer(); }).then(function(b){ return crypto.subtle.digest('SHA-256',b); }).then(hex).catch(function(){ return null; })
+  ]).then(function(v){ FV.data=v[0]; FV.genSha=v[1]; FV.state='ok'; renderFormulaVal(lastRev()); })
+    .catch(function(){ FV.state='missing'; renderFormulaVal(lastRev()); });
+}
+function renderFormulaVal(r){
+  var box=$('formulaVal'); if(!box) return;
+  var sig=r&&r.spec&&r.spec.sig;
+  if(!sig||sig.indexOf('cl_')!==0){ box.hidden=true; return; }
+  box.hidden=false;
+  if(FV.state==='idle'||FV.state==='loading'){ loadFormulaVal(); box.innerHTML='<h3>Formula validation</h3><p class="hint">Loading the validation record…</p>'; return; }
+  var key=sig==='cl_avwap'&&r.spec.avAnchor&&r.spec.avAnchor!=='session'?'cl_avwap_'+r.spec.avAnchor:sig;
+  var f=FV.state==='ok'&&FV.data.formulas&&FV.data.formulas[key];
+  if(!f){ box.innerHTML='<h3>Formula validation</h3><p class="hint">No validation record is available for this formula.</p>'; return; }
+  var same=FV.genSha&&FV.genSha===FV.data.generatorSha256;
+  var lab=function(x){ return x==='PASS'||x==='APPROVED'?'<span class="status ok">'+esc(x==='APPROVED'?'Approved':'Passed')+'</span>':x==='FAIL'?'<span class="status bad">Failed</span>':'<span class="status no">'+esc(x==='NOT APPROVED'?'Not approved':x==='CANNOT VERIFY'?'Cannot verify':x==='STALE'?'Out of date':'Not run')+'</span>'; };
+  var rows=f.stages.map(function(s,i){ var ok=s.result==='PASS'||s.result==='APPROVED', bad=s.result==='FAIL';
+    return '<li class="'+(ok?'ok':bad?'bad':'no')+'"><span class="n">'+(i+1)+'</span><span><b>'+esc(s.stage)+'</b></span>'+lab(s.result)+'</li>'; }).join('');
+  var notes=[];
+  if(f.failedCases&&f.failedCases.length) notes.push('Failed cases: '+f.failedCases.join(', ')+'.');
+  if(f.cannotVerify&&f.cannotVerify.length) notes.push('Cannot verify outside NinjaTrader: '+f.cannotVerify.join(', ')+'.');
+  box.innerHTML='<h3>Formula validation · '+esc(f.name)+'</h3>'+
+    (same?'':'<div class="banner">'+(FV.genSha?'This record was made for a different version of the Studio generator than the one on this page, so it does not describe this code.':'The generator version could not be confirmed in this browser.')+'</div>')+
+    '<ol class="ladder">'+rows+'</ol>'+
+    '<p class="hint">Mathematical tests: '+esc(f.cases)+' cases passed against an independent reference calculation'+(f.mutation?'; deliberately wrong formulas: '+esc(f.mutation):'')+'. '+esc(notes.join(' '))+
+    ' Covers the formula with the settings tested ('+esc(f.settingsTested.join('; '))+') on fixed test bars'+(r.spec.kind==='s'?', tested as an indicator - strategy order handling is not covered':'')+'. '+esc(FV.data.scope)+' Record of '+esc(new Date(FV.data.generatedAt).toLocaleDateString())+'.</p>';
 }
 function renderHist(){
   var R=cur.revisions.slice().reverse();
@@ -418,7 +459,7 @@ function specJson(r){ return JSON.stringify({generator:r.generator, revision:r.n
     status:{specificationComplete:true, codeGenerated:true, staticChecksPassed:r.checks.every(function(c){return c.pass;}), compilationPassed:'not run', behavioralTestsPassed:'not run', forwardSimulationPassed:'not run'}}, null, 2); }
 function gated(act){ var r=lastRev(); if(!r && act!=='unlock') return showTab('review');
   if(unlocked()){ ACTIONS[act].run(r); return; }
-  persist(); B4Gate.remember({act:act, project:cur.id}); $('gate').showModal(); }
+  persist(); B4Gate.remember({act:act, project:cur.id}); B4Gate.open($('gate')); }
 function finishReturn(){   // called once on load
   var p=B4Gate.pending(), back=B4Gate.justReturned(); B4Gate.cleanUrl();
   if(!back || !p || !ACTIONS[p.act]) return;
@@ -432,7 +473,7 @@ $('copy').onclick=function(){ gated('copy'); };
 $('dl').onclick=function(){ gated('download'); };
 $('dlSpec').onclick=function(){ gated('spec'); };
 $('unlock').onclick=function(){ gated('unlock'); };
-$('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) $('gate').close(); });
+$('gate').addEventListener('click',function(e){ if(e.target.closest('[data-gate-close]')||e.target===$('gate')) B4Gate.close($('gate')); });
 
 // ---------------------------------------------------------------- toolbar, tabs, description
 function showTab(t){ tab=t; document.querySelectorAll('[role=tab]').forEach(function(b){ var on=b.dataset.tab===t; b.setAttribute('aria-selected',on); b.tabIndex=on?0:-1; $('p-'+b.dataset.tab).hidden=!on; }); }
